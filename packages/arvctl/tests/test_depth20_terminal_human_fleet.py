@@ -31,7 +31,9 @@ class HumanFenceTests(RunnerTests):
             self.service.write(sid, text='human', actor='operator', attachment=lease['attachment'])
             self.service.detach(sid, actor='operator', attachment=lease['attachment'])
             return {'action': 'prompt', 'text': 'STALE'}
-        with patch('arvyx_control.cockpit_terminal_runner.os.write') as write:
+        # The pump thread compares the write count with 0; a bare MagicMock there raises
+        # TypeError in that thread and leaves the session's pump dead for later tests.
+        with patch('arvyx_control.cockpit_terminal_runner.os.write', side_effect=lambda fd, data: len(data)) as write:
             with self.assertRaises(ValueError):
                 step(self.service, sid, actor='rowan', driver=driver)
             self.assertFalse(any(c.args[1] in (b'STALE', b'\r') for c in write.call_args_list))

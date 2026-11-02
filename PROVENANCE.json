@@ -32,8 +32,8 @@
       ]
     },
     ".github/workflows/ci.yml": {
-      "exported_sha256": "62e56a8b9dc65ec43e4dafff5e160af0c7ee4cc5f4453166847062fa6afe8070",
-      "source_sha256": "d67f61c7cae954d34e4bda4b3cb0422e13712e4396c6e9c4ab9ebe8e36779b82",
+      "exported_sha256": "9467704ed382b6363a38fbeb70d85bedf5a3a14ccab06bdbac4ab9bb7164c85f",
+      "source_sha256": "a76770230763c4b6d12d0d26f5510fb5402f8351382db815c1316e5dbc6e3404",
       "transforms": [
         "override:config/public-candidate/.github/workflows/ci.yml",
         "strip-private-notice"
@@ -4185,8 +4185,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_terminal_runner.py": {
-      "exported_sha256": "7208ea098ad140862fb40fbde9df3ba8ac1f0766d8d638b90506d0e711082bc1",
-      "source_sha256": "7208ea098ad140862fb40fbde9df3ba8ac1f0766d8d638b90506d0e711082bc1",
+      "exported_sha256": "cb9503c52796b258abd5938046b70287507d516373ea7cab41054ac3cf317ecf",
+      "source_sha256": "cb9503c52796b258abd5938046b70287507d516373ea7cab41054ac3cf317ecf",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_transport.py": {
@@ -4515,8 +4515,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_depth20_terminal_human_fleet.py": {
-      "exported_sha256": "58e709a018bd7bad1e0609fcecdace32837ecef23d33b492e132eea179609c26",
-      "source_sha256": "58e709a018bd7bad1e0609fcecdace32837ecef23d33b492e132eea179609c26",
+      "exported_sha256": "0c2602ac539181a5fbfc51df07fea2392dae5bf12dcd5953b1f2295347104956",
+      "source_sha256": "0c2602ac539181a5fbfc51df07fea2392dae5bf12dcd5953b1f2295347104956",
       "transforms": []
     },
     "packages/arvctl/tests/test_depth20_transcript_integration.py": {
@@ -5205,13 +5205,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_release_pipeline_candidate.py": {
-      "exported_sha256": "7149c2a3ef80085ebd03d5c4ef52ba6f442b02d4f6a00354d4e3ecc2994f103b",
-      "source_sha256": "7149c2a3ef80085ebd03d5c4ef52ba6f442b02d4f6a00354d4e3ecc2994f103b",
+      "exported_sha256": "8bbb6ac86062ee843cc0f72c648dc056e843c0bb51a6ef6702164f4bd9c9e117",
+      "source_sha256": "8bbb6ac86062ee843cc0f72c648dc056e843c0bb51a6ef6702164f4bd9c9e117",
       "transforms": []
     },
     "packages/arvctl/tests/test_release_pipeline_dogfood.py": {
-      "exported_sha256": "4bd436aa6d45074d2d480af8d1edf4fc6b88ebf1edf7ae17d06e325418387e5f",
-      "source_sha256": "4bd436aa6d45074d2d480af8d1edf4fc6b88ebf1edf7ae17d06e325418387e5f",
+      "exported_sha256": "4f04d1e3d3a8834bd361bfcbdfb2e3732c59eeb791f5023c21d112cd4971a758",
+      "source_sha256": "4f04d1e3d3a8834bd361bfcbdfb2e3732c59eeb791f5023c21d112cd4971a758",
       "transforms": []
     },
     "packages/arvctl/tests/test_release_pipeline_dogfood_release_host.py": {
@@ -5220,8 +5220,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_release_pipeline_evidence.py": {
-      "exported_sha256": "300b1811a4c37ef252c87d2a6f29f8adfb76d46459ceb7ca4bb49dcd18f0f4da",
-      "source_sha256": "300b1811a4c37ef252c87d2a6f29f8adfb76d46459ceb7ca4bb49dcd18f0f4da",
+      "exported_sha256": "91f71666db202c33ef08423c59003cc957ecfe3698f6d8b7564d0ec9d8c93fe3",
+      "source_sha256": "91f71666db202c33ef08423c59003cc957ecfe3698f6d8b7564d0ec9d8c93fe3",
       "transforms": []
     },
     "packages/arvctl/tests/test_remaining_claims_t9b.py": {
@@ -6223,6 +6223,6 @@
       "transforms": []
     }
   },
-  "source_tree": "a3b8e487cbbfd4327eaee9d0a45d3ba80731c0f2",
+  "source_tree": "647716d5ae8d5e9174d94bd9bd72d8e4f5b63288",
   "version": 1
 }

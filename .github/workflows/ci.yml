@@ -157,13 +157,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs: [security, correctness]
+    needs: [security, correctness, integration]
     steps:
-      - name: Require security and correctness
+      - name: Require security, correctness and integration
         env:
           SECURITY_RESULT: ${{ needs.security.result }}
           CORRECTNESS_RESULT: ${{ needs.correctness.result }}
-        run: test "$SECURITY_RESULT" = success && test "$CORRECTNESS_RESULT" = success
+          INTEGRATION_RESULT: ${{ needs.integration.result }}
+        run: test "$SECURITY_RESULT" = success && test "$CORRECTNESS_RESULT" = success && test "$INTEGRATION_RESULT" = success
 
   security:
     runs-on: ubuntu-latest
@@ -225,6 +226,10 @@ jobs:
 
   # No dependency on security: failures there must not hide correctness evidence.
   correctness:
+    # Dependency hygiene, the MCP evidence client, the preflight contracts and the
+    # Python suite with branch coverage. Frontend, npm, integration gates and the
+    # Docker smoke run in the `integration` job so neither job exceeds the runner
+    # budget; the `test` aggregate requires both.
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -301,16 +306,6 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Set up supported Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        with:
-          node-version: "24.11.1"
-          cache: npm
-          cache-dependency-path: frontends/paperclip/package-lock.json
-
-      - name: Prepare pinned frontend dependencies (requires Node >=24.11)
-        run: make frontend-deps
-
       - name: Run cheap contracts and MCP smoke before the full suite
         run: make ci-preflight PYTHON=python
 
@@ -339,6 +334,81 @@ jobs:
           COVERAGE_FILE: ${{ runner.temp }}/arvyx.coverage
         run: make test-python PYTHON=python PYTEST_ARGS="--durations=30 --junitxml=${{ runner.temp }}/python-test-timings.xml"
 
+      - name: Retain Python test timings even after test failures
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: python-test-timings
+          path: ${{ runner.temp }}/python-test-timings.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce branch coverage floor
+        env:
+          COVERAGE_FILE: ${{ runner.temp }}/arvyx.coverage
+          PYTHONPATH: packages/arvctl/src:packages/safe-mcp-bridge/src:apps/control-center-api/src
+        run: |
+          set -Eeuo pipefail
+          coverage report --fail-under=75
+
+  integration:
+    # Frontend and npm tests, the local npm package smoke, the parallel integration
+    # gates and the Docker runtime smoke, in parallel with the Python suite.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements/*.lock
+      - name: Use the synthetic example denylist for correctness checks
+        # The real denylist is a secret and is used only by the security job, which
+        # runs no third-party build steps. This job installs pinned npm and pip
+        # packages, so it runs the same scanner mechanics with the synthetic list.
+        run: |
+          set -Eeuo pipefail
+          target="${RUNNER_TEMP}/private-denylist.txt"
+          cp fixtures/private-denylist.example.txt "$target"
+          chmod 600 "$target"
+          echo "ARVYX_PRIVATE_DENYLIST=$target" >> "$GITHUB_ENV"
+
+      - name: Install package and developer tools from hashed lock
+        run: |
+          set -Eeuo pipefail
+          python -m pip install --require-hashes -r requirements/dev.lock -r requirements/secret-edge.lock
+          python -m pip install --no-deps --no-build-isolation -e .
+
+      - name: Set up supported Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24.11.1"
+          cache: npm
+          cache-dependency-path: frontends/paperclip/package-lock.json
+
+      - name: Prepare pinned frontend dependencies (requires Node >=24.11)
+        run: make frontend-deps
+
+      - name: Provide a trusted private temporary directory
+        # Native artifact policy refuses group/world-writable ancestors (e.g. /tmp).
+        # Tests and the npm smoke place synthetic native bytes under TMPDIR, so give
+        # them a private directory whose ancestry the product's own policy accepts.
+        run: |
+          set -Eeuo pipefail
+          for base in "$RUNNER_TEMP" "$HOME"; do
+            dir="$base/arvyx-private-tmp"
+            mkdir -p "$dir" && chmod 700 "$dir"
+            if python -c 'import os, sys; from arvyx_control.native_artifact_policy import open_native_directory; os.close(open_native_directory(sys.argv[1]))' "$dir"; then
+              echo "TMPDIR=$dir" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "no temporary directory satisfies the native artifact ancestor policy" >&2
+          exit 1
+
       - name: Run frontend correctness tests
         if: ${{ !cancelled() }}
         timeout-minutes: 10
@@ -354,27 +424,8 @@ jobs:
         timeout-minutes: 10
         run: make npm-package-smoke PYTHON=python
 
-      - name: Retain Python test timings even after test failures
-        if: ${{ always() }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: python-test-timings
-          path: ${{ runner.temp }}/python-test-timings.xml
-          if-no-files-found: warn
-          retention-days: 14
-
       - name: Run remaining complete local integration gates
-        env:
-          COVERAGE_FILE: ${{ runner.temp }}/arvyx.coverage
         run: make ci-integration PYTHON=python
-
-      - name: Enforce branch coverage floor
-        env:
-          COVERAGE_FILE: ${{ runner.temp }}/arvyx.coverage
-          PYTHONPATH: packages/arvctl/src:packages/safe-mcp-bridge/src:apps/control-center-api/src
-        run: |
-          set -Eeuo pipefail
-          coverage report --fail-under=75
 
       - name: Run Docker runtime smoke
         run: |

@@ -6,6 +6,7 @@ workers instead of serialising them behind the rest of that module.
 """
 from __future__ import annotations
 
+import copy
 import json
 import os
 import subprocess
@@ -45,7 +46,7 @@ class EvidencePipelineTests(unittest.TestCase):
             cls._default_export = export_evidence(
                 repo=ROOT, vault=VAULT, benchmark_cases=ROOT / "fixtures" / "recall-benchmark.json",
             )
-        return cls._default_export
+        return copy.deepcopy(cls._default_export)  # a copy: a mutating test must not reach its siblings
 
     def test_evidence_export_writes_release_review_bundle(self) -> None:
         import tempfile

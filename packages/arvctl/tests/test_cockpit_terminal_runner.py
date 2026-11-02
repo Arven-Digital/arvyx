@@ -174,6 +174,18 @@ class RunnerTests(unittest.TestCase):
     def test_unchanged_output_waits_without_reinvoking_driver(self):
         from arvyx_control.cockpit_terminal_runner import step
         sid = self.prepare()
-        step(self.service, sid, actor='rowan', driver=lambda _: {'action': 'wait', 'reason': 'waiting for decision'})
+        waiting = lambda _: {'action': 'wait', 'reason': 'waiting for decision'}
+        # The fixture may still be emitting start-up output after prepare() saw it
+        # start (a loaded runner makes that likely). Step with a waiting driver until two
+        # consecutive steps see the same cursor, so the final step observes no progress.
+        previous = step(self.service, sid, actor='rowan', driver=waiting)
+        deadline = time.monotonic() + 3
+        while True:
+            current = step(self.service, sid, actor='rowan', driver=waiting)
+            if current['cursor'] == previous['cursor']:
+                break
+            self.assertLess(time.monotonic(), deadline, 'fixture output never settled')
+            previous = current
+            time.sleep(.02)
         result = step(self.service, sid, actor='rowan', driver=lambda _: self.fail('no progress must not loop'))
         self.assertEqual(result['outcome'], 'waiting')

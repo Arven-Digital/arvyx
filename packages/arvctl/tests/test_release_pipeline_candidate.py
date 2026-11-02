@@ -6,6 +6,7 @@ workers instead of serialising them behind the rest of that module.
 """
 from __future__ import annotations
 
+import copy
 import json
 import os
 import subprocess
@@ -46,7 +47,7 @@ class ReleaseCandidatePipelineTests(unittest.TestCase):
                 cls._default_report = release_candidate_report(
                     repo=ROOT, vault=VAULT, benchmark_cases=ROOT / "fixtures/recall-benchmark.json",
                 )
-        return cls._default_report
+        return copy.deepcopy(cls._default_report)  # a copy: a mutating test must not reach its siblings
 
     def test_release_candidate_report_blocks_preview_without_assurance(self) -> None:
         result = self.default_report()
@@ -144,3 +145,36 @@ class ReleaseCandidatePipelineTests(unittest.TestCase):
         self.assertTrue(payload["internal_evidence_blockers"])
         self.assertTrue(payload["public_release_blockers"])
         self.assertTrue(payload["blockers"])
+
+    def test_cli_release_candidate_forwards_the_publishing_step_five_flags(self) -> None:
+        """PUBLISHING step 5 runs `release-candidate --require-provenance --provenance-dir …
+        --mcp-client-evidence …`; every flag must reach the report function unchanged."""
+        from contextlib import redirect_stdout
+        from io import StringIO
+        from arvyx_control import cli
+
+        report = self.default_report()
+        calls = []
+
+        def forward(**kwargs):
+            calls.append(kwargs)
+            return report
+
+        out = StringIO()
+        with patch.object(cli, "release_candidate_report", side_effect=forward), redirect_stdout(out):
+            code = main([
+                "release-candidate", "--repo", str(ROOT), "--vault", str(VAULT),
+                "--benchmark-cases", str(ROOT / "fixtures/recall-benchmark.json"),
+                "--run-docker", "--run-bridge",
+                "--mcp-client-evidence", "tmp/release-assets/evidence.mcp-client.json",
+                "--require-provenance", "--provenance-dir", "tmp/release-assets", "--json",
+            ])
+
+        self.assertEqual(code, 1)  # the shared report has the preview blocked
+        self.assertEqual(calls, [{
+            "repo": ROOT, "vault": VAULT, "benchmark_cases": ROOT / "fixtures/recall-benchmark.json",
+            "run_docker": True, "run_bridge": True,
+            "mcp_client_evidence": Path("tmp/release-assets/evidence.mcp-client.json"),
+            "require_provenance": True, "provenance_dir": Path("tmp/release-assets"),
+        }])
+        self.assertEqual(json.loads(out.getvalue()), json.loads(report.to_json()))

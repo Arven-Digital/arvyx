@@ -6,6 +6,7 @@ workers instead of serialising them behind the rest of that module.
 """
 from __future__ import annotations
 
+import copy
 import json
 import os
 import subprocess
@@ -42,7 +43,7 @@ class DogfoodPipelineTests(unittest.TestCase):
         """One real default self-dogfood per class; the CLI test forwards it."""
         if cls._default_result is None:
             cls._default_result = dogfood_self(repo=ROOT)
-        return cls._default_result
+        return copy.deepcopy(cls._default_result)  # a copy: a mutating test must not reach its siblings
 
     def test_self_dogfood_imports_public_docs_and_recalls_retrieval(self) -> None:
         result = self.default_result()
@@ -76,6 +77,8 @@ class DogfoodPipelineTests(unittest.TestCase):
         self.assertEqual(calls[0]["repo"], ROOT)
         self.assertFalse(calls[0]["run_docker"])
         self.assertFalse(calls[0]["run_bridge"])
+        self.assertIsNone(calls[0]["mcp_client_evidence"])
+        self.assertEqual(set(calls[0]), {"repo", "run_docker", "run_bridge", "mcp_client_evidence"})
         payload = json.loads(out.getvalue())
         self.assertEqual(payload, json.loads(result.to_json()))
         self.assertTrue(payload["ok"])
