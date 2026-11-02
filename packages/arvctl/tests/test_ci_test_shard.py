@@ -52,9 +52,11 @@ def test_cli_prints_repository_relative_paths_for_one_shard():
     assert bad.returncode != 0
 
 
-def test_shard_union_equals_what_pytest_collects():
+def test_every_file_pytest_collects_is_in_a_shard():
     """pytest's own collection is the oracle: a file the shards miss would run in no CI
-    shard and silently leave the coverage floor."""
+    shard and silently leave the coverage floor. The shards may hold more than pytest
+    lists here: a module that skips itself at collection time (a private fixture or
+    tool absent from this checkout) yields no items yet still belongs to a shard."""
     module = _module()
     out = subprocess.run(
         [sys.executable, "-m", "pytest", "--collect-only", "-q", "-p", "no:cacheprovider",
@@ -62,5 +64,7 @@ def test_shard_union_equals_what_pytest_collects():
         check=True, capture_output=True, text=True, cwd=ROOT,
     ).stdout
     collected = {ROOT / line.split("::", 1)[0] for line in out.splitlines() if "::" in line}
-    assert collected, "pytest collected nothing"
-    assert collected == set(module.test_files())
+    assert len(collected) > 100, "pytest collected implausibly few files"
+    sharded = set(module.test_files())
+    missing = collected - sharded
+    assert not missing, sorted(path.relative_to(ROOT).as_posix() for path in missing)

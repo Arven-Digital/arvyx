@@ -4075,8 +4075,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_ci_test_shard.py": {
-      "exported_sha256": "2eb28a8acf14d698e67896a3e10fc6578f109991b5d523ecd5d2d1a915fbc6a8",
-      "source_sha256": "2eb28a8acf14d698e67896a3e10fc6578f109991b5d523ecd5d2d1a915fbc6a8",
+      "exported_sha256": "85e2680cb51ff15c103b9e199f7ef4295424bd75cccbac8f8b3b87ac61b681a2",
+      "source_sha256": "85e2680cb51ff15c103b9e199f7ef4295424bd75cccbac8f8b3b87ac61b681a2",
       "transforms": []
     },
     "packages/arvctl/tests/test_claude_code_history.py": {
@@ -6243,6 +6243,6 @@
       "transforms": []
     }
   },
-  "source_tree": "8ffb62cef801822bd9da4e5e52a1f44d84fc9f45",
+  "source_tree": "483263fe14fbe09d76f236093a9b380a02b49437",
   "version": 1
 }
