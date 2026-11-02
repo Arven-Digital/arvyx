@@ -10,6 +10,7 @@ import hashlib
 import hmac
 import http.client
 import json
+from .security import bounded_json_loads
 import math
 import os
 from pathlib import Path
@@ -259,7 +260,7 @@ class RemoteFenceClient:
             body=response.read(16385)
             if len(body)>16384:raise ValueError('bounded authenticated fence response required')
             _validate_response_complete(response)
-            return response.status,json.loads(body)
+            return response.status,bounded_json_loads(body)
 
     def call(self,operation,payload):
         if operation not in OPERATIONS:raise ValueError('unsupported authenticated fence operation')
@@ -393,7 +394,7 @@ def private_config(path):
         value=dict(pairs)
         if len(value)!=len(pairs):raise ValueError('duplicate trusted config fields')
         return value
-    return json.loads(raw,object_pairs_hook=unique)
+    return bounded_json_loads(raw,object_pairs_hook=unique)
 
 
 def load_client(path):
@@ -427,7 +428,7 @@ def make_server(service,*,origin,fixture_http=False,certificate=None,private_key
                     return value
                 raw=self.rfile.read(size)
                 if len(raw)!=size:raise ValueError
-                status,value=service.handle(json.loads(raw,object_pairs_hook=unique))
+                status,value=service.handle(bounded_json_loads(raw,object_pairs_hook=unique))
             except (ValueError,TypeError,KeyError):status,value=400,dict(error='invalid_fence_request')
             data=_canonical(value).encode();self.send_response(status);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(data)));self.send_header('Cache-Control','no-store');self.end_headers()
             try:self.wfile.write(data)

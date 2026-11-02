@@ -5,6 +5,7 @@ reviewed grant issue/readback, scoped audit metadata and revocation are proxied.
 stays on the separately authenticated external API. No authorities are minted.
 """
 import hashlib,json
+from .security import bounded_json_loads
 from .external_api import Principal
 
 class ExternalPresentation:
@@ -52,7 +53,7 @@ def handle_external(handler):
             obj=dict(pairs)
             if len(obj)!=len(pairs):raise ValueError('duplicate')
             return obj
-        body=json.loads(raw,object_pairs_hook=unique) if raw else {}
+        body=bounded_json_loads(raw,object_pairs_hook=unique) if raw else {}
         if type(body) is not dict:raise ValueError('object')
         status,result=server.external.dispatch(handler.command,handler.path,body)
     except (ValueError,UnicodeError):status,result=400,dict(error='invalid_request')

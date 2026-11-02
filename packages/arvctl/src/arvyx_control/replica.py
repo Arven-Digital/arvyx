@@ -22,7 +22,7 @@ from .http_bounds import BoundedOpener
 
 from .locks import exclusive_lock, vault_lock
 from .promotion_transaction import memory_mutation
-from .security import is_http_url
+from .security import bounded_json_loads, is_http_url
 
 
 _OPENER = BoundedOpener()
@@ -166,7 +166,7 @@ def _transcript_references(prefix: bytes) -> list[tuple[str, str]]:
         if not line.strip():
             continue
         try:
-            event = json.loads(line)
+            event = bounded_json_loads(line)
         except (UnicodeDecodeError, ValueError) as exc:
             raise ValueError("invalid replica control prefix") from exc
         if not isinstance(event, dict):
@@ -805,7 +805,7 @@ def _get_json(url: str, token: str | None, timeout: float) -> dict[str, Any]:
             data = response.read(limit + 1)
             if len(data) > limit:
                 raise ValueError("replica response exceeds limit")
-            payload = json.loads(data.decode("utf-8"))
+            payload = bounded_json_loads(data.decode("utf-8"))
     except HTTPError as exc:
         # The status is sufficient; upstream error bodies are untrusted and
         # unnecessary (and may stream indefinitely or echo credentials).

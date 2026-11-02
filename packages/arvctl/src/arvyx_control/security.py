@@ -759,15 +759,25 @@ def private_patterns(repo: Path | None = None) -> list[re.Pattern[str]]:
 # JSON nesting is a product limit, not an interpreter accident. Python 3.11 raised
 # RecursionError for a few hundred nested arrays; 3.12 and later parse thousands of
 # levels. Every network and loopback intake (HTTP bodies of the API, the onboarding
-# API, the control room and the external API, MCP stdio lines, owner-socket frames,
-# pairing messages, remote embedding responses) and the projection checkpoint check
-# this bound before parsing and report the same refusal on every supported
-# interpreter. Readers of local, operator-owned files keep RecursionError handling.
+# API, the control room, the external API and the external presentation, MCP stdio
+# lines, owner-socket frames, pairing messages, remote effect fence requests and
+# responses, secret-delivery target and JWKS responses, delivery receipts, replica
+# stream lines and replies, broker health replies, remote embedding responses) and
+# the projection checkpoint check this bound before parsing
+# and report the same refusal on every supported interpreter. Readers of local,
+# operator-owned files and SQLite rows keep RecursionError handling instead.
 MAX_JSON_NESTING = 256
 
 
-class JSONNestingError(ValueError):
-    """Raised before parsing when a JSON text nests deeper than MAX_JSON_NESTING."""
+class JSONNestingError(json.JSONDecodeError):
+    """Raised before parsing when a JSON text nests deeper than MAX_JSON_NESTING.
+
+    A ``JSONDecodeError`` (hence a ``ValueError``) so that every existing decode
+    handler, whichever of the two it catches, treats over-deep input as a refusal.
+    """
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message, "", 0)
 
 
 def json_nesting_depth(text: str, *, limit: int = MAX_JSON_NESTING) -> int:

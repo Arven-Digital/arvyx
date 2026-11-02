@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import http.client
 import json
+from .security import bounded_json_loads
 from pathlib import Path
 import re
 import socket
@@ -78,7 +79,7 @@ class AccessVerifier:
                 if len(raw) > MAX_JWKS:
                     raise Rejected()
                 _validate_response_complete(response)
-                result = json.loads(raw)
+                result = bounded_json_loads(raw)
             return result
         except ssl.SSLError:
             raise

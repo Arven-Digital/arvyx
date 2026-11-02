@@ -1634,12 +1634,10 @@ def make_handler(
                         result[key] = value
                     return result
                 raw = consumed.decode("utf-8") if length else "{}"
-                from .security import MAX_JSON_NESTING, json_nesting_depth
-                if json_nesting_depth(raw) > MAX_JSON_NESTING:
-                    # Explicit product bound: the interpreter's own recursion limit
-                    # differs between Python versions and is not the contract.
-                    raise ValueError("JSON nesting exceeds the limit")
-                body = json.loads(raw, object_pairs_hook=unique_fields)
+                from .security import bounded_json_loads
+                # Explicit product bound on nesting: the interpreter's own recursion
+                # limit differs between Python versions and is not the contract.
+                body = bounded_json_loads(raw, object_pairs_hook=unique_fields)
             except (TimeoutError, socket.timeout):
                 self._body_failure(408, "request body timed out")
                 return

@@ -6,6 +6,7 @@ from contextlib import contextmanager
 import hashlib
 import http.client
 import json
+from .security import bounded_json_loads
 import os
 from pathlib import Path
 import re
@@ -93,7 +94,7 @@ def private_json(path: Path) -> dict:
             os.close(fd)
         if len(raw) > MAX_BODY:
             raise Rejected()
-        result = json.loads(raw)
+        result = bounded_json_loads(raw)
         if not isinstance(result, dict):
             raise Rejected()
         return result
@@ -119,7 +120,7 @@ def body(handler) -> dict:
         raw = handler.rfile.read(length)
         if len(raw) != length:
             raise Rejected()
-        result = json.loads(raw)
+        result = bounded_json_loads(raw)
         if not isinstance(result, dict):
             raise Rejected()
         return result
@@ -273,7 +274,7 @@ class Target:
                 if len(response_body) > MAX_BODY:
                     raise Rejected()
                 _validate_response_complete(response)
-                result = validate_response(payload.get('action'), json.loads(response_body))
+                result = validate_response(payload.get('action'), bounded_json_loads(response_body))
             return result
         except Exception:
             pass

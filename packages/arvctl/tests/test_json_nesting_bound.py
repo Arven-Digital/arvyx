@@ -63,8 +63,29 @@ def test_mcp_stdio_refuses_over_deep_input_with_a_parse_error(tmp_path):
     assert ok["id"] == 7
 
 
-def test_every_loopback_intake_uses_the_bound():
+NETWORK_MODULES = (
+    "mcp.py", "api.py", "projection_cache.py", "public_onboarding_api.py", "cockpit_web.py",
+    "cockpit.py", "external_api.py", "external_presentation.py", "machine_pairing_transport.py",
+    "embeddings.py", "remote_effect_fence.py", "secret_delivery_protocol.py",
+    "secret_delivery_access.py", "agent_delivery.py", "replica.py", "brokers.py",
+)
+# Call shapes that read bytes or text arriving over a socket; a plain json.loads on
+# one of these would bypass the bound.
+NETWORK_CALL_SHAPES = ("json.loads(raw", "json.loads(body", "json.loads(response_body", "json.loads(data.decode",
+                       "json.loads(body.decode", "json.loads(line", "json.loads(payload,", "json.loads(message)")
+
+
+def test_nesting_error_is_a_decode_error():
+    # Existing handlers catch either JSONDecodeError or ValueError; both must see it.
+    assert issubclass(JSONNestingError, json.JSONDecodeError)
+    with pytest.raises(json.JSONDecodeError):
+        bounded_json_loads(nested(MAX_JSON_NESTING + 1))
+
+
+def test_every_network_intake_uses_the_bound():
     root = Path(security.__file__).resolve().parent
-    for module in ("mcp.py", "api.py", "projection_cache.py", "public_onboarding_api.py", "cockpit_web.py", "cockpit.py"):
+    for module in NETWORK_MODULES:
         text = (root / module).read_text(encoding="utf-8")
         assert "bounded_json_loads" in text or "json_nesting_depth" in text, module
+        for shape in NETWORK_CALL_SHAPES:
+            assert shape not in text, f"{module} parses network bytes without the bound: {shape}"

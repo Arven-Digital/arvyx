@@ -16,7 +16,7 @@ from urllib.parse import urlsplit
 from urllib.request import Request
 
 from .outbox import OutboxItem
-from .security import contains_literal_secret, is_http_url, redact_secrets
+from .security import bounded_json_loads, contains_literal_secret, is_http_url, redact_secrets
 
 
 _TRANSIENT_HTTP = frozenset({408, 425, 429})
@@ -608,7 +608,7 @@ def _canonical_json(payload: Mapping[str, object]) -> bytes:
 
 def _session_return_receipt_from_response(body: bytes) -> str:
     try:
-        payload = json.loads(body)
+        payload = bounded_json_loads(body)
     except (json.JSONDecodeError, UnicodeDecodeError):
         return ""
     if not isinstance(payload, dict):
@@ -622,7 +622,7 @@ def _session_return_receipt_from_response(body: bytes) -> str:
 
 def _receipt_from_response(body: bytes, fallback: str) -> str:
     try:
-        payload = json.loads(body)
+        payload = bounded_json_loads(body)
     except (json.JSONDecodeError, UnicodeDecodeError):
         return fallback
     if not isinstance(payload, dict):

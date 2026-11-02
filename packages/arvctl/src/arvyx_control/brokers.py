@@ -18,7 +18,7 @@ import time
 from urllib.parse import urlsplit
 
 from .http_bounds import parse_complete_response
-from .security import contains_literal_secret
+from .security import bounded_json_loads, contains_literal_secret
 
 
 # A secret REFERENCE is a sanctioned pointer that is safe to store in the
@@ -373,7 +373,7 @@ def _probe_loopback_health(url: str) -> tuple[str, str]:
     status, body = parse_complete_response(bytes(response), MAX_HEALTH_BODY_BYTES)
     if status != 200:
         raise ValueError("provider health check failed")
-    payload = json.loads(body.decode("utf-8"))
+    payload = bounded_json_loads(body.decode("utf-8"))
     if not isinstance(payload, dict) or payload.get("status") != "ok":
         raise ValueError("provider health response is not ready")
     raw_version = payload.get("version", "")
