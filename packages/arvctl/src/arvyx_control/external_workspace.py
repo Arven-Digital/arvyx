@@ -17,6 +17,7 @@ import hashlib
 import os
 from pathlib import Path
 import stat
+import time
 
 from .security import contains_literal_secret
 
@@ -107,6 +108,32 @@ def _secret(parts: tuple[str, ...]) -> bool:
                 or name.endswith((".pem", ".key", ".p12", ".pfx", ".jks", ".keystore"))):
             return True
     return False
+
+
+# File timestamps come from the kernel's coarse clock. A file unlinked and recreated
+# with the same bytes inside the tick that pinned it can keep every identity field
+# (inode number reused), so a pin taken in the same tick as the file's last change
+# could never detect that replacement. Pins that fresh are settled: the snapshot waits
+# out the tick and re-reads the file, after which any later change necessarily moves
+# mtime or ctime. The window covers coarse-clock ticks on nanosecond-resolution
+# filesystems; one-second-resolution filesystems stay as (un)safe as before.
+_RACY_TIMESTAMP_NS = 50_000_000
+
+
+def _settle_racy_files(root, root_id, files, parts_by_path, limits):
+    """Re-read files pinned inside the current timestamp tick once it has passed."""
+    def latest(entry):
+        return max(entry.identity[5], entry.identity[6])
+    fresh = [entry for entry in files if latest(entry) + _RACY_TIMESTAMP_NS > time.time_ns()]
+    if not fresh:
+        return
+    wait = max(latest(entry) for entry in fresh) + _RACY_TIMESTAMP_NS - time.time_ns()
+    if wait > 0:
+        time.sleep(min(wait, _RACY_TIMESTAMP_NS) / 1_000_000_000)
+    for entry in fresh:
+        data, identity, _ = _read(root, parts_by_path[entry.path], limits.max_file_bytes, root_id)
+        if identity != entry.identity or hashlib.sha256(data).hexdigest() != entry.sha256:
+            raise WorkspaceError("entry changed during discovery")
 
 
 def _identity(st):
@@ -305,6 +332,7 @@ def snapshot_workspace(root, paths=None, *, limits=WorkspaceLimits(), exclude_pa
     if discovery:
         paths, discovered_omissions, inventory = _discover(root, limits, exclusions)
     files, omitted, seen = [], list(discovered_omissions), set()
+    parts_by_path = {}
     total = 0
     with _open_root(root) as fd:
         st = os.fstat(fd)
@@ -316,6 +344,7 @@ def snapshot_workspace(root, paths=None, *, limits=WorkspaceLimits(), exclude_pa
         if value in seen:
             raise WorkspaceError("duplicate selection")
         seen.add(value)
+        parts_by_path[value] = parts
         private = _secret(parts)
         if private or any(parts[:len(prefix)] == prefix for prefix in exclusions):
             omitted.append(WorkspaceExclusion(value, "secret-or-private" if private else "caller-excluded"))
@@ -327,6 +356,7 @@ def snapshot_workspace(root, paths=None, *, limits=WorkspaceLimits(), exclude_pa
             omitted.append(WorkspaceExclusion(value, reason))
             continue
         files.append(WorkspaceFile(value, len(data), hashlib.sha256(data).hexdigest(), identity))
+    _settle_racy_files(root, root_id, files, parts_by_path, limits)
     snapshot = WorkspaceSnapshot(os.fspath(root), root_id, tuple(sorted(files, key=lambda f: f.path)),
                                  tuple(sorted(omitted, key=lambda f: f.path)), limits,
                                  "workspace" if discovery else "selection", inventory,

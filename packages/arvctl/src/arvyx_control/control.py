@@ -6,6 +6,7 @@ from contextlib import contextmanager
 import hashlib
 import json
 import os
+import time
 from pathlib import Path
 from secrets import token_hex
 import threading
@@ -18,7 +19,13 @@ from .security import contains_literal_secret
 
 # Incremental read cache for the append-only control-event log. See read_events().
 _EVENT_CACHE_LOCK = threading.Lock()
-_EVENT_CACHE: dict[str, tuple[int, int, int, list[ControlEvent], int, bytes, int]] = {}
+_EVENT_CACHE: dict[str, tuple[int, int, int, list[ControlEvent], int, bytes, int, "hashlib._Hash", int]] = {}
+# File timestamps come from the kernel's coarse clock: a rewrite inside the same tick
+# as the cached read keeps size and mtime. An entry cached within this window of the
+# file's mtime is "racy": on an equal-size, equal-mtime hit its committed prefix digest
+# is re-verified against the file's bytes before it is served (git's racy-index rule);
+# nothing is re-parsed unless the bytes differ.
+_EVENT_CACHE_RACY_NS = 2_000_000_000
 # How much of the already-parsed prefix is re-hashed to prove a file was appended to
 # rather than rewritten in place. An append leaves these bytes untouched; any rewrite
 # that touches the previous tail changes them and forces a full parse.
@@ -1395,6 +1402,18 @@ def _complete_prefix_events(
     return [*existing, *parse_event_lines(text, first_line=first_line)], cut + 1, text.count("\n")
 
 
+def _racy(mtime_ns: int, cached_at_ns: int) -> bool:
+    """True when the entry was cached too close to the file's mtime to trust equality."""
+    return cached_at_ns - mtime_ns < _EVENT_CACHE_RACY_NS
+
+
+def _prefix_bytes_match(state: Path, size: int, prefix_hash: "hashlib._Hash") -> bool:
+    """Compare the file's bytes with the digest of the cached committed prefix."""
+    with state.open("rb") as handle:
+        raw = handle.read(size + 1)
+    return len(raw) == size and hashlib.sha256(raw).digest() == prefix_hash.digest()
+
+
 def read_events(state: Path, *, max_bytes: int | None = None) -> list[ControlEvent]:
     check_inherited_deadline()
     if not state.exists():
@@ -1417,7 +1436,8 @@ def read_events(state: Path, *, max_bytes: int | None = None) -> list[ControlEve
     # request (22 s and 13 s measured on production). The log is append-only, so a process
     # keeps what it has already parsed and reads only the bytes appended since. The cache
     # is validated by inode, size and mtime, so a replaced, truncated or rewritten file
-    # always falls back to a full parse.
+    # always falls back to a full parse; an entry cached inside the timestamp tick of
+    # the file's last write is marked racy and re-parsed on its next equal-size hit.
     try:
         stat = state.stat()
     except OSError as exc:
@@ -1428,7 +1448,8 @@ def read_events(state: Path, *, max_bytes: int | None = None) -> list[ControlEve
         appended = False
         if cached is not None and cached[0] == stat.st_ino and stat.st_mtime_ns >= cached[4]:
             if stat.st_size == cached[1]:
-                if stat.st_mtime_ns == cached[4]:
+                if stat.st_mtime_ns == cached[4] and (
+                        not _racy(cached[4], cached[8]) or _prefix_bytes_match(state, cached[1], cached[7])):
                     return list(cached[3])
             elif stat.st_size > cached[1] and _prefix_unchanged(state, cached[1], cached[5], cached[6]):
                 appended = True
@@ -1440,7 +1461,8 @@ def read_events(state: Path, *, max_bytes: int | None = None) -> list[ControlEve
             trailing = raw[consumed:]
             if trailing.strip():
                 result.extend(parse_event_lines(trailing.decode("utf-8"), first_line=lines + 1))
-            _EVENT_CACHE[key] = (stat.st_ino, consumed, lines, events, stat.st_mtime_ns, digest, anchor)
+            _EVENT_CACHE[key] = (stat.st_ino, consumed, lines, events, stat.st_mtime_ns, digest, anchor,
+                                 hashlib.sha256(raw[:consumed]), time.time_ns())
             return result
         assert cached is not None  # implied by `appended`
         with state.open("rb") as handle:
@@ -1453,6 +1475,8 @@ def read_events(state: Path, *, max_bytes: int | None = None) -> list[ControlEve
         # file, including bytes preceding this append. Absolute offsets cannot
         # index raw, and a suffix-only anchor would lose rewrite detection.
         committed = cached[1] + added
+        prefix_hash = cached[7].copy()
+        prefix_hash.update(raw[:added])
         with state.open("rb") as handle:
             handle.seek(max(0, committed - _EVENT_ANCHOR_BYTES))
             window = handle.read(min(committed, _EVENT_ANCHOR_BYTES))
@@ -1471,6 +1495,8 @@ def read_events(state: Path, *, max_bytes: int | None = None) -> list[ControlEve
             stat.st_mtime_ns,
             digest,
             anchor,
+            prefix_hash,
+            time.time_ns(),
         )
         return result
 

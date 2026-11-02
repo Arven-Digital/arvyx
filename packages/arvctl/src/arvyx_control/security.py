@@ -5,6 +5,7 @@ import codecs
 from bisect import bisect_right
 import subprocess
 import hashlib
+import functools
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -134,6 +135,11 @@ def _postgres_spans(text: str, flags=re.IGNORECASE):
     Candidate lookups cost O(log n); successful regex matches consume disjoint
     spans. The original pattern still defines the accepted credential grammar.
     """
+    # The grammar begins with a literal "postgres" and needs an "@": a text
+    # lacking either (in any case) cannot match, so the delimiter indexing
+    # below is skipped for the overwhelming majority of lines.
+    if "postgres" not in text.casefold() or "@" not in text:
+        return
     prefixes = re.compile(r"\bpostgres(?:ql)?://", flags)
     candidates = prefixes.finditer(text)
     ats = [m.start() for m in re.finditer('@', text)]
@@ -176,6 +182,11 @@ def _jwt_spans(text: str, flags=re.IGNORECASE):
     scans. Successful matches consume disjoint spans; failed triples scan
     at most three runs, preserving Unicode boundaries and IGNORECASE.
     """
+    # The grammar begins with "eyJ" and spans two dots: a text without "eyj"
+    # (any case) or without a "." cannot match, so the run tokenisation is
+    # skipped for ordinary lines.
+    if "eyj" not in text.casefold() or "." not in text:
+        return
     runs = list(re.finditer(r"[A-Za-z0-9_-]+", text, flags))
     prefix = re.compile(r"\beyJ(?=[A-Za-z0-9_-])", flags)
     detector = re.compile(_JWT_PATTERN, flags)
@@ -274,21 +285,30 @@ def suppress_private_key_blocks(text):
     return ''.join(parts)
 
 
-def bounded_secret_subn(text, detector, replacement="[REDACTED-SECRET]", *, _spans=None):
-    """Find email runs once; redact the union of all canonical secret spans.
+@functools.lru_cache(maxsize=16)
+def _derived_detector(pattern: str, flags: int) -> tuple[re.Pattern[str], bool, bool]:
+    """The detector minus the email, postgres and JWT alternatives, compiled once.
 
-    Overlapping detector spans are conservatively redacted together, never
-    exposing a suffix merely because another detector consumed its prefix.
+    A pure function of the source pattern and flags; the three removed grammars
+    are matched by their dedicated span generators instead.
     """
-    email = _PRIVATE_EMAIL_PATTERN
-    pattern = detector.pattern.replace(email, r"(?!)")
+    pattern = pattern.replace(_PRIVATE_EMAIL_PATTERN, r"(?!)")
     has_postgres = _POSTGRES_PATTERN in pattern
     if has_postgres:
         pattern = pattern.replace(_POSTGRES_PATTERN, r"(?!)")
     has_jwt = _JWT_PATTERN in pattern
     if has_jwt:
         pattern = pattern.replace(_JWT_PATTERN, r"(?!)")
-    non_email = re.compile(pattern, detector.flags)
+    return re.compile(pattern, flags), has_postgres, has_jwt
+
+
+def bounded_secret_subn(text, detector, replacement="[REDACTED-SECRET]", *, _spans=None):
+    """Find email runs once; redact the union of all canonical secret spans.
+
+    Overlapping detector spans are conservatively redacted together, never
+    exposing a suffix merely because another detector consumed its prefix.
+    """
+    non_email, has_postgres, has_jwt = _derived_detector(detector.pattern, detector.flags)
     spans = [match.span() for match in non_email.finditer(text)]
     # Scanner line exceptions remain tied to the actual opening detector;
     # output consumers additionally suppress the entire block.
@@ -514,14 +534,21 @@ def contains_private_name(text: str, patterns: list[re.Pattern[str]]) -> bool:
     """
     if not patterns:
         return False
-    reviewed_spans = [match.span() for match in _PRODUCT_IDENTIFIER_RE.finditer(text)
-                      if match.group() in _REVIEWED_PRODUCT_IDENTIFIERS]
-    reviewed_starts = [start for start, _ in reviewed_spans]
+    reviewed_spans: list[tuple[int, int]] | None = None
+    reviewed_starts: list[int] = []
     for pattern in patterns:
         exemptable = pattern.pattern.casefold() == _COMPANY_WORD_PATTERN
         for match in pattern.finditer(text):
+            if not exemptable:
+                return True
+            if reviewed_spans is None:
+                # Only a company-word match can be exempt, so the reviewed
+                # identifier spans are computed once and only when needed.
+                reviewed_spans = [span.span() for span in _PRODUCT_IDENTIFIER_RE.finditer(text)
+                                  if span.group() in _REVIEWED_PRODUCT_IDENTIFIERS]
+                reviewed_starts = [start for start, _ in reviewed_spans]
             index = bisect_right(reviewed_starts, match.start()) - 1
-            if exemptable and index >= 0 and match.end() <= reviewed_spans[index][1]:
+            if index >= 0 and match.end() <= reviewed_spans[index][1]:
                 continue
             return True
     return False

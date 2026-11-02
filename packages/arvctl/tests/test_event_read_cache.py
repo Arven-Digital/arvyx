@@ -145,3 +145,48 @@ class EventReadCacheTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RacyTimestampTests(unittest.TestCase):
+    """File timestamps come from a coarse clock; equality inside one tick proves nothing.
+
+    A log rewritten with equal length inside the tick of the cached read keeps size and
+    mtime. The entry cached in that tick is racy, so an equal-size hit re-verifies the
+    committed prefix digest before serving (forced here by pinning the mtime back).
+    """
+
+    def setUp(self) -> None:
+        control._EVENT_CACHE.clear()  # noqa: SLF001
+        self.tmp = tempfile.TemporaryDirectory()
+        self.state = Path(self.tmp.name) / "control-events.jsonl"
+        self.vault = Path(self.tmp.name) / "vault"
+        self.vault.mkdir(exist_ok=True)
+        self.enterContext(authority_context(self.vault, self.state))
+
+    def tearDown(self) -> None:
+        control._EVENT_CACHE.clear()  # noqa: SLF001
+        self.tmp.cleanup()
+
+    def _write(self, lines: list[str]) -> None:
+        self.state.write_text("".join(f"{line}\n" for line in lines), encoding="utf-8")
+
+    def test_equal_length_rewrite_with_identical_mtime_is_detected_while_racy(self) -> None:
+        import os
+
+        self._write([_event(1)])
+        self.assertEqual([event.id for event in control.read_events(self.state)], ["evt_1"])
+        pinned = self.state.stat()
+        self._write([_event(7)])  # same byte length, different content
+        os.utime(self.state, ns=(pinned.st_atime_ns, pinned.st_mtime_ns))
+        self.assertEqual(self.state.stat().st_mtime_ns, pinned.st_mtime_ns)
+        self.assertEqual([event.id for event in control.read_events(self.state)], ["evt_7"])
+
+    def test_settled_entry_is_served_without_re_reading(self) -> None:
+        self._write([_event(1), _event(2)])
+        control.read_events(self.state)
+        key = str(self.state.resolve())
+        entry = control._EVENT_CACHE[key]  # noqa: SLF001
+        # Age the entry past the racy window: it was cached long after the file's mtime.
+        control._EVENT_CACHE[key] = (*entry[:8], entry[4] + control._EVENT_CACHE_RACY_NS)  # noqa: SLF001
+        with mock.patch.object(control, "_prefix_bytes_match", side_effect=AssertionError("unexpected re-read")):
+            self.assertEqual([event.id for event in control.read_events(self.state)], ["evt_1", "evt_2"])

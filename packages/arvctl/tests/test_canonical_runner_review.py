@@ -24,7 +24,10 @@ class CanonicalRunnerTests(unittest.TestCase):
         self.assertIn('test: test-python test-frontend test-npm',text)
         self.assertIn('npm --prefix frontends/paperclip test',text)
         self.assertIn('npm --prefix packaging/npm test',text)
-        self.assertIn('-m coverage run --branch -m pytest',text)
+        # One parallel pytest pass with xdist-aware coverage (pytest-cov) replaces the
+        # serial `coverage run -m pytest`; the floor is still enforced by `coverage report`.
+        self.assertIn('-m pytest packages/arvctl/tests tests -q -n $(PYTEST_WORKERS) --dist loadfile --cov --cov-branch',text)
+        self.assertNotIn('-m coverage run --branch -m pytest',text)
 
     def test_workflows_use_full_pytest_coverage_and_keep_floor(self):
         ci=(ROOT/'.github/workflows/ci.yml').read_text();release=(ROOT/'.github/workflows/release-provenance.yml').read_text()

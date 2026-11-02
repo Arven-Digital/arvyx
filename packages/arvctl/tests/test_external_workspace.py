@@ -249,3 +249,52 @@ class ExternalWorkspaceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RacyPinTests(unittest.TestCase):
+    """A pin taken inside the file's own timestamp tick is settled before it is trusted."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name) / "workspace"
+        (self.root / "src").mkdir(parents=True)
+        (self.root / "src/main.py").write_bytes(b"print('hi')\n")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_fresh_pins_wait_out_the_tick_and_are_re_read(self):
+        from arvyx_control import external_workspace as module
+
+        slept = []
+        mtime = (self.root / "src/main.py").stat().st_mtime_ns
+        with patch.object(module.time, "time_ns", return_value=mtime), \
+                patch.object(module.time, "sleep", side_effect=slept.append):
+            snapshot_workspace(self.root, ("src/main.py",))
+        self.assertEqual(len(slept), 1)
+        self.assertGreater(slept[0], 0)
+        self.assertLessEqual(slept[0], module._RACY_TIMESTAMP_NS / 1_000_000_000)  # noqa: SLF001
+
+    def test_fresh_pin_that_changes_while_settling_fails(self):
+        from arvyx_control import external_workspace as module
+
+        target = self.root / "src/main.py"
+        mtime = target.stat().st_mtime_ns
+
+        def replace_during_sleep(_seconds):
+            # Still inside the (patched, frozen) tick, so identity alone may not move:
+            # the re-read after settling must compare content as well.
+            target.write_bytes(b"print('xx')\n")
+
+        with patch.object(module.time, "time_ns", return_value=mtime), \
+                patch.object(module.time, "sleep", side_effect=replace_during_sleep):
+            with self.assertRaises(WorkspaceError):
+                snapshot_workspace(self.root, ("src/main.py",))
+
+    def test_old_pins_do_not_wait(self):
+        from arvyx_control import external_workspace as module
+
+        mtime = (self.root / "src/main.py").stat().st_mtime_ns
+        with patch.object(module.time, "time_ns", return_value=mtime + 10 * module._RACY_TIMESTAMP_NS), \
+                patch.object(module.time, "sleep", side_effect=AssertionError("unexpected wait")):  # noqa: SLF001
+            snapshot_workspace(self.root, ("src/main.py",))

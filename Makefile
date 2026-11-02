@@ -54,9 +54,12 @@ secret-edge-license-check:
 # pytest collects module functions AND unittest.TestCase classes; one coverage run.
 test: test-python test-frontend test-npm
 
+# Parallel workers (pytest-xdist, one file per worker so module-level fixtures stay
+# together); pytest-cov merges the workers' data into COVERAGE_FILE.
+PYTEST_WORKERS ?= auto
 test-python:
 	PYTHONPATH="$(PYTHONPATH)" $(PYTHON) -m coverage erase
-	PYTHONPATH="$(PYTHONPATH)" $(PYTHON) -m coverage run --branch -m pytest packages/arvctl/tests tests -q $(PYTEST_ARGS)
+	PYTHONPATH="$(PYTHONPATH)" $(PYTHON) -m pytest packages/arvctl/tests tests -q -n $(PYTEST_WORKERS) --dist loadfile --cov --cov-branch $(PYTEST_ARGS)
 
 check-node:
 	node -e 'const [a,b]=process.versions.node.split(".").map(Number); if(a<24||(a===24&&b<11)){console.error("Node >=24.11 required for supported frontend/npm acceptance");process.exit(2)}'
@@ -339,6 +342,12 @@ docker-demo:
 # Disjoint groups: hosted CI runs each once; local ci retains every prerequisite.
 ci-preflight: contract-check mcp-smoke mcp-client-smoke mcp-client-evidence-smoke mcp-client-evidence-generate-smoke mcp-streaming-smoke release-host-schema-smoke docker-compose-smoke
 
-ci-integration: demo doctor mcp-control-smoke thread-smoke health-smoke notify-smoke store-smoke api-smoke live-api-smoke auth-smoke import-smoke bridge-smoke bridge-lint-smoke bridge-e2e-smoke bridge-dogfood-smoke self-dogfood-smoke readiness-smoke audit-smoke benchmark-smoke evidence-smoke release-candidate-smoke release-candidate-e2e-smoke package-smoke synthetic-restore-drill
+# The integration smokes are independent processes (own temp dirs, ephemeral ports),
+# so they run under a parallel sub-make; -k keeps going so one failure does not hide
+# the others, and the exit status still fails on any failure.
+INTEGRATION_JOBS ?= 4
+CI_INTEGRATION_TARGETS := demo doctor mcp-control-smoke thread-smoke health-smoke notify-smoke store-smoke api-smoke live-api-smoke auth-smoke import-smoke bridge-smoke bridge-lint-smoke bridge-e2e-smoke bridge-dogfood-smoke self-dogfood-smoke readiness-smoke audit-smoke benchmark-smoke evidence-smoke release-candidate-smoke release-candidate-e2e-smoke package-smoke synthetic-restore-drill
+ci-integration:
+	@$(MAKE) -j$(INTEGRATION_JOBS) -k $(CI_INTEGRATION_TARGETS)
 
 ci: dependency-audit release-scan ci-preflight test ci-integration npm-package-smoke scan release-boundary license-check
