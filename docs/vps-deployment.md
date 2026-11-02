@@ -135,8 +135,10 @@ TLS outside and loopback HTTP inside; a minimal, hardened example:
 ```
 
 The body cap sits above the API's own 1 MiB limit so the API, not the proxy,
-produces the documented refusal; the Caddy package creates `/var/log/caddy`;
-leave `log_credentials` off (the default) so bearer headers never reach the log.
+produces the documented refusal; `/var/log/caddy` must exist and be writable by
+Caddy's user (the official package creates it; otherwise create it, since Caddy
+refuses to start without its log target); leave `log_credentials` off (the
+default) so bearer headers never reach the log.
 
 Compose `.env` is not inherited by systemd. Install an explicit root-owned
 environment file and service drop-in:

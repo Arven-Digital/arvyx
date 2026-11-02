@@ -76,8 +76,9 @@ agents, not an agent framework, a vector database or a transcript archive.
 **Release evidence as executable gates**
 - `arvyx audit`, `readiness`, `benchmark`, `dogfood self`, `evidence export` and
   `release-candidate` turn the release decision into checks you can run; CI signs
-  run-provenance and real MCP-client evidence, two model reviews by different
-  providers are recorded per tree as unsigned, tree-bound receipts, and a release
+  run-provenance and real MCP-client evidence, two model reviews by distinct
+  provider/model identities are recorded per tree as unsigned, tree-bound
+  receipts, and a release
   is published only after the candidate verdict on the signed assets.
 
 ## How it fits together
@@ -103,8 +104,8 @@ for the npm package and the web control room. Linux is the supported platform
 
 ### npm
 
-The package is published as `arvyx@alpha` with each prerelease; until a release
-exists you can install from the GitHub release assets or from source below.
+The package is published as `arvyx@alpha` with each prerelease; until the first
+prerelease is published, install from source (below).
 
 ```bash
 npm install -g arvyx@alpha
@@ -242,8 +243,8 @@ as unavailable rather than falling back.
 - Local-first: the API and the control room bind to 127.0.0.1; remote access is
   an explicit TLS reverse proxy you configure. No telemetry; the only outbound
   connections are the ones you configure (a notifier, an embedding endpoint, a
-  secret broker, a replica source, delivery routes, the bridge's upstream, a
-  remote delegation peer).
+  secret broker or secret-delivery target, a replica source, delivery routes, the
+  bridge's upstream, a remote delegation peer).
 - Least authority: scopes per token, exact-command approvals, consent records for
   every connection, and fail-closed defaults (a missing policy denies launches; an
   unknown native digest is refused; a torn log fails the read).

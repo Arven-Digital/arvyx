@@ -93,16 +93,16 @@
       "transforms": []
     },
     "PUBLISHING.md": {
-      "exported_sha256": "cad5238773c1797625b9c4cc44e66a78edc9bd921e2560f3edc7f903ebb04272",
-      "source_sha256": "5da55a5c7509f26a01ea07629e569848cb0a52f423b4952fce67886890620b2e",
+      "exported_sha256": "a123aea639b774a2063483eca63b92eb6d289556f9dcc9c626937320cdc1f4df",
+      "source_sha256": "7d5a03d9f7e11a7709baa3dff6a13b56f4d81a0ce510894f381b21ea2d783a7e",
       "transforms": [
         "override:config/public-candidate/PUBLISHING.md",
         "strip-private-notice"
       ]
     },
     "README.md": {
-      "exported_sha256": "60ea76c9af7b20d3abe1362d24203450b20df7f06c067335aa9a60f56bdead30",
-      "source_sha256": "02cd8547673c0501932e19101b082a757d9247542f04c4a12569b96cd0794143",
+      "exported_sha256": "6349388c32cc198e4a8867331be589ae8369677193a338bf4ef0a560e4e2e967",
+      "source_sha256": "5927f8bcd9dcccd618d19e3958b983a57dcb3c637aa0e3bb0007df126531d34f",
       "transforms": [
         "override:config/public-candidate/README.md",
         "strip-private-notice"
@@ -509,8 +509,8 @@
       "transforms": []
     },
     "docs/vps-deployment.md": {
-      "exported_sha256": "a075de29032e01276d7564ee5a3aa0a36875b401d6ca76af0ec8b5ae8e66a688",
-      "source_sha256": "aaf1c07739601b23d3118469ac20207cd3910944f8fd45109d6502f14c970223",
+      "exported_sha256": "d5aa0ce1adbaab83f91973536726a4ab1902a1da8a7915b1a1af043cc5741907",
+      "source_sha256": "ca3c4dd602da1656bfb49479ca97318151b573076c2a344fbc23b0179dcceb9b",
       "transforms": [
         "replace:rule-0",
         "replace:rule-2"
@@ -6243,6 +6243,6 @@
       "transforms": []
     }
   },
-  "source_tree": "d94ca0bd5ef014697d6e3a6d76af17c62a27643b",
+  "source_tree": "e717be9ae3b2d2ee951a6572e4deb363b8cd334f",
   "version": 1
 }

@@ -40,8 +40,12 @@ explicit human action on the exact candidate commit.
    gh release download v<version> --dir tmp/release-assets
    (cd tmp/release-assets && sha256sum -c SHA256SUMS)
    arvyx release-candidate --require-provenance --provenance-dir tmp/release-assets \
-     --mcp-client-evidence tmp/release-assets/evidence.mcp-client.json --json
+     --mcp-client-evidence tmp/release-assets/evidence.mcp-client.json --json \
+     | tee tmp/release-assets/verdict.json || true
    ```
+
+   The command exits non-zero when the verdict is blocked; the `tee … || true` keeps
+   the JSON either way, so a blocked verdict is recorded rather than lost.
 
    If your `gh` version does not resolve a draft by tag, download the run's
    artifact instead: `gh run download <run-id> --name release-artifacts-<sha>
