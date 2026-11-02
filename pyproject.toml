@@ -1,0 +1,57 @@
+[project]
+name = "arvyx"
+version = "0.1.0a0"
+description = "Self-hosted memory and control plane for multi-machine agent teams"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "licenses/*.txt"]
+authors = [{ name = "Arven Digital" }]
+dependencies = []
+keywords = ["agents", "memory", "mcp", "self-hosted", "control-plane"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: System :: Systems Administration",
+]
+
+[project.urls]
+Homepage = "https://github.com/Arven-Digital/arvyx"
+Repository = "https://github.com/Arven-Digital/arvyx"
+Issues = "https://github.com/Arven-Digital/arvyx/issues"
+
+[project.optional-dependencies]
+secret-edge = ["PyJWT[crypto]>=2.14.0,<3", "cryptography>=50.0.1,<51"]
+
+[project.scripts]
+amc = "arvyx_control.onboarding_cli:main"
+arvyx = "arvyx_control.cli:main"
+arvyx-cockpit = "arvyx_control.cockpit_client:main"
+safe-mcp-bridge = "safe_mcp_bridge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["packages/arvctl/src", "packages/safe-mcp-bridge/src", "apps/control-center-api/src"]
+
+[tool.setuptools.package-data]
+arvyx_control = ["static/*.html", "static/brand/*.png", "data/*.json"]
+
+[tool.coverage.run]
+branch = true
+source = [
+  "packages/arvctl/src/arvyx_control",
+  "packages/safe-mcp-bridge/src/safe_mcp_bridge",
+  "apps/control-center-api/src/arvyx_control_center_api",
+]
+
+[tool.coverage.report]
+fail_under = 75
+show_missing = true
+
+[build-system]
+requires = ["setuptools==84.2.1"]
+build-backend = "setuptools.build_meta"

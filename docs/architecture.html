@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Arvyx Memory &amp; Control — System Architecture</title>
+<style>
+  :root {
+    --bg: #0c0f16;
+    --panel: #141926;
+    --panel-2: #1b2233;
+    --line: #2a3348;
+    --ink: #e7ecf5;
+    --muted: #94a1bd;
+    --dim: #6b7796;
+    --accent: #6ea8fe;     /* boundary / api */
+    --auth: #f6c453;       /* identity */
+    --mem: #5cd6a8;        /* memory */
+    --ctrl: #c792ea;       /* control */
+    --audit: #ff8f6b;      /* safety / audit */
+    --replica: #7dd3fc;    /* replication */
+    --radius: 14px;
+    --mono: "SFMono-Regular", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 700px at 78% -8%, #17203a 0%, var(--bg) 55%);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header.title { margin-bottom: 8px; }
+  h1 {
+    font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 6px;
+  }
+  .subtitle { color: var(--muted); font-size: 15px; max-width: 720px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px 22px; margin: 22px 0 34px; }
+  .legend .item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  .dot { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+
+  section { margin-bottom: 46px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+  .sec-head h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--dim); margin: 0; font-weight: 600; }
+  .sec-head .rule { flex: 1; height: 1px; background: var(--line); }
+
+  /* ---- topology ---- */
+  .topo { display: grid; grid-template-columns: 1fr; gap: 0; }
+  svg { width: 100%; height: auto; display: block; }
+  .node-label { font: 600 13px var(--sans); fill: var(--ink); }
+  .node-sub { font: 11px var(--mono); fill: var(--muted); }
+  .edge-label { font: 11px var(--sans); fill: var(--dim); }
+
+  /* ---- layer stack ---- */
+  .stack { display: flex; flex-direction: column; gap: 14px; }
+  .layer {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left-width: 4px;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 172px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .layer h3 { margin: 0 0 4px; font-size: 15px; }
+  .layer .tag { font: 11px var(--mono); color: var(--dim); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 11px;
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+  .chip b { font-weight: 600; }
+  .chip span { color: var(--muted); display: block; font-size: 11px; margin-top: 1px; }
+  .chip code { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+
+  /* ---- flows ---- */
+  .flows { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .flow {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .flow h3 { margin: 0 0 4px; font-size: 15px; display: flex; align-items: center; gap: 9px; }
+  .flow .who { font: 11px var(--mono); color: var(--dim); margin-bottom: 14px; }
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+  .steps li {
+    position: relative; padding: 0 0 13px 30px; counter-increment: s; font-size: 13px; color: var(--ink);
+  }
+  .steps li:last-child { padding-bottom: 0; }
+  .steps li::before {
+    content: counter(s);
+    position: absolute; left: 0; top: -1px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--panel-2); border: 1px solid var(--line);
+    font: 600 11px var(--mono); color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .steps li::after {
+    content: ""; position: absolute; left: 9.5px; top: 20px; bottom: 3px; width: 1px; background: var(--line);
+  }
+  .steps li:last-child::after { display: none; }
+  .steps code { font-family: var(--mono); font-size: 11.5px; color: var(--mem); background: rgba(92,214,168,.08); padding: 1px 5px; border-radius: 5px; }
+  .steps .deny code { color: var(--audit); background: rgba(255,143,107,.09); }
+
+  /* ---- scopes table ---- */
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  th, td { text-align: left; padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--line); }
+  th { background: var(--panel-2); color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  td code, th code { font-family: var(--mono); font-size: 12px; color: var(--auth); }
+  .yes { color: var(--mem); font-weight: 600; }
+  .no { color: var(--dim); }
+
+  .note { margin-top: 26px; font-size: 12.5px; color: var(--dim); border-left: 2px solid var(--line); padding-left: 14px; }
+  .note code { font-family: var(--mono); color: var(--muted); }
+  footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--dim); font-size: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+
+  @media (max-width: 820px) {
+    .flows { grid-template-columns: 1fr; }
+    .layer { grid-template-columns: 1fr; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="title">
+    <h1>Arvyx Memory &amp; Control</h1>
+    <p class="subtitle">
+      A self-hosted memory and control plane for a fleet of agents across machines.
+      One governed memory host, per-agent identity, an auditable write lane, and a
+      warm backup — every boundary shown below exists in code and is exercised by tests.
+    </p>
+  </header>
+
+  <div class="legend">
+    <div class="item"><span class="dot" style="background:var(--accent)"></span>Boundary &amp; transport</div>
+    <div class="item"><span class="dot" style="background:var(--auth)"></span>Identity &amp; scopes</div>
+    <div class="item"><span class="dot" style="background:var(--mem)"></span>Memory engine</div>
+    <div class="item"><span class="dot" style="background:var(--ctrl)"></span>Control plane</div>
+    <div class="item"><span class="dot" style="background:var(--audit)"></span>Safety &amp; audit</div>
+    <div class="item"><span class="dot" style="background:var(--replica)"></span>Replication &amp; health</div>
+  </div>
+  <p class="note" style="margin-top:-18px">
+    One governed surface over CLI, HTTP, and MCP — Hermes, OpenClaw, Claude Desktop, and Codex all connect the same way.
+  </p>
+
+  <!-- ============ TOPOLOGY ============ -->
+  <section>
+    <div class="sec-head"><h2>Deployment topology</h2><div class="rule"></div></div>
+    <div class="topo">
+      <svg viewBox="0 0 1180 470" role="img" aria-label="Deployment topology diagram">
+        <defs>
+          <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#6b7796" />
+          </marker>
+          <marker id="arrow-b" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#7dd3fc" />
+          </marker>
+          <marker id="arrow-a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#6ea8fe" />
+          </marker>
+          <style>
+            .box { fill: #141926; stroke: #2a3348; stroke-width: 1.5; rx: 12; }
+            .host { fill: #161d2e; stroke: #33507d; }
+            .backup { fill: #161d2e; stroke: #2e5a6e; }
+          </style>
+        </defs>
+
+        <!-- agent machines (left) -->
+        <g>
+          <rect class="box" x="30" y="40" width="210" height="66" rx="12"/>
+          <text class="node-label" x="46" y="68">Agent machine · atlas</text>
+          <text class="node-sub" x="46" y="88">harness + safe-mcp-bridge</text>
+
+          <rect class="box" x="30" y="130" width="210" height="66" rx="12"/>
+          <text class="node-label" x="46" y="158">Agent machine · vesper</text>
+          <text class="node-sub" x="46" y="178">harness + safe-mcp-bridge</text>
+
+          <rect class="box" x="30" y="220" width="210" height="66" rx="12"/>
+          <text class="node-label" x="46" y="248">Agents 3 – 5 …</text>
+          <text class="node-sub" x="46" y="268">one scoped token each</text>
+
+          <rect class="box" x="30" y="330" width="210" height="66" rx="12"/>
+          <text class="node-label" x="46" y="358">Operator</text>
+          <text class="node-sub" x="46" y="378">shared secret · dashboard</text>
+        </g>
+
+        <!-- TLS proxy -->
+        <rect class="box" x="330" y="150" width="150" height="120" rx="12"/>
+        <text class="node-label" x="352" y="196">TLS reverse</text>
+        <text class="node-label" x="352" y="214">proxy</text>
+        <text class="node-sub" x="352" y="240">https ⟶ 127.0.0.1</text>
+        <text class="node-sub" x="352" y="256">Caddy / nginx</text>
+
+        <!-- primary host -->
+        <rect class="box host" x="560" y="90" width="270" height="240" rx="14"/>
+        <text class="node-label" x="582" y="122" style="fill:#8fb8ff">PRIMARY memory host</text>
+        <text class="node-sub" x="582" y="142">arvyx serve-api · loopback + auth</text>
+        <rect x="582" y="158" width="226" height="46" rx="9" fill="#1b2233" stroke="#2a3348"/>
+        <text class="node-sub" x="596" y="178" style="fill:#e7ecf5">Governed vault (markdown + JSON)</text>
+        <text class="node-sub" x="596" y="194">.arvyx/index.json · lanes</text>
+        <rect x="582" y="214" width="110" height="44" rx="9" fill="#1b2233" stroke="#2a3348"/>
+        <text class="node-sub" x="596" y="232" style="fill:#e7ecf5">control log</text>
+        <text class="node-sub" x="596" y="248">JSONL + SQLite</text>
+        <rect x="698" y="214" width="110" height="44" rx="9" fill="#1b2233" stroke="#2a3348"/>
+        <text class="node-sub" x="712" y="232" style="fill:#ffb59b">audit chain</text>
+        <text class="node-sub" x="712" y="248">hash-linked</text>
+        <rect x="582" y="268" width="226" height="42" rx="9" fill="#161d2e" stroke="#2e5a6e"/>
+        <text class="node-sub" x="596" y="294" style="fill:#7dd3fc">/replica/*  ·  replica.read scope</text>
+
+        <!-- backup host -->
+        <rect class="box backup" x="930" y="150" width="220" height="120" rx="14"/>
+        <text class="node-label" x="952" y="182" style="fill:#7dd3fc">BACKUP host</text>
+        <text class="node-sub" x="952" y="204">arvyx replica sync (cron)</text>
+        <text class="node-sub" x="952" y="222">sha256 incremental pull</text>
+        <text class="node-sub" x="952" y="244">writable promotion refused</text>
+
+        <!-- edges: agents -> proxy -->
+        <path d="M240,73 C290,73 300,196 328,200" fill="none" stroke="#6ea8fe" stroke-width="1.6" marker-end="url(#arrow-a)"/>
+        <path d="M240,163 C285,170 300,205 328,208" fill="none" stroke="#6ea8fe" stroke-width="1.6" marker-end="url(#arrow-a)"/>
+        <path d="M240,253 C288,240 300,218 328,216" fill="none" stroke="#6ea8fe" stroke-width="1.6" marker-end="url(#arrow-a)"/>
+        <path d="M240,360 C300,352 300,240 328,232" fill="none" stroke="#6b7796" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="250" y="120">Bearer &lt;agent token&gt; · MCP / HTTPS</text>
+
+        <!-- proxy -> primary -->
+        <path d="M480,210 C520,210 528,210 556,210" fill="none" stroke="#6ea8fe" stroke-width="1.8" marker-end="url(#arrow-a)"/>
+
+        <!-- primary -> backup (pull) -->
+        <path d="M830,289 C880,289 900,230 926,220" fill="none" stroke="#7dd3fc" stroke-width="1.8" marker-end="url(#arrow-b)"/>
+        <text class="edge-label" x="852" y="270" style="fill:#7dd3fc">pull</text>
+
+        <!-- health cron pinging primary -->
+        <path d="M1040,150 C1040,70 900,60 830,100" fill="none" stroke="#5cd6a8" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="905" y="52" style="fill:#5cd6a8">arvyx health → ops bus alert</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ LAYER STACK ============ -->
+  <section>
+    <div class="sec-head"><h2>Inside the memory host — request path, top to bottom</h2><div class="rule"></div></div>
+    <div class="stack">
+
+      <div class="layer" style="border-left-color: var(--accent)">
+        <div>
+          <h3>Boundary</h3>
+          <div class="tag">how agents connect</div>
+        </div>
+        <div class="chips">
+          <div class="chip"><b>HTTP API</b><span>stdlib http.server, loopback + reverse proxy, 1 MiB body cap</span></div>
+          <div class="chip"><b>MCP (stdio)</b><span>persistent JSON-RPC session: initialize → tools/list → tools/call</span></div>
+          <div class="chip"><b>POST /mcp</b><span>same tools over HTTP</span></div>
+          <div class="chip"><b>safe-mcp-bridge</b><span>tool + method allowlist, injects token, redacts output</span></div>
+          <div class="chip"><b>CLI</b><span><code>arvyx …</code> local ops</span></div>
+        </div>
+      </div>
+
+      <div class="layer" style="border-left-color: var(--auth)">
+        <div>
+          <h3>Identity &amp; scopes</h3>
+          <div class="tag">who is allowed to do what</div>
+        </div>
+        <div class="chips">
+          <div class="chip"><b>Per-agent tokens</b><span>sha256 stored in <code>registry/tokens/</code>, never plaintext</span></div>
+          <div class="chip"><b>Scope gate</b><span>every route &amp; tool checks a required scope</span></div>
+          <div class="chip"><b>Actor binding</b><span>identity overrides claimed <code>owner/requester/author</code></span></div>
+          <div class="chip"><b>Profiles</b><span>read-only · agent · operator, intersected with scopes</span></div>
+          <div class="chip"><b>Default-deny</b><span>unauthenticated = curated reads only</span></div>
+        </div>
+      </div>
+
+      <div class="layer" style="border-left-color: var(--mem)">
+        <div>
+          <h3>Memory engine</h3>
+          <div class="tag">recall &amp; the write lane</div>
+        </div>
+        <div class="chips">
+          <div class="chip"><b>BM25 recall</b><span>over <code>.arvyx/index.json</code>, mtime-invalidated, ~3.5 ms warm</span></div>
+          <div class="chip"><b>Embeddings</b><span>hybrid + semantic modes via any OpenAI-compatible endpoint</span></div>
+          <div class="chip"><b>Temporal decay</b><span><code>--recency-half-life-days</code>, opt-in recency weighting</span></div>
+          <div class="chip"><b>Cited &amp; bounded</b><span>answer + source path:lines, token budget</span></div>
+          <div class="chip"><b>Lanes</b><span>curated ▸ notes ▸ imported (recallable) · pending / raw / archive (excluded)</span></div>
+          <div class="chip"><b>Write lane</b><span><code>suggest → pending → promote → notes</code></span></div>
+        </div>
+      </div>
+
+      <div class="layer" style="border-left-color: var(--ctrl)">
+        <div>
+          <h3>Control plane</h3>
+          <div class="tag">coordination state</div>
+        </div>
+        <div class="chips">
+          <div class="chip"><b>Append-only log</b><span>JSONL, cross-platform lock + fsync</span></div>
+          <div class="chip"><b>Tasks · approvals</b><span>single-use command-hash approvals, no self-approve</span></div>
+          <div class="chip"><b>Handoffs · bus</b><span>agent-to-agent coordination + ops channel</span></div>
+          <div class="chip"><b>SQLite projection</b><span>fast reads, log stays source of truth</span></div>
+        </div>
+      </div>
+
+      <div class="layer" style="border-left-color: var(--audit)">
+        <div>
+          <h3>Safety &amp; audit</h3>
+          <div class="tag">tamper-evidence &amp; leak control</div>
+        </div>
+        <div class="chips">
+          <div class="chip"><b>Hash-chained audit</b><span>every non-public request; <code>arvyx audit-log verify</code></span></div>
+          <div class="chip"><b>Secret broker</b><span><code>secret://</code> pointers resolved at access time, never stored/logged</span></div>
+          <div class="chip"><b>Secret redaction</b><span>literals redacted on recall / excerpt / bridge; refs survive</span></div>
+          <div class="chip"><b>Import/suggest lint</b><span>literal secrets refused, references allowed</span></div>
+          <div class="chip"><b>Path containment</b><span>resolve-then-check, forbidden-lane guard</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ COMMUNICATION FLOWS ============ -->
+  <section>
+    <div class="sec-head"><h2>Communication flows</h2><div class="rule"></div></div>
+    <div class="flows">
+
+      <div class="flow">
+        <h3><span class="dot" style="background:var(--mem)"></span>Recall (read)</h3>
+        <div class="who">agent · scope memory.read</div>
+        <ul class="steps">
+          <li>Agent asks a question through the bridge or <code>POST /memory/recall</code>.</li>
+          <li>Token resolves to an identity; <code>memory.read</code> scope checked.</li>
+          <li>BM25 ranks curated lanes over the persistent index.</li>
+          <li>Compact <code>answer</code> + <code>source path:lines</code> returned, secrets redacted.</li>
+          <li>Request logged to the hash-chained audit trail.</li>
+        </ul>
+      </div>
+
+      <div class="flow">
+        <h3><span class="dot" style="background:var(--mem)"></span>Suggest → promote (write)</h3>
+        <div class="who">agent suggests · operator promotes</div>
+        <ul class="steps">
+          <li>Agent calls <code>memory.suggest</code> (<code>memory.suggest</code> scope).</li>
+          <li>Content lands in the <b>pending</b> lane — excluded from recall.</li>
+          <li class="deny">Agent cannot promote its own note — <code>memory.promote</code> is operator-only.</li>
+          <li>Operator reviews <code>arvyx memory pending</code>, then <code>promote</code> → notes lane.</li>
+          <li>Now recallable; author + promoter recorded in frontmatter.</li>
+        </ul>
+      </div>
+
+      <div class="flow">
+        <h3><span class="dot" style="background:var(--replica)"></span>Replication (backup)</h3>
+        <div class="who">backup host · scope replica.read</div>
+        <ul class="steps">
+          <li>Backup calls <code>/replica/manifest</code> (sha256 per file).</li>
+          <li>Only changed files fetched via <code>/replica/file</code>; deletions propagate.</li>
+          <li>Control log + audit chain pulled via <code>/replica/state</code>.</li>
+          <li>Replica data may include token hashes; that does not grant writable failover authority.</li>
+          <li>Read-only recall is possible; manual, forced and automatic writable promotion remain refused without matching journal/effect authority.</li>
+        </ul>
+      </div>
+
+      <div class="flow">
+        <h3><span class="dot" style="background:var(--audit)"></span>Health &amp; alerting</h3>
+        <div class="who">cron on both hosts</div>
+        <ul class="steps">
+          <li><code>arvyx health</code> probes HTTP, a recall smoke, and auth.</li>
+          <li>Verifies the local audit chain is intact.</li>
+          <li>Checks replica freshness against a max-age threshold.</li>
+          <li class="deny">Any failure → nonzero exit + <code>alert</code> on the ops bus.</li>
+          <li>Dashboard and bus-watching agents see the alert.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SCOPES TABLE ============ -->
+  <section>
+    <div class="sec-head"><h2>Scopes &amp; who holds them</h2><div class="rule"></div></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Scope</th><th>Grants</th>
+          <th>Agent</th><th>Operator</th><th>Backup</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>memory.read</code></td><td>recall, excerpt, context packs</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td><code>memory.suggest</code></td><td>suggest into pending, list pending</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td><code>memory.curate</code></td><td>promote / reject pending &amp; imported</td><td class="no">—</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td><code>control.read</code></td><td>list tasks, approvals, handoffs, bus</td><td class="no">opt</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td><code>control.write</code></td><td>create/complete tasks, approvals, handoffs, bus posts</td><td class="no">opt</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td><code>session.write</code></td><td>write the agent's own hot session state</td><td class="no">opt</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td><code>secret.resolve</code></td><td>resolve <code>secret://</code> references via a broker</td><td class="no">opt</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td><code>replica.read</code></td><td>full-vault pull incl. excluded lanes</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+      </tbody>
+    </table>
+    <p class="note">
+      Tokens are minted with <code>arvyx auth issue &lt;agent&gt; --scope …</code> and only their sha256 is stored.
+      The shared operator secret (<code>--auth-env</code>) resolves to an all-scope <code>operator</code> identity for humans.
+      Grant <code>replica.read</code> to the backup host and nothing else — it exposes the raw/archive lanes recall hides.
+    </p>
+  </section>
+
+  <footer>
+    <span>Arvyx Memory &amp; Control — alpha release. Runs on Windows, macOS, and Linux.</span>
+    <span>Generated 2026-07-03 · reflects the code on <code>main</code></span>
+  </footer>
+
+</div>
+<section><h2>Private completion-fix4 source integration</h2><p>Reviewed onboarding pins are enforced by the leaf executor at reopen, authority and effect admission. Legacy CLI launches require explicit execution mode and separately configured owner policy. Provider sandbox and unattributed local archive export remain refused. See architecture.md for exact contracts and remaining transport, native, provider and independent-review boundaries. A release still requires the exact-tree candidate verdict (docs/release-gate.md).</p></section>
+<section><h2>Pass 5 integrated authority and archive contracts</h2><p>Memory writers and readers share the rendered UTF-8 byte limit; bounded UUID staging retains exact legacy recovery authority. Journals bind the exact vault/state, and original consent reaches final domain publication. Legacy capture/native scanner contexts are quarantined pending explicit digest-bound recovery; versioned cursor provenance separates conversations. Offload relocation requires confirmed exact-head complete-chain verification through the private owner RPC. Unresolved restore-pointer durability retains both volumes and blocks restart.</p><p>Independent-host final effects use separately provisioned authenticated durable permits through the runtime factory, API, leaf and owner guard. Unsettled permits survive timeout/expiry and prevent completed revocation. Shared-file guards remain supported. See remote-effect-fence.md. Source recorder tests are distinct from parent-host transport/browser QA, actual TLS/native/provider/container acceptance and independent review. A release still requires the exact-tree candidate verdict (docs/release-gate.md).</p></section><section><h2>Pass-5 source integration</h2><p>Independent-host final-effect permits preserve original consent and authenticated receiver policy. Unsettled permits block completed revocation; timeout is not cancellation. Sandbox workspace admission requires an explicitly provisioned directory-FD launcher protocol, with the held descriptor passed through exec; ordinary pathname binds refuse.</p><p>Capture offload verifies bounded resumable hash-chain segments before confirmed release, including explicit local archival without fabricating shared delivery. Legacy scanner contexts quarantine until proof-bound recovery. Import/promotion journals reconcile before coordinated capture; completed exact forget witnesses materialize as independent files.</p><p>External grant expiry and operations match authoritative readback. Observer membership is trusted configuration. Exact pairing claims and original consent survive blocking domain validation and asynchronous native attachment. See the English Markdown architecture, HTTP, local protocol, import, storage and remote-fence documents for the current contract. Parent transport, browser, native/provider and independent-review acceptance remain separate.</p></section>
+</body>
+</html>

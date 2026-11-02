@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "arvyx-memory": {
+      "command": "python3",
+      "args": [
+        "-m",
+        "arvyx_control.cli",
+        "mcp",
+        "--profile",
+        "read-only",
+        "--vault",
+        "/path/to/arvyx/fixtures/synthetic-vault"
+      ],
+      "env": {
+        "PYTHONPATH": "/path/to/arvyx/packages/arvctl/src"
+      }
+    }
+  }
+}

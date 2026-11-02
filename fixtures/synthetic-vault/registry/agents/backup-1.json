@@ -1,0 +1,7 @@
+{
+  "id": "backup-1",
+  "display_name": "Backup Host 1",
+  "machine_id": "server-b",
+  "runtime_id": "codex-demo",
+  "scopes": ["replica.read"]
+}

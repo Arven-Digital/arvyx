@@ -1,0 +1,5 @@
+{
+  "adapter": "webhook",
+  "url_env": "ARVYX_NOTIFY_WEBHOOK",
+  "timeout_seconds": 10
+}

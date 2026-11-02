@@ -1,0 +1,7 @@
+{
+  "id": "vesper",
+  "display_name": "Vesper",
+  "machine_id": "server-b",
+  "runtime_id": "claude-demo",
+  "scopes": ["memory.read", "memory.suggest", "control.write"]
+}

@@ -1,0 +1,15 @@
+# Principals whose signature counts as release-grade machine evidence.
+#
+# Public-release evidence must be signed by one of these. A principal that is
+# pinned in `docs/trusted-signers.allowed` but absent here may still sign
+# host-drill evidence, but it cannot satisfy the public gate: it records an
+# operator's shell signing a file, not a CI run on an exact tagged commit.
+#
+# An empty or comment-only file means nothing is release-grade (fail closed), so
+# a missing list blocks a public verdict instead of silently accepting any pinned
+# signer.
+#
+# Format: one principal per line, matching the first column of
+# `docs/trusted-signers.allowed`.
+
+arven-release-tooling-ci

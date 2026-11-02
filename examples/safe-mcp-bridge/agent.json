@@ -1,0 +1,67 @@
+{
+  "audit": {
+    "path": "tmp/safe-mcp-bridge-audit.jsonl",
+    "redact": true
+  },
+  "auth": {
+    "env": "ARVYX_MCP_TOKEN",
+    "header": "Authorization",
+    "prefix": "Bearer"
+  },
+  "description": "Expose governed memory and non-authority agent coordination tools.",
+  "name": "arvyx-memory-agent",
+  "policy": {
+    "allow_tools": [
+      "memory.recall",
+      "memory.excerpt",
+      "memory.context_pack",
+      "memory.session_get",
+      "memory.session_set",
+      "memory.suggest",
+      "memory.suggest_batch",
+      "memory.pending_list",
+      "control.task_create",
+      "control.task_list",
+      "control.task_done",
+      "control.approval_request",
+      "control.approval_consume",
+      "control.approval_list",
+      "control.handoff_create",
+      "control.handoff_list",
+      "control.handoff_accept",
+      "control.handoff_complete",
+      "control.bus_post",
+      "control.bus_list",
+      "control.digest",
+      "control.thread_get",
+      "control.thread_inbox",
+      "control.thread_pending",
+      "control.thread_post",
+      "control.thread_reply",
+      "control.thread_ack",
+      "control.thread_done",
+      "control.thread_read_all",
+      "control.execution_session_get",
+      "control.execution_list",
+      "control.execution_session_return_get",
+      "control.execution_event_list",
+      "control.execution_heartbeat",
+      "control.execution_session_return_request",
+      "control.decision_request",
+      "control.execution_steer_acknowledge",
+      "control.delivery_get",
+      "control.delivery_list",
+      "control.delivery_receipt",
+      "secret.providers",
+      "secret.pointer_check"
+    ],
+    "mode": "allowlist"
+  },
+  "redaction": {
+    "fail_on_secret_output": true
+  },
+  "target": {
+    "timeout_seconds": 20,
+    "url": "http://127.0.0.1:8765/mcp"
+  }
+}

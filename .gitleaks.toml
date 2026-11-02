@@ -1,0 +1,34 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+targetRules = ["private-key", "generic-api-key"]
+description = "Reviewed synthetic detector regression; exact source match and path"
+condition = "AND"
+regexTarget = "match"
+paths = ["(^|/)packages/arvctl/tests/test_cockpit_capture\\.py$"]
+regexes = ["^-----BEGIN PRIVATE KEY-----\\\\n'\\)\n        self\\.owner\\.close\\(\\)\n        self\\.owner = self\\.connect\\(\\)\n        resumed = cockpit_archive\\.WorkCapture\\(self\\.owner, self\\.sid, 'storage-after'\\)\n        resumed\\.feed\\(b'c3ludGhldGljLWJvZHk=\\\\n-----END PRIVATE KEY-----$"]
+
+[[allowlists]]
+targetRules = ["private-key", "generic-api-key"]
+description = "Reviewed synthetic detector regression; exact source match and path"
+condition = "AND"
+regexTarget = "match"
+paths = ["(^|/)packages/arvctl/tests/test_cockpit_capture\\.py$"]
+regexes = ["^-----BEGIN PRIVATE KEY-----\\\\n'\\)\n        self\\.owner\\.close\\(\\)\n        self\\.owner = self\\.connect\\(\\)\n        resumed = cockpit_archive\\.WorkCapture\\(self\\.owner, self\\.sid, 'storage-after'\\)\n        resumed\\.feed\\(b'synthetic-body\\\\n-----END PRIVATE KEY-----$"]
+
+[[allowlists]]
+targetRules = ["private-key", "generic-api-key"]
+description = "Reviewed synthetic detector regression; exact source match and path"
+condition = "AND"
+regexTarget = "match"
+paths = ["(^|/)packages/arvctl/tests/test_completion_fix4_A\\.py$"]
+regexes = ["^-----BEGIN PRIVATE KEY-----' \\+ separator\n            \\+ 'SYNTHETIC-KEY-PAYLOAD' \\+ separator \\+ '-----END PRIVATE KEY-----$"]
+
+[[allowlists]]
+targetRules = ["private-key", "generic-api-key"]
+description = "Reviewed synthetic detector regression; exact source match and path"
+condition = "AND"
+regexTarget = "match"
+paths = ["(^|/)packages/arvctl/tests/test_depth20_retrieval_cache\\.py$"]
+regexes = ["^secret = \"abcdefghijklmnopqrstuvwx1234567890\"$"]

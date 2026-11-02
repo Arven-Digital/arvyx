@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "suite": "synthetic-vault-recall",
+  "description": "Recall benchmark over the synthetic two-project vault. Questions are paraphrases, not verbatim echoes of fixture text; scoring uses corpus statistics with no query-conditioned boosts.",
+  "cases": [
+    {
+      "id": "safe_bridge_decision",
+      "category": "decision-recall",
+      "project": "demo-agent",
+      "question": "what did we decide about safe mcp bridge",
+      "expected_sources": ["projects/demo-agent/DECISIONS.md"],
+      "forbidden_sources": ["projects/demo-agent/raw/private-draft.md", "projects/demo-agent/archive/old.md"],
+      "min_confidence": 0.3
+    },
+    {
+      "id": "credential_guardrail",
+      "category": "decision-recall",
+      "project": "demo-agent",
+      "question": "which guardrail proxy protects credentials",
+      "expected_sources": ["projects/demo-agent/DECISIONS.md"],
+      "forbidden_sources": ["projects/demo-agent/raw/private-draft.md"],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "current_truth",
+      "category": "current-truth",
+      "project": "demo-agent",
+      "question": "what is the current truth for the demo agent",
+      "expected_sources": ["projects/demo-agent/STATUS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "bridge_position",
+      "category": "current-truth",
+      "project": "demo-agent",
+      "question": "where does the safety bridge sit relative to clients and servers",
+      "expected_sources": ["projects/demo-agent/STATUS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "compact_answers_first",
+      "category": "current-truth",
+      "project": "demo-agent",
+      "question": "should recall return compact cited answers before expanding documents",
+      "expected_sources": ["projects/demo-agent/STATUS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "embedding_open_question",
+      "category": "open-questions",
+      "project": "demo-agent",
+      "question": "which embedding backend is still an open question",
+      "expected_sources": ["projects/demo-agent/OPEN_QUESTIONS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.2
+    },
+    {
+      "id": "recall_smoke_runbook",
+      "category": "runbook",
+      "project": "demo-agent",
+      "question": "which command runs before expanding exact excerpts",
+      "expected_sources": ["projects/demo-agent/RUNBOOK.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.2
+    },
+    {
+      "id": "raw_lane_never_recalled",
+      "category": "lane-exclusion",
+      "project": "demo-agent",
+      "question": "what does the raw only marker say",
+      "expected_sources": [],
+      "forbidden_sources": ["projects/demo-agent/raw/private-draft.md", "projects/demo-agent/archive/old.md"],
+      "min_confidence": 0.0
+    },
+    {
+      "id": "heartbeat_cadence",
+      "category": "current-truth",
+      "project": "relay-ops",
+      "question": "how often do machines send relay heartbeats",
+      "expected_sources": ["projects/relay-ops/STATUS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "standby_promotion",
+      "category": "current-truth",
+      "project": "relay-ops",
+      "question": "when is a standby machine promoted",
+      "expected_sources": ["projects/relay-ops/STATUS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "queue_depth_limit",
+      "category": "current-truth",
+      "project": "relay-ops",
+      "question": "what queue depth is allowed during business hours",
+      "expected_sources": ["projects/relay-ops/STATUS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "idempotency_decision",
+      "category": "decision-recall",
+      "project": "relay-ops",
+      "question": "how is exactly-once delivery enforced",
+      "expected_sources": ["projects/relay-ops/DECISIONS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.3
+    },
+    {
+      "id": "dedup_rejected",
+      "category": "decision-recall",
+      "project": "relay-ops",
+      "question": "why was a consumer deduplication sweep rejected",
+      "expected_sources": ["projects/relay-ops/DECISIONS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "token_rotation",
+      "category": "decision-recall",
+      "project": "relay-ops",
+      "question": "how frequently are relay worker tokens rotated",
+      "expected_sources": ["projects/relay-ops/DECISIONS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "worker_restart_steps",
+      "category": "runbook",
+      "project": "relay-ops",
+      "question": "what should be checked before restarting a relay worker",
+      "expected_sources": ["projects/relay-ops/RUNBOOK.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.2
+    },
+    {
+      "id": "restart_watch_period",
+      "category": "runbook",
+      "project": "relay-ops",
+      "question": "how many heartbeat cycles should be watched after a worker restart",
+      "expected_sources": ["projects/relay-ops/RUNBOOK.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.2
+    },
+    {
+      "id": "backpressure_question",
+      "category": "open-questions",
+      "project": "relay-ops",
+      "question": "is pausing producers under backpressure still undecided",
+      "expected_sources": ["projects/relay-ops/OPEN_QUESTIONS.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.2
+    },
+    {
+      "id": "cross_project_idempotency",
+      "category": "cross-project-isolation",
+      "project": null,
+      "question": "what was decided about idempotency keys",
+      "expected_sources": ["projects/relay-ops/DECISIONS.md"],
+      "forbidden_sources": ["projects/demo-agent/DECISIONS.md"],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "cross_project_bridge",
+      "category": "cross-project-isolation",
+      "project": null,
+      "question": "what was decided about the safe mcp bridge",
+      "expected_sources": ["projects/demo-agent/DECISIONS.md"],
+      "forbidden_sources": ["projects/relay-ops/DECISIONS.md"],
+      "min_confidence": 0.25
+    },
+    {
+      "id": "cross_project_heartbeat",
+      "category": "cross-project-isolation",
+      "project": null,
+      "question": "which docs cover the heartbeat cadence for relay machines",
+      "expected_sources": ["projects/relay-ops/STATUS.md"],
+      "forbidden_sources": ["projects/demo-agent/STATUS.md"],
+      "min_confidence": 0.2
+    },
+    {
+      "id": "demobot_recall_preference",
+      "category": "agent-memory",
+      "project": null,
+      "question": "how does demobot prefer to use recall",
+      "expected_sources": ["agents/demobot/MEMORY.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.2
+    },
+    {
+      "id": "vesper_restart_habit",
+      "category": "agent-memory",
+      "project": null,
+      "question": "what does vesper check before restarting workers",
+      "expected_sources": ["agents/vesper/MEMORY.md"],
+      "forbidden_sources": [],
+      "min_confidence": 0.2
+    },
+    {
+      "id": "scoped_relay_does_not_leak",
+      "category": "cross-project-isolation",
+      "project": "demo-agent",
+      "question": "what is the relay heartbeat cadence",
+      "expected_sources": [],
+      "forbidden_sources": ["projects/relay-ops/STATUS.md"],
+      "min_confidence": 0.0
+    },
+    {
+      "id": "nonsense_returns_nothing",
+      "category": "no-answer",
+      "project": null,
+      "question": "quantum lasagna orbital choreography",
+      "expected_sources": [],
+      "forbidden_sources": ["projects/demo-agent/STATUS.md", "projects/relay-ops/STATUS.md"],
+      "min_confidence": 0.0
+    }
+  ]
+}

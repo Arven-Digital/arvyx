@@ -1,0 +1,16 @@
+{
+  "name": "amc-public-safe-synthetic-observatory",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "python -m unittest discover tests -v",
+    "build": "python scripts/build.py --json",
+    "smoke": "node scripts/smoke.mjs",
+    "capture": "node scripts/capture.mjs",
+    "verify": "npm test && npm run build && npm run smoke && npm run capture"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

@@ -1,0 +1,38 @@
+# Standalone file, NEVER merged with production Compose: no published ports,
+# no shared networks, and loopback-only API access through docker exec.
+services:
+  arvyx-server:
+    image: ${ARVYX_IMAGE:-arvyx:local}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        secret_file=/data/.arvyx-control-secret
+        test -s "$$secret_file" || exit 64
+        exec arvyx serve-api --host 127.0.0.1 --port 8765 \
+          --vault /data/vault \
+          --state /data/control-events.jsonl \
+          --audit-log /data/audit-log.jsonl \
+          --delivery-routes /config/agent-delivery-routes.json \
+          --auth-file "$$secret_file" \
+          --mcp-profile operator
+    network_mode: none
+    volumes:
+      - arvyx-data:/data
+      - ../config/agent-delivery-routes.example.json:/config/agent-delivery-routes.json:ro
+    restart: "no"
+    init: true
+    pids_limit: 128
+    mem_limit: ${ARVYX_MEMORY_LIMIT:-512m}
+    cpus: ${ARVYX_CPU_LIMIT:-1.0}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  arvyx-data:
+    external: true
+    name: ${ARVYX_DATA_VOLUME:?ARVYX_DATA_VOLUME must name the owned candidate}

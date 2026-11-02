@@ -1,0 +1,28 @@
+const STATE_NAMES = ["full", "empty", "loading", "error"];
+const params = new URLSearchParams(location.search);
+const requestedState = params.get("state") || "full";
+const stateName = STATE_NAMES.includes(requestedState) ? requestedState : "full";
+const escapeHTML = (value) => String(value).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+const badge = (text, tone="") => `<span class="badge ${tone}">${escapeHTML(text)}</span>`;
+const panel = (title, meta, body, tone="") => `<article class="panel"><header class="panel-head"><h2>${escapeHTML(title)}</h2>${badge(meta,tone)}</header>${body}</article>`;
+
+function renderFull(data) {
+  const metrics = Object.entries(data.summary).map(([key,value]) => `<div class="metric"><span class="label">${escapeHTML(key)}</span><strong>${escapeHTML(value)}</strong></div>`).join("");
+  const memory = [data.memory.current, data.memory.suggestion].map((item,i) => `<div class="memory-card ${i ? "pending" : ""}"><span class="status">● ${escapeHTML(item.status)}</span><h3>${escapeHTML(item.title)}</h3><p>${escapeHTML(item.body)}</p><span class="version">${escapeHTML(item.version)}</span></div>`).join("");
+  const tools = data.tools.map(t => `<li class="tool"><code>${escapeHTML(t.name)}</code><small>${escapeHTML(t.scope)}</small><span class="access ${t.access === "blocked" ? "blocked" : ""}">${escapeHTML(t.access)}</span></li>`).join("");
+  const approval = `<div class="gate"><span class="label">Requested action</span><div class="gate-action">${escapeHTML(data.approval.action)}</div><code class="hash">${escapeHTML(data.approval.command_hash)}</code><div class="facts"><div class="fact"><span>Requester</span><strong>${escapeHTML(data.approval.requester)}</strong></div><div class="fact"><span>Consumption</span><strong>${escapeHTML(data.approval.consumption)}</strong></div><div class="fact"><span>Expires</span><strong>${escapeHTML(data.approval.expires)}</strong></div><div class="fact"><span>Authority</span><strong>Human operator</strong></div></div></div>`;
+  const flow = `<div class="flow"><div class="flow-card"><span class="label">Handoff · ${escapeHTML(data.handoff.id)}</span><strong>${escapeHTML(data.handoff.subject)}</strong><small>${escapeHTML(data.handoff.from)} → ${escapeHTML(data.handoff.to)} · ${escapeHTML(data.handoff.status)}</small></div><div class="flow-arrow" aria-hidden="true">→</div><div class="flow-card"><span class="label">Execution · ${escapeHTML(data.execution.id)}</span><strong>${escapeHTML(data.execution.label)}</strong><small>Step ${escapeHTML(data.execution.step)} · lease ${escapeHTML(data.execution.lease)}</small></div></div>`;
+  const citations = `<ol class="citation-list citations">${data.citations.map(c => `<li class="citation"><span class="label">${escapeHTML(c.id)} ${escapeHTML(c.source)} · L${escapeHTML(c.lines)}</span><p>“${escapeHTML(c.excerpt)}”</p></li>`).join("")}</ol>`;
+  const r=data.receipt; const receipt=`<div class="receipt"><div class="receipt-grid"><div><span class="label">${escapeHTML(r.kind)} · ${escapeHTML(r.id)}</span><h3>${escapeHTML(r.event)}</h3><code>${escapeHTML(r.verdict)}</code></div><div class="facts"><div class="fact"><span>Actor</span><strong>${escapeHTML(r.actor)}</strong></div><div class="fact"><span>Timestamp</span><strong>${escapeHTML(r.at)}</strong></div><div class="fact"><span>Chain</span><strong>${escapeHTML(r.chain)}</strong></div></div></div></div>`;
+  return `<section class="summary" aria-label="Replay summary">${metrics}</section><div class="workspace"><div class="stack">${panel("Memory authority","CURATION",`<div class="memory-grid">${memory}</div>`)}${panel("Handoff & execution","LIVE PROJECTION",flow)}${panel("Cited basis","2 SOURCES",citations)}</div><aside class="stack" aria-label="Governance rail">${panel("Scoped agent tools","ALLOWLIST",`<ul class="tool-list">${tools}</ul>`)}${panel("Approval gate",data.approval.status,approval,"amber")}${panel("Evidence chain","VERIFIED",receipt)}</aside></div>`;
+}
+function renderState(name,data){
+ const icon={empty:"○",loading:"↻",error:"!"}[name];
+ return `<section class="state-card ${name}" role="status"><div><div class="state-icon ${name === "loading" ? "spinner" : ""}" aria-hidden="true">${icon}</div><h2>${escapeHTML(data.message)}</h2><p>${escapeHTML(data.detail)}</p>${name === "loading" ? '<div class="skeleton" aria-hidden="true"></div>' : ""}${name === "error" ? `<code class="hash">${escapeHTML(data.code)}</code>` : ""}</div></section>`;
+}
+async function start(){
+ const app=document.querySelector("#app"), select=document.querySelector("#state-select"); select.value=stateName;
+ select.addEventListener("change",()=>{const next=new URL(location.href);next.searchParams.set("state",select.value);location.assign(next)});
+ try{const response=await fetch("fixtures/replay.json",{cache:"no-store"});if(!response.ok)throw new Error(`fixture ${response.status}`);const fixture=await response.json();document.querySelector("#clock").textContent=fixture.clock;document.querySelector("#build-id").textContent=fixture.build_id;document.querySelector("#commit-id").textContent=document.documentElement.dataset.commit||"SOURCE";document.querySelector("#notice").textContent=fixture.notice;app.innerHTML=stateName === "full" ? renderFull(fixture.states.full) : renderState(stateName,fixture.states[stateName]);app.setAttribute("aria-busy","false");document.title=`AMC Observatory · ${stateName}`;}catch(error){app.innerHTML=renderState("error",{message:"Replay fixture unavailable",detail:"The local deterministic fixture could not be read.",code:"LOCAL_FIXTURE_READ_FAILED"});app.setAttribute("aria-busy","false");}
+}
+start();

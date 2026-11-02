@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="A deterministic synthetic demonstration of governed agent memory and control.">
+  <title>AMC Observatory · Synthetic Replay</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to control center</a>
+  <header class="topbar">
+    <a class="brand" href="?state=full" aria-label="AMC Observatory synthetic demo home">
+      <span class="brand-mark" aria-hidden="true"><i></i></span>
+      <span><b>AMC / OBSERVATORY</b><small>PUBLIC-SAFE VISUAL TWIN</small></span>
+    </a>
+    <div class="replay-controls">
+      <label for="state-select">Replay state</label>
+      <select id="state-select" aria-label="Replay state">
+        <option value="full">Full</option><option value="empty">Empty</option>
+        <option value="loading">Loading</option><option value="error">Error</option>
+      </select>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    <section class="hero" aria-labelledby="hero-title">
+      <div><p class="kicker">GOVERNED AGENT OPERATIONS · FRAME 07 / 12</p><h1 id="hero-title">Authority you can <em>inspect.</em></h1><p class="lede">A deterministic window into memory, permissions, human gates, execution, and evidence—using synthetic records only.</p></div>
+      <div class="stamp" aria-label="Replay provenance"><span id="clock">—</span><strong id="build-id">—</strong><small id="commit-id">SOURCE</small></div>
+    </section>
+    <div id="notice" class="notice" role="note">Loading synthetic fixture…</div>
+    <section id="app" aria-live="polite" aria-busy="true"></section>
+  </main>
+  <footer><span>AMC OBSERVATORY / SYNTHETIC</span><span>LOCAL · DETERMINISTIC · NO NETWORK WRITES</span></footer>
+  <script src="app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "client": "codex",
+  "checked_at": "2026-07-02T00:00:00Z",
+  "git_head": "REPLACE_WITH_THE_RELEASE_COMMIT",
+  "git_tree": "REPLACE_WITH_HEAD_TREE",
+  "transport": "stdio",
+  "command": "python3 -m arvyx_control.cli mcp --profile read-only --vault fixtures/synthetic-vault",
+  "result": {
+    "tools_list_ok": true,
+    "recall_ok": true,
+    "sources_returned": true,
+    "private_paths_leaked": false
+  },
+  "notes": "Public-safe example shape. Replace every REPLACE_WITH_* value with real release-host evidence before public review. The release gate requires both git_head and git_tree to match the tree under review (git rev-parse HEAD / HEAD^{tree}), checked_at within 14 days, and an SSH signature from a pinned principal in docs/trusted-signers.allowed."
+}

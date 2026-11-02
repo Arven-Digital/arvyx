@@ -1,0 +1,32 @@
+{
+  "schema": "amc.synthetic.replay.v1",
+  "build_id": "synthetic-replay-v1",
+  "clock": "2026-09-09T09:00:00Z",
+  "notice": "Synthetic replay · no live infrastructure or operator data",
+  "states": {
+    "full": {
+      "summary": {"agents": "03", "active": "02", "held": "01", "receipts": "07"},
+      "memory": {
+        "current": {"status": "current truth", "title": "Release policy", "body": "Human approval is required before any public release.", "version": "CURATED · V7"},
+        "suggestion": {"status": "pending suggestion", "title": "Tighten evidence retention", "body": "Retain visual receipts with viewport, state, and build stamp.", "version": "SUGGESTION · #018"}
+      },
+      "tools": [
+        {"name": "memory.recall", "scope": "project: demobot-demo", "access": "read"},
+        {"name": "memory.suggest", "scope": "lane: pending", "access": "propose"},
+        {"name": "control.handoff", "scope": "agent: relay", "access": "write"},
+        {"name": "control.approve", "scope": "human only", "access": "blocked"}
+      ],
+      "approval": {"status": "awaiting human", "requester": "demobot-sim", "action": "publish demo artifact", "command_hash": "sha256:7d5e3a9c10b28f61", "expires": "09:30 UTC", "consumption": "single-use"},
+      "handoff": {"id": "HND-042", "from": "demobot-sim", "to": "relay-sim", "status": "accepted", "subject": "Verify visual receipt matrix"},
+      "execution": {"id": "EXE-117", "status": "running", "step": "3 / 4", "lease": "healthy", "label": "Capture deterministic replay"},
+      "citations": [
+        {"id": "[1]", "source": "policies/release.md", "lines": "18–24", "excerpt": "Publication requires explicit human authorization."},
+        {"id": "[2]", "source": "runbooks/evidence.md", "lines": "41–49", "excerpt": "Every visual receipt names viewport, state, and build."}
+      ],
+      "receipt": {"kind": "audit receipt", "id": "RCT-0007", "event": "approval.requested", "actor": "demobot-sim", "at": "2026-09-09T09:00:00Z", "chain": "prev: 4c20…91af", "verdict": "append-only · verified"}
+    },
+    "empty": {"message": "No active work in this synthetic replay.", "detail": "Memory truth remains available; queues and receipts are clear."},
+    "loading": {"message": "Replaying deterministic event stream…", "detail": "Reading fixture frame 07 of 12."},
+    "error": {"message": "Replay frame unavailable", "detail": "Synthetic checksum mismatch. No external system was contacted.", "code": "REPLAY_FIXTURE_INVALID"}
+  }
+}

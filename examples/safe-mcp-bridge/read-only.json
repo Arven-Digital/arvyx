@@ -1,0 +1,31 @@
+{
+  "name": "arvyx-memory-read-only",
+  "description": "Expose memory recall and exact-source expansion only.",
+  "target": {
+    "url": "http://127.0.0.1:8765/mcp",
+    "timeout_seconds": 20
+  },
+  "auth": {
+    "header": "Authorization",
+    "env": "ARVYX_MCP_TOKEN",
+    "prefix": "Bearer"
+  },
+  "policy": {
+    "mode": "allowlist",
+    "allow_tools": [
+      "memory.recall",
+      "memory.excerpt",
+      "memory.context_pack",
+      "control.thread_get",
+      "control.thread_inbox",
+      "control.thread_pending"
+    ]
+  },
+  "audit": {
+    "path": "tmp/safe-mcp-bridge-audit.jsonl",
+    "redact": true
+  },
+  "redaction": {
+    "fail_on_secret_output": true
+  }
+}

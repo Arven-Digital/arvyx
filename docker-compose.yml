@@ -1,0 +1,60 @@
+services:
+  # Host secret path: ARVYX_CONTROL_SECRET_FILE (stage with scripts/stage_control_secret.py).
+  arvyx-server:
+    image: ${ARVYX_IMAGE:-arvyx:local}
+    build:
+      context: .
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        # Secret is staged onto the data volume as uid 10001 mode 0400 via
+        # scripts/stage_control_secret.py (host file stays 0600). Do not bind-mount
+        # the operator secret directly into the unprivileged runtime.
+        secret_file=/data/.arvyx-control-secret
+        test -s "$$secret_file" || {
+          echo >&2 "missing staged control secret at $$secret_file; run scripts/stage_control_secret.py first"
+          exit 64
+        }
+        exec arvyx serve-api --host 0.0.0.0 --port 8765 \
+          --vault /data/vault \
+          --state /data/control-events.jsonl \
+          --audit-log /data/audit-log.jsonl \
+          --delivery-routes /config/agent-delivery-routes.json \
+          --auth-file "$$secret_file" \
+          --mcp-profile operator
+    ports:
+      - "127.0.0.1:${ARVYX_PORT:-8765}:8765"
+    volumes:
+      - arvyx-data:/data
+      - ./config/agent-delivery-routes.example.json:/config/agent-delivery-routes.json:ro
+    restart: unless-stopped
+    init: true
+    pids_limit: 128
+    mem_limit: ${ARVYX_MEMORY_LIMIT:-512m}
+    cpus: ${ARVYX_CPU_LIMIT:-1.0}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  arvyx-demo:
+    profiles: ["demo"]
+    image: ${ARVYX_IMAGE:-arvyx:local}
+    build:
+      context: .
+    command: arvyx demo --vault fixtures/synthetic-vault --json
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  arvyx-data:
+    name: ${ARVYX_DATA_VOLUME:?ARVYX_DATA_VOLUME must be explicitly project-scoped}

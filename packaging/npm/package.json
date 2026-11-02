@@ -1,0 +1,25 @@
+{
+  "name": "arvyx",
+  "version": "0.1.0-alpha.0",
+  "description": "Arvyx: self-hosted memory and control plane for AI agent teams (bundled Python wheel and web control room)",
+  "license": "Apache-2.0",
+  "repository": {"type": "git", "url": "https://github.com/Arven-Digital/arvyx.git"},
+  "type": "module",
+  "engines": {
+    "node": ">=24.11.0"
+  },
+  "bin": {
+    "arvyx": "bin/arvyx.mjs"
+  },
+  "files": [
+    "bin/",
+    "payload/",
+    "licenses/",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

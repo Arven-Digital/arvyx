@@ -1,0 +1,20 @@
+{
+  "agents": [
+    {
+      "id": "demobot",
+      "runtime": "local-demo-demobot",
+      "endpoints": [
+        { "name": "memory", "url": "http://127.0.0.1:18082/healthz" },
+        { "name": "control", "url": "http://127.0.0.1:18083/health" }
+      ]
+    },
+    {
+      "id": "vesper",
+      "runtime": "local-demo-vesper",
+      "endpoints": [
+        { "name": "memory", "url": "http://127.0.0.1:18084/healthz" },
+        { "name": "browser", "url": "", "enabled": false }
+      ]
+    }
+  ]
+}

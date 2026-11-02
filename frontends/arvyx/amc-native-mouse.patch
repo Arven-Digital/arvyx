@@ -1,0 +1,93 @@
+diff --git a/src/client/shell.rs b/src/client/shell.rs
+index 2d180443..e856c860 100644
+--- a/src/client/shell.rs
++++ b/src/client/shell.rs
+@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
+ mod actions;
+ mod agent_sidebar;
+ mod aggregate_navigation;
++mod amc_sessions;
+ mod machine_diagnostics;
+ mod workspace_navigation;
+ use workspace_navigation::{PendingWorkspaceHighlight, WorkspaceNavigationTarget};
+diff --git a/src/client/shell/composition.rs b/src/client/shell/composition.rs
+index b7ab4a96..9b505586 100644
+--- a/src/client/shell/composition.rs
++++ b/src/client/shell/composition.rs
+@@ -720,6 +720,9 @@ impl ClientShellState {
+             self.hits.pane_splits.clear();
+             self.hits.popup = None;
+         }
++        if let Some(area) = self.render_amc_sessions(&mut frame) {
++            occlusion.cover(area);
++        }
+         let graphics = self.compose_graphics(layout, &occlusion);
+         Some(crate::client::frame_output::ComposedFrame { frame, graphics })
+     }
+diff --git a/src/client/shell/input.rs b/src/client/shell/input.rs
+index ee92d590..c424713d 100644
+--- a/src/client/shell/input.rs
++++ b/src/client/shell/input.rs
+@@ -227,6 +227,18 @@ impl ClientShellState {
+             outcome.repaint = true;
+         }
+         for event in events {
++            if let Some(chooser) = self.amc_sessions.as_mut().filter(|c| c.is_open()) {
++                let text = match &event {
++                    RawInputEvent::Text(text) => Some(text.clone().into_string()),
++                    RawInputEvent::Paste(text) => Some(text.clone()),
++                    _ => None,
++                };
++                if let Some(text) = text {
++                    chooser.search_text(&text);
++                    outcome.repaint = true;
++                    continue;
++                }
++            }
+             let event = match event {
+                 RawInputEvent::Key(key) => match self.host_text_commit(&key) {
+                     Some(text) => RawInputEvent::Text(crate::input::TextCommit::new(text)),
+@@ -380,6 +392,9 @@ impl ClientShellState {
+         key: crate::input::TerminalKey,
+         outcome: &mut ClientShellInput,
+     ) {
++        if self.amc_key(&key, outcome) {
++            return;
++        }
+         outcome.repaint |= self.clear_link_hover();
+         if self.copy_operation_in_flight {
+             self.copy_input_queue.push_back(key);
+diff --git a/src/client/shell/mouse.rs b/src/client/shell/mouse.rs
+index 8e873d68..01c382fa 100644
+--- a/src/client/shell/mouse.rs
++++ b/src/client/shell/mouse.rs
+@@ -681,6 +681,9 @@ impl ClientShellState {
+     /// Hit-test order determines which overlapping control receives the event;
+     /// the sidebar toggle takes precedence over the agent scrollbar beneath it.
+     pub(super) fn handle_mouse(&mut self, mouse: MouseEvent, outcome: &mut ClientShellInput) {
++        if self.amc_mouse(mouse, outcome) {
++            return;
++        }
+         self.update_link_hover(mouse, outcome);
+         let point = (mouse.column, mouse.row);
+         if self.mode == ClientShellMode::Navigate
+diff --git a/src/client/shell/state.rs b/src/client/shell/state.rs
+index 5a732920..bc808435 100644
+--- a/src/client/shell/state.rs
++++ b/src/client/shell/state.rs
+@@ -895,6 +895,7 @@ pub(crate) struct ClientShellState {
+     pub(super) last_composed_size: Option<(u16, u16)>,
+     pub(super) last_composed_at: Option<std::time::Instant>,
+     pub(super) selection_repaint_deadline: Option<std::time::Instant>,
++    pub(super) amc_sessions: Option<super::amc_sessions::Chooser>,
+     pub(super) hits: ShellHitMap,
+     pub(super) endpoints: Vec<ClientShellEndpoint>,
+     pub(super) active_endpoint_id: ClientEndpointId,
+@@ -1030,6 +1031,7 @@ impl ClientShellState {
+                 .extend(saved.collapsed_groups);
+         }
+         Self {
++            amc_sessions: super::amc_sessions::Chooser::from_environment(),
+             machine_diagnostics: Default::default(),
+             config,
+             snapshot: None,

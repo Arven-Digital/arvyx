@@ -1,0 +1,36 @@
+{
+  "schema": "v2.agent-delivery-routes/1",
+  "revision": "2026-08-29-r1",
+  "approved_at": "2026-08-29T12:00:00Z",
+  "owner": "elin",
+  "previous": {
+    "revision": "2026-08-20-r4",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "routes": {
+    "amir": {
+      "runtime": "hermes-webhook",
+      "url_env": "ARVYX_AGENT_AMIR_DELIVERY_URL",
+      "credential_env": "ARVYX_AGENT_AMIR_DELIVERY_SECRET",
+      "timeout_seconds": 10
+    },
+    "esme": {
+      "runtime": "hermes-webhook",
+      "url_env": "ARVYX_AGENT_ESME_DELIVERY_URL",
+      "credential_env": "ARVYX_AGENT_ESME_DELIVERY_SECRET",
+      "timeout_seconds": 10
+    },
+    "kiran": {
+      "runtime": "hermes-webhook",
+      "url_env": "ARVYX_AGENT_KIRAN_DELIVERY_URL",
+      "credential_env": "ARVYX_AGENT_KIRAN_DELIVERY_SECRET",
+      "timeout_seconds": 10
+    },
+    "odin": {
+      "runtime": "openclaw-hook",
+      "url_env": "ARVYX_AGENT_ODIN_DELIVERY_URL",
+      "credential_env": "ARVYX_AGENT_ODIN_DELIVERY_TOKEN",
+      "timeout_seconds": 10
+    }
+  }
+}

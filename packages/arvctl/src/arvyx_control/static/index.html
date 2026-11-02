@@ -1,0 +1,3233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>Arvyx War Room</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080a0d;
+        --surface: #101419;
+        --raised: #151b21;
+        --line: #273039;
+        --ink: #f3f0e8;
+        --muted: #89959f;
+        --mint: #5af2ba;
+        --amber: #ffbd59;
+        --coral: #ff716c;
+        --violet: #a98bff;
+        --cyan: #64d9ff;
+        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        background: var(--bg);
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 75% -10%, #19372d55, transparent 35%),
+          linear-gradient(#ffffff05 1px, transparent 1px),
+          linear-gradient(90deg, #ffffff04 1px, transparent 1px), var(--bg);
+        background-size:
+          auto,
+          32px 32px,
+          32px 32px;
+        min-width: 0;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+      button {
+        color: var(--ink);
+      }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible,
+      .kanban:focus-visible {
+        outline: 2px solid var(--mint);
+        outline-offset: 3px;
+      }
+      .skip {
+        position: fixed;
+        left: 12px;
+        top: -80px;
+        background: var(--ink);
+        color: var(--bg);
+        padding: 10px;
+        z-index: 99;
+      }
+      .skip:focus {
+        top: 12px;
+      }
+      .shell {
+        max-width: 1600px;
+        margin: auto;
+        padding: 0 28px 60px;
+      }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 28px;
+        margin: 0 -28px;
+        background: #080a0dd9;
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid #ffffff12;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--mint);
+        border-radius: 50%;
+        position: relative;
+        box-shadow: 0 0 24px #5af2ba42;
+      }
+      .brand-mark:before,
+      .brand-mark:after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        inset: 7px;
+        border: 1px solid var(--violet);
+      }
+      .brand-mark:after {
+        inset: 14px;
+        background: var(--mint);
+        border: 0;
+      }
+      .eyebrow,
+      .mono {
+        font:
+          600 11px/1.4 ui-monospace,
+          SFMono-Regular,
+          monospace;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .eyebrow {
+        color: var(--muted);
+      }
+      h1 {
+        font-size: 17px;
+        margin: 1px 0 0;
+        letter-spacing: 0.02em;
+      }
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .status-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--amber);
+        box-shadow: 0 0 12px currentColor;
+      }
+      .dot.ok {
+        background: var(--mint);
+        color: var(--mint);
+      }
+      .dot.bad {
+        background: var(--coral);
+        color: var(--coral);
+      }
+      .dot.warn {
+        background: var(--amber);
+        color: var(--amber);
+      }
+      .control {
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: linear-gradient(#ffffff09, #ffffff02), var(--surface);
+        padding: 0 14px;
+        cursor: pointer;
+        box-shadow: 0 5px 18px #0004;
+        transition:
+          transform 0.2s var(--ease),
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .control:hover {
+        border-color: #72808d;
+        transform: translateY(-2px);
+        box-shadow: 0 9px 25px #0007;
+      }
+      .control:active {
+        transform: translateY(1px) scale(0.98);
+      }
+      .control.primary {
+        border-color: #5af2ba77;
+        background: linear-gradient(135deg, #143e31, #12241f);
+      }
+      .control:disabled,
+      .control:disabled:hover,
+      .control:disabled:active {
+        color: #66717a;
+        border-color: #222a31;
+        background: #0b0f13;
+        box-shadow: none;
+        cursor: default;
+        opacity: .58;
+        transform: none;
+      }
+      .control.resume-ready {
+        color: #07120e;
+        border-color: var(--mint);
+        background: var(--mint);
+        box-shadow: 0 0 0 2px #5af2ba22, 0 8px 24px #5af2ba24;
+        font-weight: 800;
+      }
+      .hero {
+        padding: 56px 0 28px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+        gap: 26px;
+        align-items: end;
+      }
+      .hero h2 {
+        font-size: clamp(38px, 6vw, 76px);
+        line-height: 0.9;
+        letter-spacing: -0.055em;
+        margin: 8px 0 20px;
+        max-width: 780px;
+      }
+      .hero h2 em {
+        font-style: normal;
+        color: var(--mint);
+      }
+      .hero-copy {
+        color: var(--muted);
+        max-width: 620px;
+        font-size: 15px;
+      }
+      .freshness {
+        border-left: 1px solid var(--line);
+        padding: 10px 0 10px 22px;
+        display: grid;
+        gap: 8px;
+      }
+      .freshness strong {
+        font-size: 28px;
+      }
+      .state-banner {
+        display: none;
+        margin: 0 0 18px;
+        padding: 14px 16px;
+        border: 1px solid var(--amber);
+        border-radius: 12px;
+        background: #ffbd5910;
+        color: var(--amber);
+      }
+      .state-banner.show {
+        display: block;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 26px;
+      }
+      .metric,
+      .panel {
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(145deg, #ffffff06, transparent 45%), var(--surface);
+        box-shadow: 0 14px 40px #0004;
+      }
+      .metric {
+        border-radius: 14px;
+        padding: 16px;
+        min-height: 116px;
+        position: relative;
+        overflow: hidden;
+      }
+      .metric:after {
+        content: "";
+        position: absolute;
+        height: 2px;
+        left: 0;
+        bottom: 0;
+        width: var(--load, 0%);
+        background: var(--tone, var(--mint));
+        box-shadow: 0 0 16px var(--tone, var(--mint));
+        transition: width 0.8s var(--ease);
+      }
+      .metric strong {
+        display: block;
+        font:
+          500 34px/1 ui-monospace,
+          monospace;
+        margin: 19px 0 6px;
+      }
+      .metric small {
+        color: var(--muted);
+      }
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 15px;
+        margin: 34px 0 13px;
+      }
+      .section-head h2 {
+        font-size: 26px;
+        letter-spacing: -0.03em;
+        margin: 2px 0;
+      }
+      .section-head p {
+        color: var(--muted);
+        margin: 0;
+        max-width: 520px;
+      }
+      .panel {
+        border-radius: 16px;
+        padding: 18px;
+        min-width: 0;
+      }
+      .orbit-layout,
+      .signal-grid,
+      .atlas-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
+        gap: 12px;
+      }
+      .load {
+        height: 3px;
+        background: #ffffff14;
+        margin-top: 9px;
+        border-radius: 9px;
+        overflow: hidden;
+      }
+      .load i {
+        display: block;
+        height: 100%;
+        background: var(--tone, var(--mint));
+        width: var(--load);
+        transition: width 0.8s var(--ease);
+      }
+      .agent-detail {
+        display: grid;
+        align-content: start;
+        gap: 15px;
+      }
+      .detail-number {
+        font:
+          500 34px/1 ui-monospace,
+          monospace;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .chip {
+        font:
+          600 10px ui-monospace,
+          monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 8px;
+        color: var(--muted);
+      }
+      .chip.unreported {
+        color: var(--amber);
+        border-style: dashed;
+      }
+      .kanban {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(235px, 1fr));
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        scrollbar-color: var(--line) transparent;
+      }
+      .lane {
+        min-height: 300px;
+        background: #0b0e12;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 11px;
+      }
+      .lane-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 3px 4px 12px;
+      }
+      .lane-head span {
+        color: var(--muted);
+        font:
+          600 11px ui-monospace,
+          monospace;
+      }
+      .lane-list {
+        display: grid;
+        gap: 8px;
+      }
+      .card {
+        border: 1px solid #242d35;
+        border-radius: 11px;
+        background: var(--raised);
+        padding: 12px;
+      }
+      .card.entering {
+        animation: card-in 0.4s var(--ease) both;
+      }
+      .card strong {
+        font-size: 13px;
+        display: block;
+      }
+      .card small {
+        color: var(--muted);
+        display: block;
+        margin-top: 8px;
+      }
+      .card .kind {
+        color: var(--cyan);
+        margin-bottom: 6px;
+      }
+      @keyframes card-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+      }
+      .chart {
+        height: 225px;
+        display: flex;
+        flex-direction: column;
+      }
+      .chart svg {
+        width: 100%;
+        height: 160px;
+        overflow: visible;
+      }
+      .trace {
+        fill: none;
+        stroke: var(--mint);
+        stroke-width: 2.5;
+        vector-effect: non-scaling-stroke;
+        filter: drop-shadow(0 0 6px #5af2ba77);
+        stroke-dasharray: 500;
+      }
+      .trace.entering {
+        animation: trace-in 1s var(--ease) both;
+      }
+      .chart-fill {
+        fill: url(#chartGradient);
+      }
+      @keyframes trace-in {
+        from {
+          stroke-dashoffset: 500;
+        }
+      }
+      .axis {
+        stroke: #ffffff16;
+        stroke-width: 1;
+      }
+      .bars,
+      .skill-list,
+      .memory-list {
+        display: grid;
+        gap: 10px;
+      }
+      .bar-row {
+        display: grid;
+        grid-template-columns: minmax(90px, 1fr) 3fr 32px;
+        gap: 8px;
+        align-items: center;
+        font-size: 12px;
+      }
+      .bar-track {
+        height: 7px;
+        background: #ffffff10;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .bar-track i {
+        display: block;
+        height: 100%;
+        width: var(--width);
+        background: var(--violet);
+        border-radius: inherit;
+        transition: width 0.8s var(--ease);
+      }
+      .events {
+        max-height: 360px;
+        overflow: auto;
+      }
+      .event {
+        display: grid;
+        grid-template-columns: 8px minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 12px 2px;
+        border-top: 1px solid var(--line);
+        align-items: start;
+      }
+      .event:first-child {
+        border-top: 0;
+      }
+      .pulse {
+        width: 7px;
+        height: 7px;
+        margin-top: 5px;
+        border-radius: 50%;
+        background: var(--mint);
+        box-shadow: 0 0 9px var(--mint);
+      }
+      .event strong {
+        display: block;
+        font-size: 12px;
+      }
+      .event small {
+        color: var(--muted);
+      }
+      .event time {
+        color: var(--muted);
+        font:
+          10px ui-monospace,
+          monospace;
+      }
+      .atlas-card {
+        border-top: 1px solid var(--line);
+        padding: 12px 0;
+      }
+      .atlas-card:first-child {
+        border-top: 0;
+      }
+      .atlas-card header {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .atlas-card p {
+        color: var(--muted);
+        margin: 8px 0 0;
+      }
+      .governance {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .thread-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .thread-metrics article {
+        min-height: 110px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px;
+        background: #ffffff04;
+      }
+      .thread-metrics strong {
+        display: block;
+        font:
+          500 38px/1 ui-monospace,
+          monospace;
+        color: var(--mint);
+        margin-bottom: 12px;
+      }
+      .thread-metrics small {
+        color: var(--muted);
+      }
+      .empty {
+        color: var(--muted);
+        padding: 24px;
+        text-align: center;
+        border: 1px dashed var(--line);
+        border-radius: 10px;
+      }
+      .drawer {
+        position: fixed;
+        z-index: 40;
+        inset: 0 0 0 auto;
+        width: min(620px, 100%);
+        background: #0c1014;
+        border-left: 1px solid var(--line);
+        box-shadow: -30px 0 80px #000a;
+        transform: translateX(105%);
+        transition: transform 0.35s var(--ease);
+        overflow: auto;
+        padding: 24px;
+      }
+      .drawer.open {
+        transform: none;
+      }
+      .drawer-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: -24px;
+        padding: 18px 0;
+        background: #0c1014;
+        z-index: 2;
+      }
+      .drawer h2 {
+        margin: 0;
+      }
+      .drawer-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .drawer label {
+        font-size: 11px;
+        color: var(--muted);
+        display: grid;
+        gap: 6px;
+      }
+      .drawer input,
+      .drawer select,
+      .drawer textarea {
+        width: 100%;
+        min-height: 44px;
+        background: var(--surface);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 9px;
+      }
+      .drawer textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+      .drawer .wide {
+        grid-column: 1/-1;
+      }
+      .drawer-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 13px 0 24px;
+      }
+      .mutation-list {
+        display: grid;
+        gap: 8px;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        background: #0009;
+        z-index: 39;
+        display: none;
+      }
+      .backdrop.show {
+        display: block;
+      }
+      @media (max-width: 980px) {
+        .metrics {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .orbit-layout,
+        .signal-grid,
+        .atlas-grid {
+          grid-template-columns: 1fr;
+        }
+        .hero {
+          grid-template-columns: 1fr;
+        }
+        .freshness {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+          padding-left: 0;
+        }
+        .governance {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 600px) {
+        .shell {
+          padding: 0 14px 45px;
+        }
+        .topbar {
+          margin: 0 -14px;
+          padding: 12px 14px;
+        }
+        .status-line .label {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+        }
+        .hero {
+          padding-top: 36px;
+        }
+        .hero h2 {
+          font-size: 43px;
+        }
+        .metrics {
+          grid-template-columns: 1fr 1fr;
+        }
+        .metric {
+          min-height: 105px;
+        }
+        .metric:last-child {
+          grid-column: 1/-1;
+        }
+        .section-head {
+          align-items: start;
+          flex-direction: column;
+        }
+        .kanban {
+          margin-right: -14px;
+          padding-right: 14px;
+          scroll-snap-type: x mandatory;
+        }
+        .lane {
+          scroll-snap-align: start;
+          width: 79vw;
+        }
+        .governance {
+          grid-template-columns: 1fr;
+        }
+        .drawer-grid {
+          grid-template-columns: 1fr;
+        }
+        .drawer .wide {
+          grid-column: auto;
+        }
+        .drawer {
+          padding: 18px;
+        }
+        .top-actions .control.primary {
+          padding: 0 10px;
+        }
+        .bar-row {
+          grid-template-columns: 80px 1fr 28px;
+        }
+        .event {
+          grid-template-columns: 8px minmax(0, 1fr);
+        }
+        .event time {
+          grid-column: 2;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *:before,
+        *:after {
+          animation: none !important;
+          transition-duration: 1ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+      /* War Room presentation: the grid is structural; state color is assigned only by
+         the deterministic projection mapper below. */
+      .shell { max-width: 1720px; padding-bottom: 48px; }
+      .topbar { padding-top: 10px; padding-bottom: 10px; }
+      .brand-mark { border-radius: 8px; transform: rotate(45deg); }
+      .brand-mark:before, .brand-mark:after { border-radius: 3px; }
+      .brand-mark:after { background: var(--mint); }
+      .brand-copy { display: flex; align-items: baseline; gap: 9px; }
+      .brand-copy h1 { font: 700 16px/1 ui-monospace, monospace; letter-spacing: .12em; }
+      .brand-slash { color: var(--mint); }
+      .header-freshness { display: grid; justify-items: end; gap: 2px; }
+      .metrics { position: sticky; top: 65px; z-index: 15; margin: 12px 0; gap: 1px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--line); }
+      .metric { border: 0; border-radius: 0; min-height: 72px; padding: 10px 14px; box-shadow: none; }
+      .metric strong { display: inline-block; font-size: 25px; margin: 7px 9px 0 0; }
+      .metric small { font-size: 10px; }
+      .metric:after { height: 1px; }
+      .hq-layout { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 12px; align-items: start; }
+      .war-stage { min-height: 670px; padding: 0; overflow: hidden; position: relative; background: #0b1117; }
+      .war-stage:before { content: ""; position: absolute; inset: 0; background: linear-gradient(30deg, transparent 49.5%, #9bcbbc08 50%, transparent 50.5%), linear-gradient(150deg, transparent 49.5%, #9bcbbc08 50%, transparent 50.5%); background-size: 42px 72px; pointer-events: none; }
+      .stage-head { position: relative; display: flex; justify-content: space-between; gap: 20px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: #0a0e13dd; }
+      .stage-head h2 { margin: 3px 0 0; font-size: 21px; }
+      .truth-copy { max-width: 470px; margin: 0; color: var(--muted); font-size: 12px; text-align: right; }
+      .room-floor { position: relative; min-height: 690px; padding: 28px; display: grid; grid-template-columns: minmax(0,1fr) 250px; grid-template-areas: "floor inspector"; gap: 24px; align-items: stretch; }
+      .desk-zone { grid-area: floor; display: grid; grid-template-columns: minmax(180px,1fr) 270px minmax(180px,1fr); grid-template-rows: repeat(2,minmax(240px,auto)); gap: 28px 22px; align-content: center; }
+      .agent-desk:nth-child(1) { grid-column:1; grid-row:1; }
+      .agent-desk:nth-child(2) { grid-column:3; grid-row:1; }
+      .agent-desk:nth-child(3) { grid-column:1; grid-row:2; }
+      .agent-desk:nth-child(4) { grid-column:3; grid-row:2; }
+      .command-table { grid-area: floor; place-self:center; z-index:2; width:250px; min-height:350px; padding:54px 20px 44px; display:grid; align-content:center; gap:15px; text-align:center; position:relative; background:linear-gradient(145deg,#15232a,#0c1319); border:1px solid #5af2ba55; border-radius:42px 12px; box-shadow:0 24px 60px #0009,inset 0 0 40px #5af2ba08; }
+      .command-table:before { content:"COMMAND TABLE"; color:var(--mint); font:700 10px ui-monospace,monospace; letter-spacing:.2em; }
+      .table-screen { position:absolute; width:54px; height:31px; border:3px solid #27333a; background:linear-gradient(135deg,#5af2ba55,#64d9ff22); box-shadow:inset 0 0 0 2px #071015,0 0 14px #5af2ba22; }
+      .table-screen.screen-a { left:18px; top:30px; transform:rotate(-7deg); }
+      .table-screen.screen-b { right:18px; bottom:28px; transform:rotate(7deg); }
+      .table-seat { position:absolute; width:32px; height:44px; border:3px solid #283239; border-radius:11px 11px 5px 5px; background:#182129; box-shadow:4px 5px 0 #05080a; }
+      .table-seat.seat-a { right:-15px; top:90px; }
+      .table-seat.seat-b { left:-15px; bottom:75px; }
+      .operator-station { position:absolute; left:50%; bottom:-17px; transform:translateX(-50%); min-width:140px; padding:7px 10px; border:1px solid var(--amber); border-radius:7px; background:#17130d; color:var(--amber); font:700 9px/1.3 ui-monospace,monospace; text-transform:uppercase; box-shadow:0 7px 18px #0009; }
+      .command-counts { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+      .command-counts article { padding:12px 6px; border:1px solid var(--line); background:#05090c99; border-radius:9px; }
+      .command-counts strong { display:block; color:var(--ink); font:600 24px ui-monospace,monospace; }
+      .command-counts small { color:var(--muted); font-size:10px; }
+      .command-condition { margin:0; padding-top:12px; border-top:1px solid var(--line); color:var(--muted); font:600 10px/1.5 ui-monospace,monospace; text-transform:uppercase; }
+      .agent-detail { grid-area: inspector; align-self:center; max-height:540px; overflow:auto; background:#0c1218e8; position:relative; }
+      .agent-detail p { margin:0; color:var(--muted); font-size:12px; }
+      .agent-desk { --tone:var(--muted); min-height:218px; position:relative; text-align:left; padding:12px; border:1px solid #33404a; border-bottom:3px solid var(--tone); border-radius:8px 8px 18px 8px; background:linear-gradient(145deg,#172029,#0d1319); cursor:pointer; color:var(--ink); box-shadow:0 12px 24px #0006; overflow:hidden; }
+      .agent-desk:hover, .agent-desk.selected { border-color:var(--tone); transform:translateY(-2px); }
+      .agent-desk.selected { box-shadow:0 0 0 2px #0b1117,0 0 0 3px var(--tone),0 15px 30px #0009; }
+      .agent-desk.degraded { background:linear-gradient(145deg,#351a20,#131116); }
+      .agent-desk.attention { background:linear-gradient(145deg,#302719,#13130f); }
+      .desk-top { display:grid; grid-template-columns:44px minmax(0,1fr); gap:9px; align-items:center; position:relative; z-index:3; }
+      .agent-sprite { width:44px; height:58px; display:block; filter:drop-shadow(3px 5px 0 #0007); image-rendering:pixelated; }
+      .desk-name { display:block; overflow:hidden; text-overflow:ellipsis; }
+      .desk-role,.desk-heartbeat { display:block; color:var(--muted); font-size:10px; margin-top:2px; }
+      .desk-state { display:block; margin-top:11px; color:var(--tone); font:700 10px ui-monospace,monospace; text-transform:uppercase; letter-spacing:.06em; }
+      .agent-desk .load { display:block; width:100%; height:5px; }
+      .agent-desk:has(.speech) { padding-top:62px; }
+      .workstation { display:block; width:100%; height:78px; margin:7px 3px 0; position:relative; perspective:180px; }
+      .desk-slab { position:absolute; inset:26px 3px 7px; border:2px solid #49545d; border-bottom:9px solid #202930; border-radius:4px 4px 9px 9px; background:linear-gradient(160deg,#627079,#354149); transform:rotateX(12deg); box-shadow:0 11px 0 #05090c99; }
+      .monitor { position:absolute; z-index:2; width:45px; height:32px; left:50%; top:3px; margin-left:-22px; padding:4px; border:3px solid #20272d; border-bottom-width:6px; background:#090d10; box-shadow:0 3px 0 #070a0d; }
+      .monitor:after { content:""; display:block; height:100%; background:#18242a; border:1px solid #4b5960; }
+      .agent-desk[data-state="active"] .monitor:after { background:color-mix(in srgb,var(--tone) 42%,#102028); box-shadow:0 0 13px var(--tone); }
+      .monitor-stand { position:absolute; z-index:1; left:50%; top:33px; width:16px; height:10px; margin-left:-8px; border-bottom:3px solid #151b20; background:#303a41; }
+      .keyboard { position:absolute; z-index:3; left:50%; top:43px; width:39px; height:12px; margin-left:-19px; border:2px solid #222a30; background:repeating-linear-gradient(90deg,#76838a 0 3px,#39444a 3px 5px); transform:skewX(-12deg); }
+      .chair { position:absolute; z-index:1; right:5px; bottom:0; width:25px; height:31px; border:3px solid #1d252b; border-radius:8px 8px 4px 4px; background:color-mix(in srgb,var(--tone) 34%,#202930); box-shadow:3px 5px 0 #05080a; }
+      .role-accent { position:absolute; z-index:3; left:11px; top:43px; width:16px; height:12px; border:2px solid var(--tone); background:#10161b; box-shadow:0 0 7px color-mix(in srgb,var(--tone) 55%,transparent); }
+      .alert-beacon { display:none; position:absolute; z-index:5; right:9px; top:9px; width:12px; height:12px; border:2px solid #ffd0ce; background:var(--coral); box-shadow:0 0 12px var(--coral); }
+      .agent-desk.degraded .alert-beacon { display:block; }
+      .agent-desk.attention .alert-beacon { display:block; border-color:#fff0c7; background:var(--amber); box-shadow:0 0 12px var(--amber); }
+      .route-pulse { outline:3px solid var(--tone) !important; outline-offset:4px; }
+      .route-layer { position:fixed; inset:0; z-index:60; pointer-events:none; overflow:hidden; }
+      .route-runner { position:fixed; left:0; top:0; width:48px; display:grid; justify-items:center; filter:drop-shadow(0 6px 5px #000b); }
+      .route-runner .agent-sprite { width:38px; height:51px; }
+      .route-label { max-width:120px; padding:2px 4px; border:1px solid #ffffff55; background:#080a0de8; color:var(--ink); font:700 8px/1.2 ui-monospace,monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .speech { position:absolute; z-index:2; right:8px; top:8px; max-width:calc(100% - 16px); padding:7px 9px; border:1px solid var(--tone); border-radius:10px 10px 2px 10px; color:var(--ink); background:#0b1117; font:600 9px/1.3 ui-monospace,monospace; text-transform:uppercase; }
+      .evidence-change { animation:evidence-pulse .55s var(--ease) both; }
+      @keyframes evidence-pulse { 50% { box-shadow:0 0 0 4px color-mix(in srgb,var(--tone) 25%,transparent),0 18px 35px #0009; } }
+      .ops-rail { display:grid; gap:10px; max-height:670px; overflow:auto; padding-right:2px; }
+      .rail-panel { padding:14px; background:#0c1117; }
+      .rail-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+      .rail-head h3 { margin:0; font-size:13px; }
+      .rail-count { color:var(--muted); font:10px ui-monospace,monospace; }
+      .rail-list { display:grid; gap:5px; }
+      .squad-row,.rail-card { width:100%; min-height:44px; text-align:left; border:1px solid var(--line); border-radius:8px; background:#111820; padding:8px 10px; color:var(--ink); }
+      button.squad-row,button.rail-card { cursor:pointer; }
+      button.squad-row:hover,button.rail-card:hover { border-color:var(--mint); }
+      .squad-row { display:grid; grid-template-columns:8px minmax(0,1fr) auto; gap:8px; align-items:center; }
+      .state-pin { width:7px; height:7px; border-radius:2px; background:var(--tone,var(--muted)); }
+      .row-title { display:block; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .row-detail { display:block; color:var(--muted); font-size:9px; margin-top:2px; }
+      .rail-card strong { display:block; font-size:11px; }
+      .rail-card small { display:block; color:var(--muted); margin-top:4px; font-size:9px; }
+      .rail-card.done { border-left:2px solid var(--mint); }
+      .rail-card.attention { border-left:2px solid var(--coral); }
+      .deep-sections { margin-top:18px; }
+      .deep-sections > section { border-top:1px solid #ffffff0c; }
+      .section-head { margin-top:30px; }
+      .section-head h2 { font-size:21px; }
+      @media (max-width:1500px) { .hq-layout { grid-template-columns:minmax(0,1fr) 340px; } .room-floor { grid-template-columns:1fr; grid-template-areas:"floor" "inspector"; } .agent-detail { max-height:none; } }
+      @media (max-width:800px) { .shell { padding-left:14px; padding-right:14px; } .topbar { margin-left:-14px; margin-right:-14px; flex-wrap:wrap; } .header-freshness { display:none; } .metrics { position:relative; top:auto; grid-template-columns:repeat(5,minmax(128px,1fr)); overflow-x:auto; } .hq-layout { grid-template-columns:1fr; } .war-stage { min-height:0; } .room-floor { min-height:0; grid-template-columns:1fr; grid-template-areas:"desks" "command" "inspector"; padding:18px; } .desk-zone { grid-area:desks; display:flex; overflow-x:auto; align-content:initial; padding:10px 2px 18px; scroll-snap-type:x mandatory; } .agent-desk { min-width:210px; scroll-snap-align:start; } .command-table { grid-area:command; width:auto; min-height:240px; } .ops-rail { max-height:none; } .truth-copy { text-align:left; } .stage-head { flex-direction:column; } }
+      @media (max-width:520px) { .brand-copy { display:block; } .top-actions { margin-left:auto; } .top-actions .primary { font-size:0; } .top-actions .primary:after { content:"Controls"; font-size:12px; } .metrics { grid-template-columns:repeat(5,140px); } .metric:last-child { grid-column:auto; } .room-floor { padding:12px; gap:26px; } .desk-zone { display:grid; grid-template-columns:1fr; overflow:visible; } .desk-zone .agent-desk { grid-column:1; grid-row:auto; min-width:0; min-height:215px; } .agent-sprite { width:48px; height:64px; } .desk-top { grid-template-columns:50px minmax(0,1fr); } .command-counts { grid-template-columns:1fr 1fr; } .command-table { margin:0 15px 20px; } }
+      .view-switch { display:flex; gap:4px; padding:3px; border:1px solid var(--line); border-radius:10px; background:#080b0f; }
+      .view-switch a { min-height:36px; display:grid; place-items:center; padding:0 11px; border-radius:7px; color:var(--muted); text-decoration:none; font:700 10px ui-monospace,monospace; text-transform:uppercase; }
+      .view-switch a[aria-current="page"] { color:var(--ink); background:var(--raised); box-shadow:inset 0 0 0 1px #ffffff12; }
+      .workbench-head { display:flex; align-items:end; justify-content:space-between; gap:20px; padding:34px 0 16px; }
+      .workbench-head h2 { margin:4px 0; font-size:30px; }
+      .workbench-head p { color:var(--muted); margin:0; }
+      .workbench-grid { display:grid; grid-template-columns:minmax(210px,.72fr) minmax(420px,1.7fr) minmax(260px,.9fr); gap:10px; align-items:start; min-width:0; }
+      .workbench-pane { min-width:0; min-height:650px; padding:0; overflow:hidden; }
+      .workbench-pane > header { padding:15px 16px; border-bottom:1px solid var(--line); background:#0c1117; }
+      .workbench-pane h3 { margin:2px 0 0; font-size:14px; }
+      .workbench-list,.workbench-inspector-body { padding:10px; display:grid; gap:7px; max-height:720px; overflow:auto; }
+      .execution-row { width:100%; min-width:0; padding:11px; text-align:left; border:1px solid var(--line); border-radius:9px; background:#0d1319; color:var(--ink); cursor:pointer; }
+      .execution-row[aria-current="true"] { border-color:var(--mint); background:#11231d; }
+      .execution-row strong,.execution-row small { display:block; overflow-wrap: anywhere; }
+      .execution-row small { color:var(--muted); margin-top:5px; }
+      .timeline-tools { padding:12px 14px; border-bottom:1px solid var(--line); display:grid; gap:9px; }
+      .timeline-actions { display:flex; flex-wrap:wrap; gap:7px; }
+      .timeline-actions textarea { flex:1 1 240px; min-height:72px; padding:9px; border:1px solid var(--line); border-radius:8px; color:var(--ink); background:#090d11; resize:vertical; }
+      .timeline-event { display:grid; grid-template-columns:12px minmax(0,1fr); gap:10px; padding:13px 4px; border-bottom:1px solid var(--line); min-width:0; }
+      .timeline-event:before { content:""; width:8px; height:8px; margin-top:5px; border-radius:50%; background:var(--cyan); box-shadow:0 0 9px #64d9ff66; }
+      .timeline-event strong,.timeline-event p,.timeline-event small { overflow-wrap: anywhere; }
+      .timeline-event p { margin:5px 0; color:var(--muted); font-size:12px; }
+      .workbench-state { margin:10px; }
+      .workbench-tabs { display:none; }
+      .inspector-section { padding:12px 2px; border-bottom:1px solid var(--line); }
+      .inspector-section h4 { margin:0 0 8px; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; }
+      .inspector-section p { margin:5px 0; font-size:12px; overflow-wrap: anywhere; }
+      @media (max-width: 900px) {
+        .workbench-head { align-items:start; flex-direction:column; }
+        .workbench-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-bottom:10px; }
+        .workbench-tabs button { min-height:44px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--muted); }
+        .workbench-tabs button[aria-selected="true"] { color:var(--ink); border-color:var(--mint); }
+        .workbench-grid { display:block; min-width:0; }
+        .workbench-pane { display:none; min-height:0; }
+        .workbench-pane.mobile-active { display:block; }
+        .view-switch a, .agent-desk, .squad-row, .rail-card, .execution-row { min-height:44px; }
+      }
+      @media (max-width: 560px) { .view-switch a { padding:0 8px; } .workbench-head h2 { font-size:25px; } .workbench-list,.workbench-inspector-body { max-height:none; } }
+      #secret-form { display:grid; grid-template-columns:minmax(180px,1fr) minmax(0,2fr); align-items:center; gap:12px; margin:20px 0; max-width:900px; }
+      #secret-form input, #secret-form select { width:100%; min-width:0; padding:10px 12px; color:var(--text); background:#10161d; border:1px solid var(--line); border-radius:8px; font:inherit; }
+      #secret-form button { justify-self:start; grid-column:2; }
+      #secret-form :disabled { opacity:.55; }
+      #secret-receipt { overflow-wrap:anywhere; font-size:13px; line-height:1.6; }
+      @media (max-width:640px) { #secret-form { grid-template-columns:1fr; gap:8px; } #secret-form button { grid-column:1; } }
+      /* Readable, baseline-preserving War Room: one page scroll, balanced KPIs. */
+      :root { --muted: #a9b6c0; }
+      .metrics { position:relative; top:auto; grid-template-columns:repeat(3,minmax(0,1fr)); overflow:visible; }
+      .metric { min-width:0; min-height:108px; display:flex; flex-direction:column; gap:7px; }
+      .metric strong { display:block; margin:0; font-size:24px; line-height:1.25; overflow-wrap:anywhere; }
+      .metric small { font-size:12px; }
+      .eyebrow,.mono,.chip { overflow-wrap:anywhere; }
+      .eyebrow { font-size:11px; }
+      .hq-layout { grid-template-columns:minmax(0,1fr) 300px; }
+      .room-floor { grid-template-columns:minmax(0,1fr); grid-template-areas:"floor" "inspector"; padding:20px; }
+      .desk-zone { grid-template-columns:minmax(0,1fr) 210px minmax(0,1fr); gap:22px 16px; }
+      .command-table { width:190px; padding-left:12px; padding-right:12px; }
+      .command-table:before { font-size:11px; letter-spacing:.1em; }
+      .table-screen { width:36px; height:20px; pointer-events:none; }
+      .table-screen.screen-a { top:12px; }
+      .table-screen.screen-b { display:none; }
+      .command-condition { font-size:12px; white-space:normal; overflow-wrap:anywhere; }
+      .operator-station { font-size:11px; }
+      .agent-detail { align-self:stretch; max-height:none; overflow:visible; min-width:0; }
+      .agent-detail > *, .agent-detail .chip { min-width:0; max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+      .agent-detail p { font-size:14px; line-height:1.6; }
+      .agent-detail .chips { flex-wrap:wrap; }
+      .agent-detail .chip { font-size:11px; }
+      .ops-rail { max-height:none; overflow:visible; min-width:0; }
+      .rail-head { gap:10px; flex-wrap:wrap; }
+      .rail-head h3 { font-size:15px; }
+      .rail-count,.row-detail,.rail-card small,.desk-role,.desk-heartbeat,.command-counts small { font-size:12px; line-height:1.5; }
+      .row-title,.rail-card strong { font-size:14px; white-space:normal; overflow-wrap:anywhere; }
+      .rail-card,.squad-row { min-width:0; overflow-wrap:anywhere; }
+      .desk-state,.speech { font-size:11px; line-height:1.45; }
+      .speech { right:26px; }
+      .desk-name { font-size:17px; white-space:normal; overflow-wrap:anywhere; }
+      .cause-link { display:block; color:var(--cyan); font-size:14px; line-height:1.5; padding:10px 0; text-underline-offset:3px; }
+      .cause-card { border-left:2px solid var(--amber); padding:10px 12px; background:var(--surface); }
+      .cause-card p { margin:5px 0; color:var(--muted); font-size:13px; }
+      #attention-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px 0; }
+      #attention-actions .cause-card:last-child:nth-child(odd) { grid-column:1 / -1; }
+      .runtime-note { padding:10px 0; }
+      details summary { cursor:pointer; min-height:44px; padding:10px 0; }
+      a:focus-visible,button:focus-visible,summary:focus-visible { outline:2px solid var(--cyan); outline-offset:4px; }
+      #secret-form input, #secret-form select { color:var(--ink); }
+      @media (max-width:1100px) { .hq-layout { grid-template-columns:1fr; } .ops-rail { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      @media (max-width:800px) { .room-floor { grid-template-areas:"desks" "command" "inspector"; } .command-table { width:auto; } .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .metric:last-child { grid-column:auto; } }
+      @media (max-width:520px) { #attention-actions,.ops-rail { grid-template-columns:1fr; } .desk-zone { grid-template-columns:minmax(0,1fr); } .metric strong { font-size:20px; } .top-actions { flex-wrap:wrap; } .status-line { max-width:100%; overflow-wrap:anywhere; } }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;overflow:hidden">
+      <defs>
+        <!-- Original 24x32 pixel crew: each has a distinct silhouette/accessory and two walk poses. -->
+        <symbol id="sprite-engineering-1" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#172129" d="M6 3h3V1h8v2h3v8H6z"/><path fill="#efbd98" d="M8 6h10v7H8z"/><path fill="#26343d" d="M5 13h14v10H5z"/><path fill="#5af2ba" d="M9 13h6v8H9zM3 15h3v7H3zM19 15h3v7h-3z"/><path fill="#11181d" d="M7 23h5v8H6v-3h1zm5 0h5v5h1v3h-6z"/><path fill="#64d9ff" d="M18 5h4v6h-2V8h-2z"/></g></symbol>
+        <symbol id="sprite-engineering-2" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#172129" d="M6 3h3V1h8v2h3v8H6z"/><path fill="#efbd98" d="M8 6h10v7H8z"/><path fill="#26343d" d="M5 13h14v10H5z"/><path fill="#5af2ba" d="M9 13h6v8H9zM2 14h4v7H3v2H1v-7h1zm17 2h3v7h-3z"/><path fill="#11181d" d="M7 23h5v5H9v3H5v-3h2zm5 0h5v8h-5z"/><path fill="#64d9ff" d="M18 5h4v6h-2V8h-2z"/></g></symbol>
+        <symbol id="sprite-security-1" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#17151b" d="M5 4h3V1h3v3h4V1h3v3h2v10H5z"/><path fill="#e4aa8a" d="M8 7h9v7H8z"/><path fill="#4a2738" d="M5 14h14v9H5z"/><path fill="#ff716c" d="M9 14h6v8H9zM3 15h3v7H3zm16 0h3v7h-3z"/><path fill="#231925" d="M7 23h5v8H6v-3h1zm5 0h5v5h1v3h-6z"/><path fill="#ffbd59" d="M10 9h2v2h-2zm4 0h2v2h-2z"/></g></symbol>
+        <symbol id="sprite-security-2" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#17151b" d="M5 4h3V1h3v3h4V1h3v3h2v10H5z"/><path fill="#e4aa8a" d="M8 7h9v7H8z"/><path fill="#4a2738" d="M5 14h14v9H5z"/><path fill="#ff716c" d="M9 14h6v8H9zM2 14h4v7H3v2H1v-7h1zm17 2h3v7h-3z"/><path fill="#231925" d="M7 23h5v5H9v3H5v-3h2zm5 0h5v8h-5z"/><path fill="#ffbd59" d="M10 9h2v2h-2zm4 0h2v2h-2z"/></g></symbol>
+        <symbol id="sprite-research-1" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#50386d" d="M7 2h10v2h3v11h-4V7H8v8H4V5h3z"/><path fill="#edc3a4" d="M8 6h8v8H8z"/><path fill="#302747" d="M5 14h14v9H5z"/><path fill="#a98bff" d="M9 14h6v8H9zM3 16h3v6H3zm16 0h3v6h-3z"/><path fill="#1c1a29" d="M7 23h5v8H6v-3h1zm5 0h5v5h1v3h-6z"/><path fill="#64d9ff" d="M7 8h4v3H7zm6 0h4v3h-4zm-2 1h2v1h-2z"/></g></symbol>
+        <symbol id="sprite-research-2" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#50386d" d="M7 2h10v2h3v11h-4V7H8v8H4V5h3z"/><path fill="#edc3a4" d="M8 6h8v8H8z"/><path fill="#302747" d="M5 14h14v9H5z"/><path fill="#a98bff" d="M9 14h6v8H9zM2 15h4v6H3v2H1v-6h1zm17 1h3v7h-3z"/><path fill="#1c1a29" d="M7 23h5v5H9v3H5v-3h2zm5 0h5v8h-5z"/><path fill="#64d9ff" d="M7 8h4v3H7zm6 0h4v3h-4zm-2 1h2v1h-2z"/></g></symbol>
+        <symbol id="sprite-operations-1" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#102d39" d="M7 2h10v2h3v9H5V5h2z"/><path fill="#c89270" d="M8 6h9v7H8z"/><path fill="#183a48" d="M5 13h14v10H5z"/><path fill="#64d9ff" d="M9 14h6v7H9zM3 15h3v7H3zm16 0h3v7h-3z"/><path fill="#0d2028" d="M7 23h5v8H6v-3h1zm5 0h5v5h1v3h-6z"/><path fill="#ffbd59" d="M4 4h3V2h10v2h3v2H4z"/><path fill="#081117" d="M10 8h2v2h-2zm4 0h2v2h-2z"/></g></symbol>
+        <symbol id="sprite-operations-2" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#102d39" d="M7 2h10v2h3v9H5V5h2z"/><path fill="#c89270" d="M8 6h9v7H8z"/><path fill="#183a48" d="M5 13h14v10H5z"/><path fill="#64d9ff" d="M9 14h6v7H9zM2 14h4v7H3v2H1v-7h1zm17 2h3v7h-3z"/><path fill="#0d2028" d="M7 23h5v5H9v3H5v-3h2zm5 0h5v8h-5z"/><path fill="#ffbd59" d="M4 4h3V2h10v2h3v2H4z"/><path fill="#081117" d="M10 8h2v2h-2zm4 0h2v2h-2z"/></g></symbol>
+
+        <symbol id="sprite-generic-1" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#3b4650" d="M6 2h12v3h2v9H5V5h1z"/><path fill="#c8a486" d="M8 6h9v8H8z"/><path fill="#34414a" d="M5 14h14v9H5z"/><path fill="#89959f" d="M9 14h6v8H9zM3 16h3v6H3zm16 0h3v6h-3z"/><path fill="#1b2228" d="M7 23h5v8H6v-3h1zm5 0h5v5h1v3h-6z"/></g></symbol>
+        <symbol id="sprite-generic-2" viewBox="0 0 24 32"><g shape-rendering="crispEdges"><path fill="#3b4650" d="M6 2h12v3h2v9H5V5h1z"/><path fill="#c8a486" d="M8 6h9v8H8z"/><path fill="#34414a" d="M5 14h14v9H5z"/><path fill="#89959f" d="M9 14h6v8H9zM2 15h4v6H3v2H1v-6h1zm17 1h3v7h-3z"/><path fill="#1b2228" d="M7 23h5v5H9v3H5v-3h2zm5 0h5v8h-5z"/></g></symbol>
+      </defs>
+    </svg>
+    <div id="route-layer" class="route-layer" aria-hidden="true"></div>
+    <a class="skip" href="#main">Skip to Arvyx War Room</a>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="brand-copy">
+            <h1>ARVYX <span class="brand-slash">/</span> WAR ROOM</h1>
+            <div class="eyebrow">Private squad operations</div>
+          </div>
+        </div>
+        <div class="top-actions">
+          <div class="header-freshness">
+            <span id="generated-at" class="mono">Awaiting signal</span>
+            <span id="profile" class="eyebrow">MCP profile —</span>
+          </div>
+          <div class="status-line">
+            <span id="health-dot" class="dot"></span
+            ><span id="freshness-label" class="label">Connecting</span>
+          </div>
+          <nav class="view-switch" aria-label="Dashboard view"><a id="view-observatory" href="#" aria-current="page">Observatory</a><a id="view-workbench" href="#workbench">Workbench</a></nav>
+          <button id="refresh-all" class="control" type="button">
+            ↻ <span class="sr-only">Refresh data</span></button
+          ><button id="open-drawer" class="control primary" type="button">
+            Operator controls
+          </button>
+        </div>
+      </header>
+      <main id="main">
+        <section class="panel" aria-labelledby="secret-delivery-title" style="margin-bottom:20px;padding:20px">
+          <h2 id="secret-delivery-title">Secret Delivery</h2>
+          <p>Approved operator Access session required. Saves an environment value; never restarts a runtime.</p>
+          <button id="secret-connect" class="control" type="button">Connect Cloudflare Access session</button>
+          <form id="secret-form" autocomplete="off">
+            <label for="secret-target">Registered agent / runtime pathway</label>
+            <select id="secret-target" disabled><option value="">No secure destinations enrolled</option></select>
+            <label for="secret-name">Exact environment name (not normalized)</label>
+            <input id="secret-name" type="text" autocomplete="off" spellcheck="false" maxlength="128" pattern="[A-Za-z_][A-Za-z0-9_]*" required disabled placeholder="anthtropic_auth">
+            <label for="secret-value">Secret value</label>
+            <input id="secret-value" type="password" autocomplete="off" spellcheck="false" maxlength="65536" disabled>
+            <button id="secret-send" class="control primary" type="submit" disabled>Send</button>
+          </form>
+          <button id="secret-status-check" class="control" type="button" disabled>Check last delivery status (never resend)</button>
+          <p id="secret-receipt" role="status" aria-live="polite">Not connected. Connect your approved Cloudflare Access session to check available destinations. No browser certificate or shared bearer token is required for Secret Delivery.</p>
+        </section>
+        <section id="observatory-view">
+        <div id="state-banner" class="state-banner" role="status"></div>
+        <section class="metrics" aria-label="Operator summary">
+          <article class="metric" id="metric-fleet">
+            <span class="eyebrow">Fleet verdict · global</span><strong>—</strong
+            ><small>global source · not filtered by squad desks</small>
+          </article>
+          <article class="metric" id="metric-agents">
+            <span class="eyebrow">Squad desks</span><strong>—</strong
+            ><small>squad desks · heartbeat separate</small>
+          </article>
+          <article class="metric" id="metric-active">
+            <span class="eyebrow">Active ownership</span><strong>—</strong
+            ><small>ownership projection</small>
+          </article>
+          <article class="metric" id="metric-queued">
+            <span class="eyebrow">Queue pressure</span><strong>—</strong
+            ><small>waiting</small>
+          </article>
+          <article class="metric" id="metric-approvals">
+            <span class="eyebrow">Approvals</span><strong>—</strong
+            ><small>requested</small>
+          </article>
+          <article class="metric" id="metric-delivery">
+            <span class="eyebrow">Delivery</span><strong>—</strong
+            ><small>outbox state</small>
+          </article>
+        </section>
+        <!-- Compatibility markers for existing route checks: Arvyx Control Plane / Squad Orbit. -->
+        <section aria-label="Causes and next actions" id="attention-actions"></section>
+        <section class="hq-layout" aria-labelledby="war-room-hq-title">
+          <div class="panel war-stage">
+            <header class="stage-head">
+              <div><span class="eyebrow">Headquarters / canonical projection</span><h2 id="war-room-hq-title">Arvyx War Room</h2></div>
+              <p class="truth-copy">Canonical work state · registered squad at desks. Ownership is not execution. ACK is receipt only. Heartbeat, continuation, blockers, review, and completion remain distinct.</p>
+            </header>
+            <div class="room-floor">
+              <div id="agent-orbit" class="desk-zone" role="group" aria-label="Squad desks"></div>
+              <section id="command-table" class="command-table" aria-label="Command table"></section>
+              <aside id="agent-detail" class="panel agent-detail" aria-label="Agent inspector"><div class="empty">Select a squad desk</div></aside>
+            </div>
+          </div>
+          <aside class="ops-rail" aria-label="Operations rail">
+            <section class="panel rail-panel"><header class="rail-head"><h3>The squad</h3><span id="squad-count" class="rail-count">—</span></header><div id="squad-list" class="rail-list"></div></section>
+            <section class="panel rail-panel"><header class="rail-head"><h3>Live signal</h3><span class="rail-count">latest bounded</span></header><div id="live-signal" class="rail-list"></div></section>
+            <details class="panel rail-panel"><summary>Operational events · dispatcher / watchdog</summary><p class="row-detail">Routine ticks from the same bounded snapshot. Full returned history remains in Signal Room.</p><div id="operational-events" class="rail-list"></div></details>
+            <section class="panel rail-panel"><header class="rail-head"><h3>Operator queue</h3><span id="waiting-count" class="rail-count">—</span></header><div id="waiting-on-operator" class="rail-list"></div></section>
+            <section class="panel rail-panel"><header class="rail-head"><h3>Completed slice</h3><span class="rail-count">bounded projection</span></header><div id="recently-completed" class="rail-list"></div></section>
+          </aside>
+        </section>
+        <div class="deep-sections">
+        <section aria-labelledby="work-title">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Normalized lifecycle</span>
+              <h2 id="work-title">Work Board</h2>
+            </div>
+            <button id="clear-filter" class="control" type="button">
+              Show all agents
+            </button>
+          </div>
+          <div
+            id="kanban"
+            class="kanban"
+            role="region"
+            tabindex="0"
+            aria-label="Kanban board"
+          ></div>
+        </section>
+        <section aria-labelledby="war-room-title">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Actionable coordination</span>
+              <h2 id="war-room-title">War Room</h2>
+            </div>
+            <p>
+              Pending asks, blockers and acknowledged threads. Completion
+              evidence remains explicit.
+            </p>
+          </div>
+          <div class="governance">
+            <div class="panel">
+              <div class="eyebrow">Thread pressure</div>
+              <div class="thread-metrics">
+                <article>
+                  <strong id="thread-pending">—</strong><small>pending</small>
+                </article>
+                <article>
+                  <strong id="thread-unread">—</strong><small>unread</small>
+                </article>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="eyebrow">Recent threads</div>
+              <div id="threads" class="memory-list"></div>
+            </div>
+          </div>
+        </section>
+        <section aria-labelledby="signal-title">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Read-model telemetry</span>
+              <h2 id="signal-title">Signal Room</h2>
+            </div>
+            <p>
+              Bounded event activity and lifecycle mix from the append-only
+              source.
+            </p>
+          </div>
+          <div class="signal-grid">
+            <div class="panel chart">
+              <div class="eyebrow">Activity trace</div>
+              <svg
+                id="activity-chart"
+                viewBox="0 0 600 150"
+                role="img"
+                aria-label="Control event activity over time"
+              ></svg>
+              <div id="chart-labels" class="mono"></div>
+            </div>
+            <div class="panel">
+              <div class="eyebrow">Lifecycle mix</div>
+              <div id="event-bars" class="bars"></div>
+            </div>
+            <div class="panel">
+              <div class="eyebrow">Event pulse stream</div>
+              <div id="events" class="events"></div>
+            </div>
+            <div class="panel">
+              <div class="eyebrow">Delivery health</div>
+              <div id="delivery" class="memory-list"></div>
+            </div>
+          </div>
+        </section>
+        <section aria-labelledby="atlas-title">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Footprint, not content</span>
+              <h2 id="atlas-title">Memory Atlas & Skills</h2>
+            </div>
+            <p>
+              Canonical counts only. Skill telemetry says “Not reported” unless
+              the registry explicitly reports it.
+            </p>
+          </div>
+          <div class="atlas-grid">
+            <div class="panel">
+              <div class="eyebrow">Memory footprint</div>
+              <div id="memory-atlas" class="memory-list"></div>
+            </div>
+            <div class="panel">
+              <div class="eyebrow">Skill inventory</div>
+              <div id="skills" class="skill-list"></div>
+            </div>
+          </div>
+        </section>
+        <section aria-labelledby="governance-title">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Authority & integrity</span>
+              <h2 id="governance-title">Governance Rail</h2>
+            </div>
+          </div>
+          <div class="governance">
+            <div class="panel">
+              <div class="eyebrow">Requested approvals</div>
+              <div id="approvals" class="mutation-list"></div>
+            </div>
+            <div class="panel">
+              <div class="eyebrow">Audit / retention posture</div>
+              <div id="posture" class="memory-list"></div>
+            </div>
+          </div>
+        </section>
+        </div>
+        </section>
+        <section id="workbench-view" hidden aria-labelledby="workbench-title">
+          <header class="workbench-head"><div><span class="eyebrow">Execution operations / bounded truth</span><h2 id="workbench-title">AMC Workbench</h2><p>Inspect execution lineage, replay cursor-bounded events, and issue status-gated operator controls.</p></div><button id="workbench-refresh" class="control" type="button">Refresh workbench</button></header>
+          <div class="workbench-tabs" role="tablist" aria-label="Workbench panes">
+            <button id="workbench-tab-executions" type="button" role="tab" aria-selected="true" aria-controls="workbench-nav" tabindex="0" data-pane="workbench-nav">Executions</button>
+            <button id="workbench-tab-timeline" type="button" role="tab" aria-selected="false" aria-controls="workbench-timeline" tabindex="-1" data-pane="workbench-timeline">Timeline</button>
+            <button id="workbench-tab-inspector" type="button" role="tab" aria-selected="false" aria-controls="workbench-inspector" tabindex="-1" data-pane="workbench-inspector">Inspector</button>
+          </div>
+          <div class="workbench-grid">
+            <nav id="workbench-nav" role="tabpanel" aria-labelledby="workbench-tab-executions" class="panel workbench-pane mobile-active"><header><span class="eyebrow">Navigator</span><h3>Executions</h3></header><div id="workbench-executions" class="workbench-list"><div class="empty">Loading executions…</div></div></nav>
+            <section id="workbench-timeline" role="tabpanel" aria-labelledby="workbench-tab-timeline" class="panel workbench-pane"><header><span class="eyebrow">Cursor replay</span><h3 id="timeline-title">Execution timeline</h3></header><div class="timeline-tools"><div id="workbench-selection" class="mono">Select an execution</div><div class="timeline-actions"><textarea id="workbench-steer-message" aria-label="Steering instruction" maxlength="4000" placeholder="Bounded steering instruction"></textarea><button id="workbench-steer" class="control primary" type="button" disabled>Steer</button><button id="workbench-cancel" class="control" type="button" disabled>Pause</button><button id="workbench-resume" class="control" type="button" disabled>Resume</button></div><div id="workbench-action-status" class="mono" aria-live="polite"></div></div><div id="workbench-events" class="workbench-list"><div class="empty">Select an execution to load its event history.</div></div><button id="workbench-more" class="control workbench-state" type="button" hidden>Load older events</button></section>
+            <aside id="workbench-inspector" role="tabpanel" aria-labelledby="workbench-tab-inspector" class="panel workbench-pane"><header><span class="eyebrow">Read-only inspector</span><h3>Context &amp; lineage</h3></header><div id="workbench-inspector-body" class="workbench-inspector-body"><div class="empty">No execution selected.</div></div></aside>
+          </div>
+        </section>
+        <details class="panel" id="diagnostics-panel">
+          <summary>AMC error diagnostics · operator only</summary>
+          <p>Metadata-only grouped faults. Browser reports are untrusted. No external alert delivery is implied.</p>
+          <pre id="diagnostics-status" style="white-space:pre-wrap;overflow-wrap:anywhere">Loading diagnostics…</pre>
+          <pre id="diagnostics-groups" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre>
+        </details>
+      </main>
+    </div>
+    <div id="backdrop" class="backdrop" hidden></div>
+    <aside
+      id="drawer"
+      class="drawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="drawer-title"
+      hidden
+    >
+      <div class="drawer-head">
+        <div>
+          <span class="eyebrow">Append-only mutations</span>
+          <h2 id="drawer-title">Operator controls</h2>
+        </div>
+        <button id="close-drawer" class="control" type="button">Close</button>
+      </div>
+      <div class="drawer-grid">
+        <label class="wide"
+          >Bearer token<input
+            id="bearer"
+            type="password"
+            autocomplete="off"
+            placeholder="Optional local bearer" /></label
+        ><label
+          >Task title<input
+            id="task-title"
+            value="Review operator dashboard slice" /></label
+        ><label>Owner<input id="task-owner" placeholder="Explicit owner required" required /></label
+        ><label class="wide"
+          >Approval command<input
+            id="approval-command"
+            value="arvyx readiness --json" /></label
+        ><label
+          >Handoff status<select id="handoff-filter">
+            <option value="">All</option>
+            <option>open</option>
+            <option>accepted</option>
+            <option>reviewed</option>
+            <option>completed</option>
+          </select></label
+        ><label>To agent<input id="handoff-assignee" /></label
+        ><label
+          >Visible limit<input
+            id="handoff-limit"
+            inputmode="numeric"
+            value="10" /></label
+        ><label
+          >SLA hours<input
+            id="handoff-sla"
+            inputmode="numeric"
+            value="24" /></label
+        ><label
+          >Retain events<input id="retain-events" inputmode="numeric" /></label
+        ><label>Reviewer<input id="handoff-reviewer" value="vesper" /></label
+        ><label
+          >Decision<select id="handoff-decision">
+            <option value="approved">Approved</option>
+            <option value="changes_requested">Changes requested</option>
+            <option value="blocked">Blocked</option>
+          </select></label
+        ><label class="wide"
+          >Review notes<textarea id="handoff-notes">
+Dashboard review passed.</textarea
+          ></label
+        ><label class="wide"
+          >Bus message<textarea id="bus-message">
+Operator dashboard checked.</textarea
+          ></label
+        ><label class="wide"
+          >Recall question<input
+            id="question"
+            value="which guardrail proxy protects credentials" /></label
+        ><label>Project<input id="project" value="demo-agent" /></label
+        ><label
+          >Budget<select id="token-budget">
+            <option value="120">120 tokens</option>
+            <option value="240">240 tokens</option>
+            <option value="420">420 tokens</option>
+          </select></label
+        >
+      </div>
+      <div class="drawer-actions">
+        <button id="create-task" class="control primary">Create task</button
+        ><button id="request-approval" class="control">Request approval</button
+        ><button id="create-handoff" class="control">Create handoff</button
+        ><button id="post-bus" class="control">Post bus</button
+        ><button id="run-recall" class="control">Run recall</button
+        ><button id="reset-preferences" class="control">Reset local</button>
+      </div>
+      <div class="eyebrow">Actionable handoffs</div>
+      <div id="handoffs" class="mutation-list"></div>
+      <div class="drawer-actions">
+        <button id="select-handoffs" class="control">Select visible</button
+        ><button id="bulk-accept" class="control">Accept</button
+        ><button id="bulk-review" class="control">Review</button
+        ><button id="bulk-complete" class="control">Complete</button>
+      </div>
+      <pre id="control-log" class="mono" aria-live="polite">Ready.</pre>
+      <div id="recall-result" class="memory-list"></div>
+    </aside>
+    <script>
+      // Dedicated secret lane: no generic mutation helpers, operation keys or storage.
+      (() => {
+        "use strict";
+        const el = (id) => document.getElementById(id);
+        const form = el("secret-form"), target = el("secret-target"), name = el("secret-name"), value = el("secret-value");
+        const send = el("secret-send"), connect = el("secret-connect"), check = el("secret-status-check"), receipt = el("secret-receipt");
+        let csrf = "", targets = [], lastId = "", busy = false, ambiguous = false;
+        function lock(locked) {
+          for (const input of [target, name, value, send]) input.disabled = locked;
+          connect.disabled = busy;
+        }
+        async function request(action, payload) {
+          const headers = {"Content-Type": "application/json", "X-Secret-Delivery": "1"};
+          if (csrf) headers["X-Secret-CSRF"] = csrf;
+          const response = await fetch("/secret-delivery/" + action, {method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", headers, body: JSON.stringify(payload)});
+          if (!response.ok) {
+            const error = new Error("Secret delivery unavailable");
+            error.status = response.status;
+            const failure = await response.json().catch(() => ({}));
+            error.notConfigured = response.status === 503 && failure.error === "secret-delivery-disabled";
+            throw error;
+          }
+          return await response.json();
+        }
+        function show(data) {
+          const r = data.receipt;
+          if (!r) { ambiguous = true; receipt.textContent = "No receipt found. Do not resend until reconciled."; return; }
+          const status = ["saved", "ambiguous", "rejected", "version-conflict", "overwrite-required"].includes(r.status) ? r.status : "ambiguous";
+          receipt.textContent = `${r.delivery_id}: ${status} — ${r.target} / ${r.key}. Value is never returned.`;
+          ambiguous = status === "ambiguous";
+          if (status === "saved") value.value = "";
+        }
+        connect.addEventListener("click", async () => {
+          if (busy) return;
+          busy = true; lock(true);
+          try {
+            const data = await request("bootstrap", {});
+            csrf = data.csrf; targets = data.targets;
+            target.replaceChildren();
+            for (const t of targets) {
+              const option = document.createElement("option");
+              option.value = t.id; option.textContent = `${t.agent} / ${t.runtime} (${t.id})`; target.append(option);
+            }
+            receipt.textContent = targets.length ? "Connected through Access. Only explicitly enrolled names are allowed." : "Connected through Access. No destinations are available; ask the operator to configure an approved destination.";
+          } catch (error) {
+            csrf = ""; targets = []; target.replaceChildren();
+            receipt.textContent = error.notConfigured
+              ? "Secret Delivery is not configured on this server. Ask the operator to enable approved destinations; nothing was sent."
+              : [401, 403].includes(error.status)
+                ? "This Access session is not authorized. Sign in with an approved operator account, then reconnect; nothing was sent."
+                : "Connection could not be verified. Check your Access session and connection, then retry; nothing was sent.";
+          }
+          finally { busy = false; lock(!csrf || !targets.length || ambiguous); }
+        });
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (busy || ambiguous || !csrf) return;
+          const destination = targets.find((t) => t.id === target.value);
+          if (!/^[A-Za-z_][A-Za-z0-9_]{0,127}$/.test(name.value) || !destination?.allowed_keys.includes(name.value)) {
+            receipt.textContent = "Use the exact enrolled name: letters, digits and underscore; no leading digit. Names are not corrected."; return;
+          }
+          busy = true; lock(true);
+          let dispatched = false;
+          try {
+            const prepared = await request("prepare", {target: target.value, key: name.value});
+            if (prepared.exists && !window.confirm(`Replace ${name.value} at ${target.value}? This confirms only the current version. No restart will occur.`)) {
+              receipt.textContent = "Replacement cancelled; nothing sent."; return;
+            }
+            lastId = crypto.randomUUID(); check.disabled = false;
+            dispatched = true;
+            const data = await request("send", {target: target.value, key: name.value, value: value.value, delivery_id: lastId, confirmation: prepared.confirmation, overwrite: prepared.exists});
+            show(data);
+          } catch (_) {
+            ambiguous = dispatched;
+            receipt.textContent = dispatched ? `Delivery ${lastId} is ambiguous. Check status; do not resend.` : "Preparation rejected. Nothing sent.";
+          } finally {
+            if (dispatched) value.value = "";
+            busy = false; lock(ambiguous);
+          }
+        });
+        check.addEventListener("click", async () => {
+          if (busy || !lastId) return;
+          busy = true; lock(true);
+          try { show(await request("status", {delivery_id: lastId})); }
+          catch (_) { receipt.textContent = "Status unavailable. Do not resend."; ambiguous = true; }
+          finally { busy = false; lock(ambiguous || !csrf); }
+        });
+        window.addEventListener("pagehide", () => { value.value = ""; csrf = ""; });
+      })();
+    </script>
+    <script>
+      "use strict";
+      const $ = (id) => document.getElementById(id),
+        bearer = $("bearer"),
+        prefKey = "arvyx_dashboard_preferences",
+        preferenceIds = [
+          "handoff-filter",
+          "handoff-assignee",
+          "handoff-limit",
+          "handoff-sla",
+          "retain-events",
+          "handoff-reviewer",
+          "handoff-decision",
+          "handoff-notes",
+        ],
+        pendingOperationKeys = new Map();
+      let model = null,
+        summary = null,
+        auditState = null,
+        selectedAgent = null,
+        pollTimer = null,
+        lastSuccess = 0,
+        retryFailures = 0,
+        mutationError = "",
+        lastKanbanSignature = "",
+        lastChartSignature = "",
+        lastHqSignatures = new Map(),
+        seenEventKeys = new Set(),
+        eventHistoryReady = false,
+        routeQueue = [],
+        activeRunners = 0,
+        activeRouteAnimations = new Set(),
+        resizeTimer = null,
+        inFlight = false,
+        drawerTrigger = null;
+      const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      bearer.value = sessionStorage.getItem("arvyx_bearer") || "";
+      localStorage.removeItem("arvyx_bearer");
+      function empty(node) {
+        while (node.firstChild) node.removeChild(node.firstChild);
+      }
+      function el(tag, textValue, className) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (textValue !== undefined) node.textContent = String(textValue);
+        return node;
+      }
+      function setText(id, value) {
+        const node = $(id),
+          next = String(value);
+        if (node.textContent !== next) node.textContent = next;
+      }
+      function headers() {
+        const h = { "content-type": "application/json" };
+        if (bearer.value) h.authorization = `Bearer ${bearer.value}`;
+        return h;
+      }
+      function operationId() {
+        if (crypto.randomUUID) return `dashboard-${crypto.randomUUID()}`;
+        const bytes = new Uint8Array(16);
+        crypto.getRandomValues(bytes);
+        return `dashboard-${Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("")}`;
+      }
+      // AMC_DIAGNOSTICS_BEGIN
+      let diagnosticReports = 0, diagnosticWindow = 0, diagnosticSending = false;
+      function reportDiagnostic(kind) {
+        const now = Date.now();
+        if (now - diagnosticWindow > 60000) { diagnosticWindow = now; diagnosticReports = 0; }
+        if (diagnosticSending || diagnosticReports >= 10) return;
+        diagnosticReports += 1;
+        diagnosticSending = true;
+        // No Error object, URL, message, stack, user identity, or arbitrary context.
+        Promise.resolve().then(() => fetch("/diagnostics/client", {
+          method: "POST", headers: { ...headers(), "Content-Type": "application/json" },
+          body: JSON.stringify({kind}), signal: AbortSignal.timeout(5000),
+        })).catch(() => {}).finally(() => { diagnosticSending = false; });
+      }
+      window.addEventListener("error", () => reportDiagnostic("error"));
+      window.addEventListener("unhandledrejection", () => reportDiagnostic("unhandledrejection"));
+      async function refreshDiagnostics() {
+        const status = document.getElementById("diagnostics-status");
+        const groups = document.getElementById("diagnostics-groups");
+        try {
+          const response = await fetch("/diagnostics", {headers: headers(), signal: AbortSignal.timeout(5000)});
+          if (!response.ok) throw new Error("unavailable");
+          const result = (await response.json()).body;
+          status.textContent = JSON.stringify(result.status);
+          groups.textContent = result.groups.length ? result.groups.map(g =>
+            `${g.component} / ${g.code} · ${g.exception} · count=${g.count} · ${g.trust}\n` +
+            `trace=${g.trace_id} fingerprint=${g.fingerprint}\n` +
+            `first=${new Date(g.first_seen*1000).toISOString()} last=${new Date(g.last_seen*1000).toISOString()}\n` +
+            g.frames.map(f => `${f.module}.${f.function}:${f.line}`).join("\n")
+          ).join("\n\n") : "No retained incident groups.";
+        } catch {
+          status.textContent = "Diagnostics unavailable or operator authentication required — not a healthy sink verdict.";
+          groups.textContent = "";
+        }
+      }
+      // AMC_DIAGNOSTICS_END
+      async function api(path, options = {}) {
+        const { idempotencyKey, ...fetchOptions } = options,
+          h = { ...headers(), ...(options.headers || {}) };
+        if (options.method && options.method !== "GET")
+          h["Idempotency-Key"] = idempotencyKey || operationId();
+        let r;
+        try { r = await fetch(path, { ...fetchOptions, headers: h }); }
+        catch (e) { reportDiagnostic("fetch"); throw e; }
+        if (r.status >= 500) reportDiagnostic("fetch");
+        let p = {};
+        try {
+          p = await r.json();
+        } catch {
+          const error = new Error(`Invalid response (${r.status})`);
+          error.status = r.status;
+          throw error;
+        }
+        if (!r.ok) {
+          const e = new Error(p.body?.error || r.statusText);
+          e.status = r.status;
+          throw e;
+        }
+        return p.body;
+      }
+      async function fetchAudit() {
+        try {
+          const response = await fetch("/audit/events?limit=25", {
+            headers: headers(),
+          });
+          if (response.status === 401 || response.status === 403)
+            return { state: "auth" };
+          let payload = {};
+          try {
+            payload = await response.json();
+          } catch {
+            return {
+              state: "unavailable",
+              error: `Invalid response (${response.status})`,
+            };
+          }
+          if (!response.ok) {
+            return {
+              state: "unavailable",
+              error: payload.body?.error || response.statusText,
+            };
+          }
+          const audit = payload.body || {};
+          return {
+            state: audit.chain?.ok === true ? "ok" : "broken",
+            total: audit.total || 0,
+          };
+        } catch (error) {
+          return { state: "unavailable", error: String(error) };
+        }
+      }
+      function auditLabel() {
+        if (!auditState || auditState.state === "unavailable")
+          return "UNAVAILABLE — audit chain not checked";
+        if (auditState.state === "auth")
+          return "UNKNOWN — operator token required";
+        if (auditState.state === "broken")
+          return "BROKEN — investigate immediately";
+        return `OK — ${auditState.total || 0} audited events`;
+      }
+      function metric(id, value, load, tone) {
+        const n = $(id);
+        n.querySelector("strong").textContent = String(value);
+        n.style.setProperty(
+          "--load",
+          `${Math.min(100, Math.max(0, load || 0))}%`,
+        );
+        if (tone) n.style.setProperty("--tone", tone);
+      }
+      function currentWork(a) {
+        return (
+          a?.work?.current ??
+          ["queued", "active", "review"].reduce(
+            (n, k) => n + (a?.work?.[k] || 0),
+            0,
+          )
+        );
+      }
+      function blockerCount(a) {
+        return Number(a?.blockers?.count || 0);
+      }
+      /* Desk presets are identity-agnostic; deskPlan restricts this surface to
+         the operator fleet before assigning presets. Fleet membership is the
+         registry hint "dashboard": {"squad": true}; no agent is named here.
+         The four war-room desks are presets in slot order. An agent claims a
+         preset through its registry record ("dashboard": {"desk": "<key>"}),
+         projected by /control-plane as agent.dashboard; first claim by agent
+         id wins. Unclaimed desks go to the remaining visible agents in stable
+         agent-id order and say so. "dashboard": {"hidden": true} removes an
+         agent and every item it touches from the dashboard. Desk names and
+         colors are presentation, not projection facts. */
+      const DESK_PRESETS = Object.freeze([
+        Object.freeze({ key: "engineering", role: "Engineering & command desk", tone: "var(--mint)" }),
+        Object.freeze({ key: "security", role: "Security & memory desk", tone: "var(--coral)" }),
+        Object.freeze({ key: "research", role: "Research & design desk", tone: "var(--violet)" }),
+        Object.freeze({ key: "operations", role: "Operations & monitoring desk", tone: "var(--cyan)" }),
+      ]);
+      function squadIds(agents = model?.agents) {
+        // Exact strict boolean from the registry projection; ids compared lowercased.
+        return [...new Set((agents || []).filter((agent) => agent?.dashboard?.squad === true)
+          .map((agent) => String(agent.id || "").toLowerCase()))].sort();
+      }
+      function planDesks(agents) {
+        const byKey = new Map(DESK_PRESETS.map((preset, slot) => [preset.key, { ...preset, slot }])),
+          seen = new Set(), hidden = new Set(), visible = [];
+        (Array.isArray(agents) ? agents : []).forEach((agent) => {
+          const id = String(agent?.id || "").toLowerCase();
+          if (!id || seen.has(id)) return;
+          seen.add(id);
+          if (agent?.dashboard?.hidden === true) hidden.add(id);
+          else visible.push({ id, wanted: String(agent?.dashboard?.desk || "") });
+        });
+        visible.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+        const desks = new Map(), claimed = new Set();
+        visible.forEach(({ id, wanted }) => {
+          if (!byKey.has(wanted) || claimed.has(wanted)) return;
+          claimed.add(wanted);
+          desks.set(id, { ...byKey.get(wanted), configured: true });
+        });
+        const open = DESK_PRESETS.filter((preset) => !claimed.has(preset.key));
+        visible.forEach(({ id }) => {
+          if (desks.has(id) || !open.length) return;
+          desks.set(id, { ...byKey.get(open.shift().key), configured: false });
+        });
+        const warRoom = Array.from(desks.entries()).sort((a, b) => a[1].slot - b[1].slot).map(([id]) => id);
+        return { hidden, desks, warRoom };
+      }
+      let deskPlanSource, deskPlanCache = planDesks([]);
+      function deskPlan() {
+        const agents = model?.agents;
+        if (agents !== deskPlanSource) {
+          deskPlanSource = agents;
+          const squad = squadIds(agents);
+          deskPlanCache = planDesks((agents || []).filter((agent) =>
+            squad.includes(String(agent.id || "").toLowerCase())));
+          (agents || []).forEach((agent) => {
+            const id = String(agent.id || "").toLowerCase();
+            if (!squad.includes(id)) deskPlanCache.hidden.add(id);
+          });
+        }
+        return deskPlanCache;
+      }
+      function agentMeta(id) {
+        const desk = deskPlan().desks.get(String(id || "").toLowerCase());
+        if (!desk) return { role: "No war-room desk", tone: "var(--muted)", sprite: "generic", label: "no war-room desk" };
+        return {
+          role: desk.configured ? desk.role : "Squad desk",
+          tone: desk.tone,
+          sprite: desk.key,
+          label: desk.configured ? `${desk.role} · configured` : "squad desk · auto-assigned",
+        };
+      }
+      function isExcludedAgentId(value) {
+        return deskPlan().hidden.has(String(value || "").toLowerCase());
+      }
+      function visibleAgents() {
+        // This operator surface is the configured fleet, not every registry record.
+        const squad = squadIds();
+        return (model?.agents || []).filter((agent) =>
+          squad.includes(String(agent.id || "").toLowerCase()) && !isExcludedAgentId(agent.id));
+      }
+      function itemIsVisible(item) {
+        // Hiding an agent hides presence, never governance: a requested
+        // approval or a pending operator-targeted thread stays visible
+        // whoever raised or touched it, because only the operator can act.
+        if (item && "requester" in item && String(item.status || "").toLowerCase() === "requested") return true;
+        if (item?.pending && String(item?.target || "").toLowerCase() === "operator") return true;
+        return ![
+          item?.owner,
+          item?.to_agent,
+          item?.from_agent,
+          item?.target,
+          item?.actor,
+          item?.agent_id,
+          item?.performed_by,
+          item?.route_target,
+          item?.requester,
+          item?.approver,
+          item?.reviewer,
+          item?.completed_by,
+          item?.done_by,
+          item?.acked_by,
+          item?.posted_by,
+        ].some(isExcludedAgentId);
+      }
+      function warRoomAgents() {
+        const byId = new Map();
+        visibleAgents().forEach((agent) => {
+          const id = String(agent.id || "").toLowerCase();
+          if (!byId.has(id)) byId.set(id, agent);
+        });
+        return deskPlan().warRoom.map((id) => byId.get(id)).filter(Boolean);
+      }
+      function visibleStaleContinuations() {
+        return warRoomAgents().reduce(
+          (total, agent) => total + Number(agent?.continuation?.stale_count || 0),
+          0,
+        );
+      }
+      /* Truth priority is intentional: degraded evidence dominates presentation.
+         Active means ownership projection and never claims execution. */
+      function visualState(a) {
+        const blockers = blockerCount(a),
+          stale = Number(a?.continuation?.stale_count || 0);
+        if (blockers)
+          return { key: "blocker", label: `${blockers} blocker${blockers === 1 ? "" : "s"}`, bubble: `${blockers} blocker${blockers === 1 ? "" : "s"}`, tone: "var(--coral)", degraded: true };
+        if (stale)
+          return { key: "stale", label: "stale continuation", bubble: "stale continuation", tone: "var(--amber)", attention: true };
+        if (a?.work?.review)
+          return { key: "review", label: "review", bubble: "review", tone: "var(--violet)" };
+        if (a?.work?.active)
+          return { key: "active", label: "active ownership", bubble: a?.continuation?.active_count ? "continuation active · execution unproven" : null, tone: "var(--mint)" };
+        if (a?.work?.queued)
+          return { key: "queued", label: "queued", bubble: "queued", tone: "var(--amber)" };
+        if (a?.presence?.heartbeat_at)
+          return { key: "idle-heartbeat", label: "heartbeat-reported idle", bubble: "no current work", tone: "var(--cyan)" };
+        return { key: "registered", label: "registered / no heartbeat", bubble: "no current work", tone: "var(--muted)" };
+      }
+      function agentStateLabel(a) {
+        return visualState(a).label;
+      }
+      function passesAgent(item) {
+        if (!itemIsVisible(item)) return false;
+        if (!selectedAgent) return true;
+        return [
+          item.owner,
+          item.to_agent,
+          item.from_agent,
+          item.target,
+          item.actor,
+          item.agent_id,
+        ].includes(selectedAgent);
+      }
+      function spriteName(id) {
+        return agentMeta(id).sprite;
+      }
+      function sprite(id, pose = 1) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"),
+          use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+        svg.setAttribute("viewBox", "0 0 24 32");
+        svg.setAttribute("aria-hidden", "true");
+        svg.setAttribute("focusable", "false");
+        svg.classList.add("agent-sprite");
+        use.setAttribute("href", `#sprite-${spriteName(id)}-${pose}`);
+        svg.append(use);
+        return svg;
+      }
+      function workstation() {
+        const room = el("span", undefined, "workstation");
+        ["desk-slab", "monitor", "monitor-stand", "keyboard", "chair", "role-accent"].forEach((name) => room.append(el("span", undefined, name)));
+        return room;
+      }
+      function eventKey(event) {
+        const explicit = event?.id ?? event?.event_id ?? event?.uuid;
+        return explicit ? `id:${explicit}` : `sig:${JSON.stringify([event?.type, event?.actor, event?.target, event?.timestamp, event?.title])}`;
+      }
+      function collectNewEvents(snapshot) {
+        const events = Array.isArray(snapshot?.events) ? snapshot.events : [],
+          keys = events.map(eventKey);
+        if (!eventHistoryReady) {
+          seenEventKeys = new Set(keys.slice(0, 256));
+          eventHistoryReady = true;
+          return [];
+        }
+        const fresh = [], freshKeys = new Set();
+        events.forEach((event, index) => {
+          if (!seenEventKeys.has(keys[index]) && !freshKeys.has(keys[index])) {
+            fresh.push(event);
+            freshKeys.add(keys[index]);
+          }
+        });
+        keys.forEach((key) => seenEventKeys.add(key));
+        if (seenEventKeys.size > 512) seenEventKeys = new Set(keys.slice(0, 256));
+        return fresh.reverse().slice(0, 12);
+      }
+      function deskFor(id) {
+        const wanted = String(id || "").toLowerCase();
+        return Array.from(document.querySelectorAll(".agent-desk")).find((desk) => desk.dataset.agentId === wanted) || null;
+      }
+      function pulseRoute(...nodes) {
+        nodes.filter(Boolean).forEach((node) => {
+          node.classList.remove("route-pulse");
+          void node.offsetWidth;
+          node.classList.add("route-pulse");
+          setTimeout(() => node.classList.remove("route-pulse"), 650);
+        });
+      }
+      function drainRoutes() {
+        if (document.hidden || activeRunners >= 2 || !routeQueue.length) return;
+        const event = routeQueue.shift(), performer = event.performed_by, actorDesk = deskFor(performer);
+        if (!actorDesk) {
+          drainRoutes();
+          return;
+        }
+        const routeTarget = event.route_target,
+          targetDesk = deskFor(routeTarget),
+          operatorBound = String(routeTarget || "").toLowerCase() === "operator",
+          destination = targetDesk || (operatorBound ? $("command-table") : null);
+        if (!destination || reducedMotion.matches || typeof Element.prototype.animate !== "function") {
+          pulseRoute(actorDesk, destination);
+          drainRoutes();
+          return;
+        }
+        const from = actorDesk.getBoundingClientRect(), to = destination.getBoundingClientRect(),
+          runner = el("span", undefined, "route-runner"), label = el("span", String(event.type || ""), "route-label"),
+          icon = sprite(performer, 1), use = icon.querySelector("use");
+        runner.append(icon, label); $("route-layer").append(runner); activeRunners += 1;
+        const startX = from.left + from.width / 2 - 24, startY = from.top + from.height / 2 - 28,
+          endX = to.left + to.width / 2 - 24, endY = to.top + to.height / 2 - 28,
+          poseTimer = setInterval(() => use.setAttribute("href", `#sprite-${spriteName(performer)}-${use.getAttribute("href").endsWith("-1") ? 2 : 1}`), 150),
+          animation = runner.animate([
+            { transform: `translate(${startX}px,${startY}px)`, opacity: 0.9 },
+            { transform: `translate(${(startX + endX) / 2}px,${Math.min(startY, endY) - 24}px)`, opacity: 1, offset: 0.5 },
+            { transform: `translate(${endX}px,${endY}px)`, opacity: 0.2 },
+          ], { duration: 1200, easing: "cubic-bezier(.2,.75,.25,1)", fill: "forwards" });
+        activeRouteAnimations.add(animation);
+        let cleaned = false;
+        const finish = () => {
+          if (cleaned) return;
+          cleaned = true;
+          clearInterval(poseTimer);
+          activeRouteAnimations.delete(animation);
+          runner.remove();
+          activeRunners = Math.max(0, activeRunners - 1);
+          if (!document.hidden) pulseRoute(destination);
+          drainRoutes();
+        };
+        animation.addEventListener("finish", finish, { once: true });
+        animation.addEventListener("cancel", finish, { once: true });
+      }
+      function queueCanonicalRoutes(events) {
+        if (document.hidden) return;
+        events.forEach((event) => {
+          if (deskFor(event.performed_by)) routeQueue.push(event);
+        });
+        routeQueue = routeQueue.slice(-12);
+        drainRoutes();
+      }
+      function renderOrbit() {
+        const root = $("agent-orbit");
+        empty(root);
+        const agents = warRoomAgents(), nextSignatures = new Map();
+        if (!agents.length) {
+          lastHqSignatures = new Map();
+          root.append(el("div", "No agents registered.", "empty"));
+          renderAgentDetail();
+          return;
+        }
+        agents.forEach((a) => {
+          const state = visualState(a), meta = agentMeta(a.id),
+            signature = JSON.stringify([state.key, currentWork(a), a.presence?.heartbeat_at, a.latest_activity_at]),
+            previousSignature = lastHqSignatures.get(a.id),
+            changed = previousSignature !== undefined && previousSignature !== signature,
+            b = el("button", undefined, `agent-desk${state.degraded ? " degraded" : ""}${state.attention ? " attention" : ""}${changed && !reducedMotion.matches ? " evidence-change" : ""}`);
+          nextSignatures.set(a.id, signature);
+          b.type = "button";
+          b.dataset.agentId = String(a.id || "").toLowerCase();
+          b.dataset.state = state.key;
+          b.style.setProperty("--tone", state.tone);
+          const current = currentWork(a), pressure = Math.min(100, current * 20);
+          b.classList.toggle("selected", a.id === selectedAgent);
+          b.setAttribute("aria-pressed", String(a.id === selectedAgent));
+          b.setAttribute("aria-label", `${a.display_name || a.id}, ${state.label}. Inspect ${meta.label}`);
+          const top = el("span", undefined, "desk-top"), avatar = sprite(a.id), copy = el("span");
+          copy.append(el("strong", a.display_name || a.id, "desk-name"));
+          copy.append(el("span", meta.label, "desk-role"));
+          top.append(avatar, copy); b.append(el("span", undefined, "alert-beacon"), top);
+          b.append(el("span", state.label, "desk-state"));
+          b.append(el("span", a.presence?.heartbeat_at ? `heartbeat ${formatTime(a.presence.heartbeat_at)}` : "heartbeat not reported", "desk-heartbeat"));
+          b.append(workstation());
+          const load = el("span", undefined, "load"),
+            fill = el("i");
+          fill.style.setProperty("--load", `${pressure}%`);
+          load.append(fill);
+          b.append(load);
+          if (state.bubble) b.append(el("span", state.bubble, "speech"));
+          b.addEventListener("click", () => {
+            selectedAgent = selectedAgent === a.id ? null : a.id;
+            renderAll();
+          });
+          root.append(b);
+        });
+        lastHqSignatures = nextSignatures;
+        renderAgentDetail();
+      }
+      function registryLabel(value, fallback) {
+        if (value && typeof value === "object")
+          return value.display_name || value.id || fallback;
+        return value || fallback;
+      }
+      function renderAgentDetail() {
+        const root = $("agent-detail");
+        empty(root);
+        const agents = visibleAgents(),
+          a = agents.find((x) => x.id === selectedAgent) || agents[0];
+        if (!a) {
+          root.append(el("div", "No fleet telemetry.", "empty"));
+          return;
+        }
+        root.append(
+          el(
+            "span",
+            selectedAgent ? "Focused agent" : "Agent detail",
+            "eyebrow",
+          ),
+        );
+        root.append(el("div", a.display_name || a.id, "detail-number"));
+        root.append(
+          el(
+            "div",
+            `${a.id} · ${registryLabel(a.runtime, "runtime not set")} · ${registryLabel(a.machine, "machine not set")}`,
+            "mono",
+          ),
+        );
+        const chips = el("div", undefined, "chips");
+        chips.append(el("span", agentStateLabel(a), "chip"));
+        chips.append(
+          el(
+            "span",
+            a.presence?.heartbeat_at
+              ? `heartbeat ${formatTime(a.presence.heartbeat_at)}`
+              : "registered · heartbeat not reported",
+            "chip",
+          ),
+        );
+        const scopes = a.scopes || [];
+        if (scopes.length) {
+          scopes.forEach((s) => chips.append(el("span", s, "chip")));
+        } else {
+          chips.append(el("span", "No scopes reported", "chip"));
+        }
+        root.append(chips);
+        root.append(el("p", "Runtime status unknown — execution heartbeat is not a runtime availability check.", "runtime-note"));
+        if (blockerCount(a)) {
+          const link = el("a", `${blockerCount(a)} blockers → inspect pending threads and their owners`, "cause-link");
+          link.href = "#war-room-title"; root.append(link);
+        }
+        if (a.continuation?.stale_count) {
+          const link = el("a", `${a.continuation.stale_count} stale continuations → inspect execution progress before retrying`, "cause-link");
+          link.href = "#workbench"; root.append(link);
+        }
+        const work = a.work || {};
+        root.append(
+          el(
+            "p",
+            `Current ${work.current || 0} · Queued ${work.queued || 0} · Active ${work.active || 0} · Review ${work.review || 0}`,
+          ),
+        );
+        root.append(el("p", `Completed history ${work.done || 0}`, "mono"));
+        const continuation = a.continuation || {};
+        const continuationState = continuation.state || "not reported";
+        chips.append(
+          el(
+            "span",
+            `continuation ${continuationState} · ${continuation.active_count || 0} active · ${continuation.stale_count || 0} stale`,
+            "chip",
+          ),
+        );
+        if ((continuation.subjects || []).length) {
+          root.append(
+            el(
+              "p",
+              `Continuation age ${formatAge(continuation.oldest_progress_age_seconds)} · subjects ${(continuation.subjects || []).map((subject) => subject.id).join(", ")}`,
+              "mono",
+            ),
+          );
+        }
+        root.append(
+          el(
+            "p",
+            `Latest activity ${formatTime(a.latest_activity_at)}`,
+            "mono",
+          ),
+        );
+      }
+      function renderKanban() {
+        const root = $("kanban");
+        empty(root);
+        const lanes = [
+            ["queued", "Queued"],
+            ["active", "Active"],
+            ["review", "Review"],
+            ["done", "Done"],
+          ],
+          signature = JSON.stringify([
+            selectedAgent,
+            ...lanes.flatMap(([key]) =>
+              (model?.kanban?.[key] || [])
+                .filter(passesAgent)
+                .map((item) => [key, item.id, item.updated_at]),
+            ),
+          ]),
+          entering = signature !== lastKanbanSignature;
+        lastKanbanSignature = signature;
+        lanes.forEach(([key, label]) => {
+          const lane = el("section", undefined, "lane"),
+            head = el("div", undefined, "lane-head"),
+            items = (model?.kanban?.[key] || []).filter(passesAgent);
+          head.append(el("strong", label));
+          head.append(el("span", items.length));
+          lane.append(head);
+          const list = el("div", undefined, "lane-list");
+          if (!items.length)
+            list.append(
+              el(
+                "div",
+                selectedAgent ? "No matching work" : "Lane clear",
+                "empty",
+              ),
+            );
+          items.forEach((item) => {
+            const c = el(
+              "article",
+              undefined,
+              entering ? "card entering" : "card",
+            );
+            c.append(el("div", item.type || item.kind || "work", "kind mono"));
+            c.append(
+              el(
+                "strong",
+                item.title || item.summary || item.id || "Untitled work",
+              ),
+            );
+            c.append(
+              el(
+                "small",
+                [item.owner || item.to_agent || item.target, item.id]
+                  .filter(Boolean)
+                  .join(" · "),
+              ),
+            );
+            list.append(c);
+          });
+          lane.append(list);
+          root.append(lane);
+        });
+      }
+      function svg(tag, attrs) {
+        const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        Object.entries(attrs || {}).forEach(([k, v]) =>
+          n.setAttribute(k, String(v)),
+        );
+        return n;
+      }
+      function renderChart() {
+        const root = $("activity-chart");
+        empty(root);
+        const buckets = model?.activity?.buckets || [],
+          max = Math.max(1, ...buckets.map((x) => x.count || 0)),
+          signature = JSON.stringify(buckets.map((x) => [x.label, x.count])),
+          entering = signature !== lastChartSignature;
+        lastChartSignature = signature;
+        [30, 75, 120].forEach((y) =>
+          root.append(
+            svg("line", { x1: 0, y1: y, x2: 600, y2: y, class: "axis" }),
+          ),
+        );
+        const pts = buckets.map((b, i) => [
+          buckets.length < 2 ? 300 : (i * 600) / (buckets.length - 1),
+          145 - ((b.count || 0) * 125) / max,
+        ]);
+        if (pts.length) {
+          const defs = svg("defs"),
+            grad = svg("linearGradient", {
+              id: "chartGradient",
+              x1: 0,
+              y1: 0,
+              x2: 0,
+              y2: 1,
+            });
+          grad.append(
+            svg("stop", {
+              offset: "0%",
+              "stop-color": "#5af2ba",
+              "stop-opacity": 0.2,
+            }),
+            svg("stop", {
+              offset: "100%",
+              "stop-color": "#5af2ba",
+              "stop-opacity": 0,
+            }),
+          );
+          defs.append(grad);
+          root.append(defs);
+          const line = pts
+            .map((p, i) => `${i ? "L" : "M"}${p[0]},${p[1]}`)
+            .join(" ");
+          root.append(
+            svg("path", {
+              d: `${line} L600,145 L0,145 Z`,
+              class: "chart-fill",
+            }),
+          );
+          root.append(
+            svg("path", {
+              d: line,
+              class: entering ? "trace entering" : "trace",
+            }),
+          );
+        }
+        setText(
+          "chart-labels",
+          buckets.length
+            ? `${buckets[0].label}  →  ${buckets[buckets.length - 1].label} · peak ${max}`
+            : "No activity buckets",
+        );
+      }
+      function renderBars() {
+        const root = $("event-bars");
+        empty(root);
+        const rows = model?.activity?.event_types || [],
+          max = Math.max(1, ...rows.map((r) => r.count || 0));
+        if (!rows.length) {
+          root.append(el("div", "No event activity.", "empty"));
+          return;
+        }
+        rows.slice(0, 9).forEach((r) => {
+          const row = el("div", undefined, "bar-row");
+          row.append(el("span", r.type, "mono"));
+          const track = el("span", undefined, "bar-track"),
+            fill = el("i");
+          fill.style.setProperty("--width", `${((r.count || 0) * 100) / max}%`);
+          track.append(fill);
+          row.append(track);
+          row.append(el("strong", r.count || 0));
+          root.append(row);
+        });
+      }
+      function formatAge(value) {
+        if (!Number.isFinite(value)) return "unknown";
+        if (value < 60) return `${value}s`;
+        if (value < 3600) return `${Math.floor(value / 60)}m`;
+        if (value < 86400) return `${Math.floor(value / 3600)}h`;
+        return `${Math.floor(value / 86400)}d`;
+      }
+      function formatTime(value) {
+        if (!value) return "not reported";
+        const d = new Date(value);
+        return Number.isNaN(d.valueOf())
+          ? String(value)
+          : d.toLocaleString([], {
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+      }
+      function renderEvents() {
+        const root = $("events");
+        empty(root);
+        const events = (model?.events || []).filter(passesAgent);
+        if (!events.length) {
+          root.append(el("div", "No matching events.", "empty"));
+          return;
+        }
+        events.slice(0, 30).forEach((e) => {
+          const row = el("article", undefined, "event");
+          row.append(el("span", undefined, "pulse"));
+          const body = el("div");
+          body.append(el("strong", e.title || e.type));
+          body.append(
+            el(
+              "small",
+              [e.type, e.actor, e.target].filter(Boolean).join(" · "),
+            ),
+          );
+          row.append(body);
+          row.append(el("time", formatTime(e.timestamp)));
+          root.append(row);
+        });
+      }
+      function renderAtlas() {
+        const mem = $("memory-atlas"),
+          skills = $("skills");
+        empty(mem);
+        empty(skills);
+        const agents = warRoomAgents().filter(
+          (a) => !selectedAgent || a.id === selectedAgent,
+        );
+        if (!agents.length) {
+          mem.append(el("div", "No memory metrics.", "empty"));
+          skills.append(el("div", "No skill telemetry.", "empty"));
+          return;
+        }
+        agents.forEach((a) => {
+          const m = a.memory || {},
+            card = el("article", undefined, "atlas-card"),
+            head = el("header");
+          head.append(el("strong", a.display_name || a.id));
+          head.append(el("span", `${m.documents || 0} docs`, "chip"));
+          card.append(head);
+          card.append(
+            el(
+              "p",
+              `${(m.lines || 0).toLocaleString()} lines · ${(m.bytes || 0).toLocaleString()} bytes`,
+            ),
+          );
+          card.append(
+            el(
+              "p",
+              `Curated ${m.curated_documents || 0} · Session ${m.session_documents || 0} · Raw ${m.raw_documents || 0}`,
+              "mono",
+            ),
+          );
+          mem.append(card);
+          const s = a.skills || {},
+            sc = el("article", undefined, "atlas-card"),
+            sh = el("header");
+          sh.append(el("strong", a.display_name || a.id));
+          sh.append(
+            el(
+              "span",
+              s.reported
+                ? `${s.count ?? (s.items || []).length} reported`
+                : "Not reported",
+              s.reported ? "chip" : "chip unreported",
+            ),
+          );
+          sc.append(sh);
+          if (s.reported) {
+            const chips = el("div", undefined, "chips");
+            (s.items || [])
+              .slice(0, 20)
+              .forEach((x) =>
+                chips.append(
+                  el(
+                    "span",
+                    typeof x === "string" ? x : x.name || x.id || "skill",
+                    "chip",
+                  ),
+                ),
+              );
+            sc.append(chips);
+          }
+          skills.append(sc);
+        });
+      }
+      function rowText(root, title, detail) {
+        const row = el("article", undefined, "atlas-card");
+        row.append(el("strong", title));
+        row.append(el("p", detail, "mono"));
+        root.append(row);
+      }
+      function renderGovernance() {
+        const approvals = $("approvals"),
+          posture = $("posture"),
+          delivery = $("delivery");
+        empty(approvals);
+        empty(posture);
+        empty(delivery);
+        const aps = (summary?.recent?.approvals || []).filter(itemIsVisible);
+        if (!aps.length)
+          approvals.append(el("div", "No approval requests.", "empty"));
+        aps.forEach((a) =>
+          rowText(
+            approvals,
+            a.status || "approval",
+            `${a.id || ""} · ${a.command_hash || "hash unavailable"}`,
+          ),
+        );
+        const p = summary?.posture || {},
+          fallback = p.fallback || {},
+          bounds = model?.source?.bounds || {};
+        rowText(posture, "Audit chain", auditLabel());
+        rowText(
+          posture,
+          "Retention",
+          summary?.store
+            ? `${summary.store.source?.retention || "?"} source · ${summary.store.projection?.retention || "?"} projection`
+            : "Not reported",
+        );
+        rowText(
+          posture,
+          "Projection bounds",
+          bounds.cards_returned == null
+            ? "Not reported"
+            : bounds.cards_truncated ||
+                bounds.agents_truncated ||
+                bounds.events_truncated ||
+                (bounds.agents_invalid || 0) > 0
+              ? `DEGRADED — cards ${bounds.cards_returned ?? "?"}/${bounds.cards_total ?? "?"} · agents ${bounds.agents_returned ?? "?"}/${bounds.agents_discovered ?? "?"} · invalid ${bounds.agents_invalid || 0} · events ${bounds.events_returned ?? "?"}/${model?.source?.event_count ?? "?"}`
+              : "Complete within declared bounds",
+        );
+        rowText(
+          posture,
+          "Replica",
+          `${fallback.role || "unknown"} · sync ${formatTime(fallback.last_synced_at)}`,
+        );
+        const d = model?.delivery;
+        if (!d) {
+          delivery.append(
+            el("div", "Delivery telemetry not reported.", "empty"),
+          );
+          return;
+        }
+        rowText(
+          delivery,
+          "Overall",
+          d.ok
+            ? "Nominal"
+            : `${(d.attention || []).length} attention signal(s)`,
+        );
+        rowText(
+          delivery,
+          "Attention",
+          (d.attention || []).join(" · ") || "none",
+        );
+        rowText(
+          delivery,
+          "Outbox",
+          `${d.counts?.total || 0} total · ${d.unresolved_dead_letters || 0} unresolved dead letters`,
+        );
+        rowText(
+          delivery,
+          "Dispatcher",
+          d.dispatcher?.initialized
+            ? `${d.dispatcher.healthy ? "healthy" : "unhealthy"} · age ${d.dispatcher.age_seconds ?? "?"}s`
+            : "not initialized",
+        );
+        rowText(
+          delivery,
+          "Work",
+          `${d.work?.backlog_count || 0} backlog · ${d.work?.unroutable_count || 0} unroutable`,
+        );
+        const fleetExec = model?.fleet?.execution;
+        if (fleetExec && Object.keys(fleetExec).length) {
+          rowText(
+            delivery,
+            "Execution",
+            `${fleetExec.live_execution_count ?? 0} live · ` +
+              `${fleetExec.acked_without_live_execution_count ?? 0} ack gaps · ` +
+              `${fleetExec.dead_lettered_count ?? 0} dead · ` +
+              `${fleetExec.held_count ?? 0} held · ` +
+              `${fleetExec.closed_count ?? 0} closed · ` +
+              `${fleetExec.leased_without_recent_heartbeat_count ?? 0} stale heartbeat`,
+          );
+        } else {
+          rowText(delivery, "Execution", "not reported · verdict stays fail-closed");
+        }
+        const wd = model?.fleet?.watchdog;
+        rowText(
+          delivery,
+          "Watchdog",
+          wd?.initialized
+            ? `tick ${wd.last_tick_at || "?"} · ${(wd.attention || []).join(" · ") || "clean"}`
+            : "not initialized",
+        );
+      }
+      function renderHandoffs() {
+        const root = $("handoffs");
+        empty(root);
+        const rows = (summary?.recent?.handoffs || []).filter(passesAgent);
+        if (!rows.length) {
+          root.append(el("div", "No recent handoffs.", "empty"));
+          return;
+        }
+        rows.forEach((h) => {
+          const row = el("label", undefined, "atlas-card");
+          if (["open", "accepted", "reviewed"].includes(h.status)) {
+            const cb = el("input");
+            cb.type = "checkbox";
+            cb.className = "handoff-select";
+            cb.value = h.id;
+            cb.dataset.status = h.status;
+            row.append(cb);
+          }
+          const details = [
+            h.title,
+            h.status,
+            h.age_hours == null ? null : `${h.age_hours}h`,
+            h.sla_status,
+            h.reviewer ? `reviewer ${h.reviewer}` : null,
+            h.review_decision,
+          ].filter(Boolean);
+          row.append(document.createTextNode(` ${details.join(" · ")}`));
+          root.append(row);
+        });
+      }
+      function renderThreads() {
+        const counts = summary?.counts?.threads || {};
+        setText("thread-pending", counts.pending || 0);
+        setText("thread-unread", counts.unread || 0);
+        const root = $("threads");
+        empty(root);
+        const rows = (summary?.recent?.threads || []).filter(passesAgent);
+        if (!rows.length) {
+          root.append(el("div", "No recent threads.", "empty"));
+          return;
+        }
+        rows
+          .slice(0, 8)
+          .forEach((thread) =>
+            rowText(
+              root,
+              thread.title || thread.id,
+              `${thread.id || "ID not reported"} · ${thread.status === "retired" ? "retired · not completed" : thread.status || "open"} · ${thread.actor || "?"} → ${thread.target || "?"}${thread.pending ? " · pending" : ""}`,
+            ),
+          );
+      }
+      function renderSummaryMetrics() {
+        const agents = warRoomAgents().filter(
+            (agent) => !selectedAgent || agent.id === selectedAgent,
+          ),
+          active = (model?.kanban?.active || []).filter(
+            (card) => passesAgent(card) && squadIds().includes(String(card.owner || "").toLowerCase()),
+          ).length,
+          queued = (model?.kanban?.queued || []).filter(
+            (card) => passesAgent(card) && squadIds().includes(String(card.owner || "").toLowerCase()),
+          ).length,
+          requested = (summary?.recent?.approvals || []).filter(
+            (approval) => itemIsVisible(approval) && String(approval.status || "").toLowerCase() === "requested",
+          ).length,
+          maxCount = Math.max(1, agents.length, active, queued, requested),
+          focusLabel = selectedAgent
+            ? `focused: ${selectedAgent}`
+            : "fleet-wide";
+        $("metric-agents").querySelector("small").textContent = selectedAgent
+          ? focusLabel
+          : "squad desks · heartbeat separate";
+        $("metric-active").querySelector("small").textContent = selectedAgent
+          ? `owned by ${selectedAgent}`
+          : "fleet owned cards · bounded, not running";
+        $("metric-queued").querySelector("small").textContent = selectedAgent
+          ? `owned by ${selectedAgent}`
+          : "fleet queued cards · bounded";
+        $("metric-approvals").querySelector("small").textContent =
+          "approval records · bounded, all requesters";
+        $("metric-delivery").querySelector("small").textContent =
+          "global condition codes · not delivery records";
+        metric(
+          "metric-agents",
+          agents.length,
+          (agents.length * 100) / maxCount,
+        );
+        metric("metric-active", active, (active * 100) / maxCount);
+        metric(
+          "metric-queued",
+          queued,
+          (queued * 100) / maxCount,
+          "var(--amber)",
+        );
+        metric(
+          "metric-approvals",
+          requested,
+          (requested * 100) / maxCount,
+          "var(--violet)",
+        );
+        // A missing projection is not an empty queue.
+        if (!Array.isArray(model?.kanban?.active)) metric("metric-active", "Not reported", 0, "var(--muted)");
+        if (!Array.isArray(model?.kanban?.queued)) metric("metric-queued", "Not reported", 0, "var(--muted)");
+        if (!Array.isArray(summary?.recent?.approvals)) metric("metric-approvals", "Not reported", 0, "var(--muted)");
+        const fleet = model?.fleet;
+        if (!fleet || !["green", "amber", "red"].includes(fleet.verdict)) {
+          metric("metric-fleet", "Not reported", 0, "var(--muted)");
+        } else {
+          const redCount = (fleet.red || []).length;
+          const amberCount = (fleet.amber || []).length;
+          metric(
+            "metric-fleet",
+            fleet.verdict === "green"
+              ? "Green"
+              : fleet.verdict === "red"
+                ? `Red · ${redCount} critical`
+                : `Amber · ${amberCount} signal${amberCount === 1 ? "" : "s"}`,
+            fleet.verdict === "green" ? 100 : fleet.verdict === "red" ? 100 : 60,
+            fleet.verdict === "green"
+              ? "var(--mint)"
+              : fleet.verdict === "red"
+                ? "var(--coral)"
+                : "var(--amber)",
+          );
+        }
+        const d = model?.delivery;
+        if (!d || typeof d.ok !== "boolean") {
+          metric(
+            "metric-delivery",
+            "Not reported",
+            0,
+            "var(--muted)",
+          );
+          return;
+        }
+        const outboxIssues = (d.attention || []).length;
+        const nominal = d.ok && outboxIssues === 0;
+        metric(
+          "metric-delivery",
+          nominal
+            ? "Nominal"
+            : outboxIssues ? `${outboxIssues} signal${outboxIssues === 1 ? "" : "s"}` : "Degraded · no codes",
+          Math.min(100, outboxIssues * 25),
+          nominal ? "var(--mint)" : "var(--coral)",
+        );
+      }
+      function selectAgent(id) {
+        if (!visibleAgents().some((agent) => agent.id === id)) return;
+        selectedAgent = selectedAgent === id ? null : id;
+        renderAll();
+      }
+      function railEmpty(root, message) {
+        root.append(el("div", message, "empty"));
+      }
+      function renderCommandTable() {
+        const root = $("command-table");
+        empty(root);
+        ["screen-a", "screen-b"].forEach((name) => root.append(el("span", undefined, `table-screen ${name}`)));
+        ["seat-a", "seat-b"].forEach((name) => root.append(el("span", undefined, `table-seat ${name}`)));
+        const visiblePendingThreads = (summary?.recent?.threads || []).filter(
+            (thread) => itemIsVisible(thread) && thread.pending,
+          ).length,
+          visibleApprovals = (summary?.recent?.approvals || []).filter(
+            (approval) => itemIsVisible(approval) && String(approval.status || "").toLowerCase() === "requested",
+          ).length,
+          counts = [
+          [visiblePendingThreads, "visible pending threads"],
+          [visibleStaleContinuations(), "visible stale continuations"],
+          [visibleApprovals, "visible approvals"],
+          [(model?.delivery?.attention || []).length, "delivery signals"],
+        ], grid = el("div", undefined, "command-counts");
+        counts.forEach(([value, label]) => {
+          const card = el("article"); card.append(el("strong", value)); card.append(el("small", label)); grid.append(card);
+        });
+        root.append(grid);
+        const operatorThreads = (summary?.recent?.threads || []).filter((thread) => itemIsVisible(thread) && thread.pending && String(thread.target || "").toLowerCase() === "operator").length,
+          operatorApprovals = (summary?.recent?.approvals || []).filter((approval) => itemIsVisible(approval) && String(approval.status || "").toLowerCase() === "requested").length;
+        root.append(el("span", `Operator station · queue ${operatorThreads + operatorApprovals}`, "operator-station"));
+        const stale = visibleStaleContinuations(), delivery = model?.delivery,
+          condition = stale ? `${stale} stalled continuation${stale === 1 ? "" : "s"}` : !delivery ? "delivery not reported" : delivery.ok ? "delivery nominal" : `${(delivery.attention || []).length} delivery attention signal${(delivery.attention || []).length === 1 ? "" : "s"}`;
+        root.append(el("p", condition, "command-condition"));
+      }
+      function renderOperationsRail() {
+        const agents = warRoomAgents(), squad = $("squad-list");
+        empty(squad); setText("squad-count", `${agents.length} at desks`);
+        if (!agents.length) railEmpty(squad, "No squad desks assigned.");
+        agents.forEach((a) => {
+          const state = visualState(a), meta = agentMeta(a.id), row = el("button", undefined, "squad-row");
+          row.type = "button"; row.style.setProperty("--tone", state.tone);
+          row.setAttribute("aria-label", `Inspect ${a.display_name || a.id}`);
+          row.append(el("span", undefined, "state-pin"));
+          const copy = el("span"); copy.append(el("strong", a.display_name || a.id, "row-title")); copy.append(el("small", `${meta.label} · ${state.label}`, "row-detail")); row.append(copy); row.append(el("span", currentWork(a), "rail-count"));
+          row.addEventListener("click", () => selectAgent(a.id)); squad.append(row);
+        });
+        const live = $("live-signal"); empty(live);
+        const operational = $("operational-events"); empty(operational);
+        const routine = (event) => ["outbox.dispatcher.tick", "execution.watchdog.tick"].includes(event.type);
+        const snapshot = (model?.events || []).filter(passesAgent);
+        const events = snapshot.filter((event) => !routine(event)).slice(0, 6);
+        if (!events.length) railEmpty(live, "No work signals in this bounded snapshot — not an all-clear. Routine ticks are separate.");
+        snapshot.filter(routine).forEach((event) => {
+          const row = el("article", undefined, "rail-card");
+          row.append(el("strong", event.type), el("small", formatTime(event.timestamp))); operational.append(row);
+        });
+        if (!operational.childElementCount) railEmpty(operational, "No routine ticks in this snapshot.");
+        events.forEach((event) => {
+          const known = [event.actor, event.target].find((id) => agents.some((a) => a.id === id)), row = el(known ? "button" : "article", undefined, "rail-card");
+          if (known) { row.type = "button"; row.addEventListener("click", () => selectAgent(known)); }
+          row.append(el("strong", event.title || event.type || "Event")); row.append(el("small", `${[event.type, event.actor, event.target].filter(Boolean).join(" · ") || "details not reported"} · ${formatTime(event.timestamp)}`)); live.append(row);
+        });
+        const waiting = $("waiting-on-operator"); empty(waiting);
+        const approvals = (summary?.recent?.approvals || []).filter((a) => itemIsVisible(a) && String(a.status || "").toLowerCase() === "requested"),
+          threads = (summary?.recent?.threads || []).filter((t) => itemIsVisible(t) && t.pending && String(t.target || "").toLowerCase() === "operator"),
+          waitingRows = [...approvals.map((a) => ({ title: "Approval requested", detail: `${a.id || "ID not reported"} · ${a.command_hash || "hash unavailable"}` })), ...threads.map((t) => ({ title: t.title || t.id || "Pending thread", detail: `${t.actor || "?"} → ${t.target || "operator"} · ${t.status || "open"}` }))];
+        setText("waiting-count", waitingRows.length);
+        if (!waitingRows.length) railEmpty(waiting, Array.isArray(summary?.recent?.approvals) && Array.isArray(summary?.recent?.threads) ? "No requested approvals or pending operator-targeted threads in this bounded snapshot." : "Operator decision records not reported.");
+        waitingRows.slice(0, 6).forEach((item) => { const row = el("article", undefined, "rail-card attention"); row.append(el("strong", item.title)); row.append(el("small", item.detail)); waiting.append(row); });
+        const done = $("recently-completed"); empty(done);
+        const completed = (model?.kanban?.done || []).filter(passesAgent), cardsTruncated = model?.source?.bounds?.cards_truncated === true;
+        if (!completed.length) railEmpty(done, cardsTruncated ? "Completed slice unavailable — bounded card projection is truncated." : "No completed cards in the bounded projection.");
+        completed.slice(0, 6).forEach((item) => { const row = el("button", undefined, "rail-card done"); row.type = "button"; row.append(el("strong", item.title || item.id || "Completed work")); row.append(el("small", `${item.kind || "work"} · ${item.owner || "owner not reported"} · ${formatTime(item.updated_at)}`)); if (agents.some((a) => a.id === item.owner)) row.addEventListener("click", () => selectAgent(item.owner)); else row.disabled = true; done.append(row); });
+      }
+      function renderAttentionActions() {
+        const root = $("attention-actions"); empty(root);
+        const group = (id, title, note) => {
+          const card = el("article", undefined, "cause-card"); card.id = id;
+          card.append(el("strong", title), el("p", note)); root.append(card); return card;
+        };
+        const link = (card, text, href, agent, status) => {
+          const node = el("a", text, "cause-link"); node.href = href;
+          if (agent) node.addEventListener("click", () => { selectedAgent = agent; renderAll(); });
+          if (href === "#workbench") node.addEventListener("click", () => {
+            workbench.filterStatus = status || null;
+            activateWorkbenchTab($("workbench-tab-executions"));
+          });
+          card.append(node);
+        };
+        const agents = warRoomAgents(), fleet = model?.fleet, delivery = model?.delivery;
+        const runtime = group("triage-runtime", "Runtime availability · unknown", "No runtime availability telemetry in this API. Registered desks, execution heartbeats and old progress do not prove healthy or offline.");
+        agents.forEach((a) => link(runtime, `${a.display_name || a.id} · ${a.presence?.heartbeat_at ? "execution heartbeat reported" : "heartbeat not reported"}`, "#agent-detail", a.id));
+        if (!agents.length) runtime.append(el("p", "No squad records returned; availability remains unknown."));
+        const backlog = group("triage-backlog", "Queue & evidence backlog", "Counts describe different units and may overlap; do not add them. This view does not reconcile or resolve records.");
+        const held = fleet?.execution?.held_count;
+        backlog.append(el("p", Number.isInteger(held) ? `${held} held execution records · global` : "Held execution count · not reported"));
+        link(backlog, "Inspect held execution evidence →", "#workbench", undefined, "held");
+        // Validate raw identity coverage before desk planning can hide duplicates.
+        const fleetIds = squadIds();
+        const continuationRows = (model?.agents || []).filter((a) => fleetIds.includes(String(a.id || "").toLowerCase()));
+        const continuationKnown = fleetIds.length > 0 && continuationRows.length === fleetIds.length &&
+          fleetIds.every((id) => continuationRows.filter((a) => String(a.id || "").toLowerCase() === id).length === 1) &&
+          continuationRows.every((a) => Number.isInteger(a.continuation?.stale_count) && a.continuation.stale_count >= 0);
+        const continuationTotal = continuationKnown ? continuationRows.reduce((total, a) => total + a.continuation.stale_count, 0) : null;
+        backlog.append(el("p", continuationKnown ? `${continuationTotal} stale continuation records · configured fleet` : "Stale continuation count · incomplete / not reported"));
+        link(backlog, "Review execution progress and lease evidence →", "#workbench");
+        const conditions = [...new Set([...(fleet?.red || []), ...(fleet?.amber || []), ...(delivery?.attention || [])])];
+        const evidence = group("triage-source", "Global source conditions", "Original fleet verdict above is unfiltered. Codes below are deduplicated signals, not incident or execution totals.");
+        if (conditions.length) evidence.append(el("p", conditions.join(" · ")));
+        else evidence.append(el("p", fleet && delivery ? "No condition codes returned." : "Source conditions incomplete / not reported."));
+        link(evidence, "Inspect delivery and dispatcher evidence →", "#delivery");
+        const decisions = group("triage-decisions", "Operator decisions", "Blocker counts are per-agent projections, not unique threads. Inspect the relevant records before deciding; ownership alone does not clear a blocker.");
+        agents.filter((a) => blockerCount(a)).forEach((a) => link(decisions, `${a.display_name || a.id}: ${blockerCount(a)} blockers → threads`, "#threads", a.id));
+        const approvals = summary?.recent?.approvals, threads = summary?.recent?.threads;
+        if (!Array.isArray(approvals) || !Array.isArray(threads)) decisions.append(el("p", "Decision records · not reported"));
+        else {
+          const requested = approvals.filter((a) => String(a.status || "").toLowerCase() === "requested").length,
+            pending = threads.filter((t) => t.pending && String(t.target || "").toLowerCase() === "operator").length;
+          link(decisions, `${requested} requested approval records · bounded, all requesters →`, "#waiting-on-operator");
+          link(decisions, `${pending} pending operator thread records · bounded, all actors →`, "#waiting-on-operator");
+        }
+      }
+      function renderAll() {
+        renderAttentionActions();
+        renderSummaryMetrics();
+        renderOrbit();
+        renderCommandTable();
+        renderOperationsRail();
+        renderKanban();
+        renderThreads();
+        renderChart();
+        renderBars();
+        renderEvents();
+        renderAtlas();
+        renderGovernance();
+        renderHandoffs();
+      }
+      function banner(message, kind) {
+        const n = $("state-banner"),
+          next = String(message || "");
+        if (n.textContent !== next) n.textContent = next;
+        n.classList.toggle("show", Boolean(next));
+        n.style.borderColor = kind === "bad" ? "var(--coral)" : "var(--amber)";
+        n.style.color = kind === "bad" ? "var(--coral)" : "var(--amber)";
+      }
+      function boundedInput(id, fallback, maximum, allowEmpty = false) {
+        const input = $(id),
+          raw = input.value.trim();
+        if (allowEmpty && !raw) return "";
+        const value = Number(raw);
+        if (!Number.isInteger(value) || value < 1 || value > maximum) {
+          input.value = String(fallback);
+          setText(
+            "control-log",
+            `${id} reset to ${fallback}; expected an integer from 1 to ${maximum}.`,
+          );
+          return String(fallback);
+        }
+        return String(value);
+      }
+      function summaryPath() {
+        const params = new URLSearchParams();
+        const values = {
+          handoff_status: $("handoff-filter").value,
+          handoff_to_agent: $("handoff-assignee").value.trim(),
+          handoff_limit: boundedInput("handoff-limit", 10, 100),
+          handoff_sla_hours: boundedInput("handoff-sla", 24, 8760),
+          retain_events: boundedInput("retain-events", 100, 100000, true),
+        };
+        Object.entries(values).forEach(([key, value]) => {
+          if (value) params.set(key, value);
+        });
+        const query = params.toString();
+        return query ? `/summary?${query}` : "/summary";
+      }
+      async function refreshAll() {
+        if (inFlight || document.hidden) return;
+        refreshDiagnostics();
+        inFlight = true;
+        setText("freshness-label", "Syncing…");
+        try {
+          const [cp, s, audit] = await Promise.all([
+            api("/control-plane"),
+            api(summaryPath()),
+            fetchAudit(),
+          ]);
+          const newEvents = collectNewEvents(cp);
+          model = cp;
+          summary = s;
+          auditState = audit;
+          retryFailures = 0;
+          lastSuccess = Date.now();
+          selectedAgent = visibleAgents().some((a) => a.id === selectedAgent)
+            ? selectedAgent
+            : null;
+          setText("generated-at", formatTime(cp.generated_at));
+          setText("profile", `MCP profile ${s.mcp_profile || "unknown"}`);
+          // The headline encodes the fail-closed fleet verdict, not mere
+          // transport liveness: a reachable API over a red execution queue
+          // must never render green.
+          const fleetVerdict = cp.fleet?.verdict;
+          if (fleetVerdict === "green") {
+            $("health-dot").className = "dot ok";
+            setText("freshness-label", "Global verdict · green");
+          } else if (fleetVerdict === "red") {
+            $("health-dot").className = "dot bad";
+            setText(
+              "freshness-label",
+              "Global verdict · red",
+            );
+          } else {
+            $("health-dot").className = "dot warn";
+            setText(
+              "freshness-label",
+              "Global verdict · amber",
+            );
+          }
+          if (!["green", "amber", "red"].includes(fleetVerdict)) {
+            $("health-dot").className = "dot warn";
+            setText("freshness-label", "Fleet status unknown · snapshot received");
+          }
+          if (!mutationError) banner("");
+          renderAll();
+          queueCanonicalRoutes(newEvents);
+        } catch (e) {
+          retryFailures += 1;
+          auditState = { state: "unavailable" };
+          if (model && summary) renderGovernance();
+          $("health-dot").className = "dot bad";
+          if (e.status === 401 || e.status === 403) {
+            setText("freshness-label", "Authorization required");
+            banner(
+              mutationError ||
+                "Operator authorization is required. Open controls and provide a bearer token.",
+              "bad",
+            );
+          } else {
+            setText("freshness-label", "Signal unavailable");
+            banner(
+              mutationError ||
+                `Read model unavailable: ${e.message}. ${model ? "Showing last successful snapshot." : "No snapshot is available."}`,
+              "bad",
+            );
+          }
+        } finally {
+          inFlight = false;
+          schedulePoll();
+        }
+      }
+      function schedulePoll() {
+        clearTimeout(pollTimer);
+        const delay = Math.min(60000, 10000 * 2 ** Math.min(retryFailures, 3));
+        if (!document.hidden) pollTimer = setTimeout(refreshAll, delay);
+      }
+      setInterval(() => {
+        if (lastSuccess && Date.now() - lastSuccess > 30000) {
+          setText("freshness-label", "Stale snapshot");
+          banner(
+            mutationError ||
+              "Snapshot is stale. Automatic polling will retry; manual refresh remains available.",
+            mutationError ? "bad" : undefined,
+          );
+        }
+      }, 5000);
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          clearTimeout(pollTimer);
+          routeQueue = [];
+          Array.from(activeRouteAnimations).forEach((animation) => animation.cancel());
+          setText("freshness-label", "Polling paused");
+        } else refreshAll();
+      });
+      function openDrawer() {
+        drawerTrigger = document.activeElement;
+        const drawer = $("drawer"),
+          backdrop = $("backdrop");
+        drawer.hidden = false;
+        backdrop.hidden = false;
+        $("main").inert = true;
+        requestAnimationFrame(() => {
+          drawer.classList.add("open");
+          backdrop.classList.add("show");
+        });
+        $("close-drawer").focus();
+      }
+      function closeDrawer() {
+        const drawer = $("drawer"),
+          backdrop = $("backdrop");
+        if (drawer.hidden) return;
+        drawer.classList.remove("open");
+        backdrop.classList.remove("show");
+        $("main").inert = false;
+        setTimeout(
+          () => {
+            if (!drawer.classList.contains("open")) {
+              drawer.hidden = true;
+              backdrop.hidden = true;
+            }
+          },
+          reducedMotion.matches ? 0 : 360,
+        );
+        if (drawerTrigger) drawerTrigger.focus();
+      }
+      $("open-drawer").addEventListener("click", openDrawer);
+      $("close-drawer").addEventListener("click", closeDrawer);
+      $("backdrop").addEventListener("click", closeDrawer);
+      document.addEventListener("keydown", (event) => {
+        const drawer = $("drawer");
+        if (event.key === "Escape") closeDrawer();
+        if (event.key !== "Tab" || drawer.hidden) return;
+        const focusable = Array.from(
+          drawer.querySelectorAll(
+            "button,input,select,textarea,[tabindex]:not([tabindex='-1'])",
+          ),
+        ).filter((node) => !node.disabled && !node.hidden);
+        if (!focusable.length) return;
+        const first = focusable[0],
+          last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      });
+      function prefs() {
+        return Object.fromEntries(preferenceIds.map((id) => [id, $(id).value]));
+      }
+      function savePrefs() {
+        localStorage.setItem(prefKey, JSON.stringify(prefs()));
+      }
+      try {
+        const p = JSON.parse(localStorage.getItem(prefKey) || "{}");
+        Object.entries(p).forEach(([id, v]) => {
+          if (preferenceIds.includes(id) && $(id)) $(id).value = v;
+        });
+      } catch {}
+      bearer.addEventListener("input", () =>
+        sessionStorage.setItem("arvyx_bearer", bearer.value),
+      );
+      async function mutate(path, body, { refresh = true } = {}) {
+        const fingerprint = `${path}:${JSON.stringify(body)}`;
+        if (
+          !pendingOperationKeys.has(fingerprint) &&
+          pendingOperationKeys.size >= 100
+        ) {
+          const message = "Unresolved mutation capacity reached. Retry an existing operation; no new action sent.";
+          mutationError = message; setText("control-log", message); banner(message, "bad");
+          return false;
+        }
+        const idempotencyKey =
+          pendingOperationKeys.get(fingerprint) || operationId();
+        pendingOperationKeys.set(fingerprint, idempotencyKey);
+        try {
+          await api(path, {
+            method: "POST",
+            body: JSON.stringify(body),
+            idempotencyKey,
+          });
+          pendingOperationKeys.delete(fingerprint);
+          mutationError = "";
+          banner("");
+          setText("control-log", "Mutation accepted; projection refreshing.");
+          if (refresh) await refreshAll();
+          return true;
+        } catch (error) {
+          const message = `Mutation failed: ${error.message}. Retry will reuse the same idempotency key.`;
+          mutationError = message;
+          setText("control-log", message);
+          banner(message, "bad");
+          return false;
+        }
+      }
+      $("create-task").addEventListener("click", () =>
+        mutate("/tasks", {
+          title: $("task-title").value,
+          owner: $("task-owner").value,
+        }),
+      );
+      $("request-approval").addEventListener("click", () =>
+        mutate("/approvals/request", {
+          command: $("approval-command").value,
+          requester: $("task-owner").value,
+          reason: "operator dashboard",
+        }),
+      );
+      $("create-handoff").addEventListener("click", () =>
+        mutate("/handoffs", {
+          title: $("task-title").value,
+          from_agent: $("task-owner").value,
+          to_agent: "operator",
+          summary: "Operator dashboard handoff.",
+        }),
+      );
+      $("post-bus").addEventListener("click", () =>
+        mutate("/bus", {
+          message: $("bus-message").value,
+          channel: "ops",
+          actor: $("task-owner").value,
+          severity: "notice",
+        }),
+      );
+      $("run-recall").addEventListener("click", async () => {
+        try {
+          const r = await api("/memory/recall", {
+            method: "POST",
+            body: JSON.stringify({
+              question: $("question").value,
+              project: $("project").value,
+              max_tokens: Number($("token-budget").value),
+            }),
+          });
+          const root = $("recall-result");
+          empty(root);
+          (r.answer || []).forEach((x) => rowText(root, "Answer", x));
+          (r.sources || []).forEach((x) =>
+            rowText(root, "Source", `${x.path}:${x.lines} · ${x.score}`),
+          );
+        } catch (error) {
+          const message = `Recall failed: ${error.message}`;
+          mutationError = message;
+          setText("control-log", message);
+          banner(message, "bad");
+        }
+      });
+      const workbench = {
+        executions: [], selectedId: null, events: [], nextCursor: "", hasMore: false,
+        loading: false, eventLoading: false, listError: "", timelineError: "",
+        selectionGeneration: 0,
+      }, WORKBENCH_EVENT_LIMIT = 50, WORKBENCH_VERIFY_MAX_PAGES = 20,
+        WORKBENCH_VERIFY_MAX_EVENTS = 1000, pendingMutations = new Set(), logicalMutationKeys = new Map();
+      function selectedExecution() {
+        return workbench.executions.find((execution) => execution.id === workbench.selectedId) || null;
+      }
+      function activateWorkbenchTab(tab, { focus = false } = {}) {
+        const tabs = Array.from(document.querySelectorAll(".workbench-tabs [role=tab]"));
+        tabs.forEach((item) => {
+          const active = item === tab;
+          item.setAttribute("aria-selected", String(active));
+          item.tabIndex = active ? 0 : -1;
+          $(item.dataset.pane).classList.toggle("mobile-active", active);
+        });
+        if (focus) tab.focus({ preventScroll: true });
+      }
+      function retryControl(label, action) {
+        const button = el("button", label, "control"); button.type = "button"; button.addEventListener("click", action); return button;
+      }
+      function renderWorkbenchNavigator() {
+        const root = $("workbench-executions"); empty(root);
+        if (workbench.loading) { root.append(el("div", "Loading authoritative executions…", "empty")); return; }
+        if (workbench.listError) { const state = el("div", `Executions unavailable: ${workbench.listError}`, "empty"); state.append(retryControl("Retry executions", () => refreshWorkbench())); root.append(state); return; }
+        if (!workbench.executions.length) { const state = el("div", "No executions are currently projected. Refresh to check again.", "empty"); state.append(retryControl("Refresh executions", () => refreshWorkbench())); root.append(state); return; }
+        const rows = workbench.executions.filter((execution) => !workbench.filterStatus || execution.status === workbench.filterStatus);
+        if (workbench.filterStatus) {
+          root.append(el("p", `${rows.length} ${workbench.filterStatus} records in returned execution list · global`, "row-detail"));
+          root.append(retryControl("Show all returned executions", () => { workbench.filterStatus = null; renderWorkbenchNavigator(); }));
+          if (!rows.length) root.append(el("p", "No matching records returned. The global aggregate may cover a different snapshot or bounds.", "row-detail"));
+        }
+        rows.forEach((execution) => {
+          const row = el("button", undefined, "execution-row"); row.type = "button";
+          row.setAttribute("aria-current", String(execution.id === workbench.selectedId));
+          row.append(el("strong", `${execution.target || "unassigned"} · ${execution.status || "unknown"}`));
+          row.append(el("small", `${execution.subject_type || "subject"} ${execution.subject_id || "not reported"} · ${execution.id}`));
+          row.addEventListener("click", () => selectExecution(execution.id)); root.append(row);
+        });
+      }
+      function safeEventSummary(event) {
+        return [event.message, event.cancel_reason, event.reason, event.status, event.attempt_id]
+          .find((value) => typeof value === "string" && value.trim()) || "No safe detail reported.";
+      }
+      function renderWorkbenchEvents() {
+        const root = $("workbench-events"); empty(root);
+        if (workbench.timelineError) { const state = el("div", `Timeline unavailable: ${workbench.timelineError}`, "empty"); state.append(retryControl("Retry timeline", () => loadWorkbenchEvents())); root.append(state); }
+        else if (!workbench.selectedId) { root.append(el("div", "Choose an execution in the Executions tab before opening its timeline.", "empty")); }
+        else if (workbench.eventLoading && !workbench.events.length) { root.append(el("div", "Loading authoritative cursor-bounded event history…", "empty")); }
+        else if (!workbench.events.length) { const state = el("div", "No events were returned for this execution.", "empty"); state.append(retryControl("Refresh timeline", () => loadWorkbenchEvents())); root.append(state); }
+        workbench.events.forEach((event) => {
+          const row = el("article", undefined, "timeline-event"), body = el("div");
+          body.append(el("strong", event.type || "execution event"));
+          body.append(el("p", safeEventSummary(event)));
+          body.append(el("small", `${formatTime(event.timestamp)} · ${event.id || "event id not reported"}`, "mono"));
+          row.append(body); root.append(row);
+        });
+        $("workbench-more").hidden = !workbench.hasMore || workbench.eventLoading;
+      }
+      function appendInspectorSection(root, heading, rows) {
+        const section = el("section", undefined, "inspector-section"); section.append(el("h4", heading));
+        rows.forEach(([label, value]) => section.append(el("p", `${label}: ${value ?? "not reported"}`, "mono")));
+        root.append(section);
+      }
+      function renderWorkbenchInspector() {
+        const root = $("workbench-inspector-body"), execution = selectedExecution(); empty(root);
+        if (!execution) { root.append(el("div", "Select an execution first; context and lineage will appear here.", "empty")); return; }
+        appendInspectorSection(root, "Execution metadata", [["ID", execution.id], ["Status", execution.status], ["Target agent", execution.target], ["Attempt", execution.attempt_id || "not leased"], ["Attempts", execution.attempts]]);
+        appendInspectorSection(root, "Subject / parent", [["Type", execution.subject_type], ["Subject", execution.subject_id], ["Parent execution", execution.parent_execution_id || "none"], ["Created", formatTime(execution.created_at)], ["Updated", formatTime(execution.updated_at)]]);
+        appendInspectorSection(root, "Safe context", [["Lease expires", formatTime(execution.lease_expires_at)], ["Worker", execution.worker || "not reported"], ["Resume pending", String(Boolean(execution.resume_pending))], ["Artifact access", "metadata only · arbitrary fetch disabled"], ["Approval", execution.approval_id || "not reported"]]);
+      }
+      function renderWorkbenchControls() {
+        const execution = selectedExecution(), live = execution && execution.status === "leased", paused = execution && execution.status === "paused";
+        const authoritativeUncertainty = Boolean(workbench.loading || workbench.eventLoading || workbench.listError || workbench.timelineError || pendingMutations.size > 0);
+        $("workbench-steer").disabled = authoritativeUncertainty || !live || !execution.attempt_id;
+        $("workbench-cancel").disabled = authoritativeUncertainty || !live;
+        $("workbench-resume").disabled = authoritativeUncertainty || !paused;
+        $("workbench-resume").classList.toggle("resume-ready", Boolean(paused && !$("workbench-resume").disabled));
+        setText("workbench-selection", workbench.listError ? `Executions unavailable: ${workbench.listError}` : execution ? `${execution.target || "unassigned"} / ${execution.id} / ${execution.status}` : "Select an execution in Executions");
+      }
+      function renderWorkbench() { renderWorkbenchNavigator(); renderWorkbenchEvents(); renderWorkbenchInspector(); renderWorkbenchControls(); }
+      async function loadWorkbenchEvents({ append = false, reset = false } = {}) {
+        const execution = selectedExecution(); if (!execution || (append && workbench.eventLoading)) return false;
+        const requestedExecutionId = execution.id, generation = workbench.selectionGeneration;
+        if (reset) { workbench.events = []; workbench.nextCursor = ""; workbench.hasMore = false; }
+        workbench.eventLoading = true; renderWorkbenchEvents(); renderWorkbenchControls();
+        try {
+          const params = new URLSearchParams({ limit: String(WORKBENCH_EVENT_LIMIT) });
+          if (append && workbench.nextCursor) params.set("after", workbench.nextCursor);
+          const page = await api(`/executions/${encodeURIComponent(requestedExecutionId)}/events?${params.toString()}`);
+          if (generation !== workbench.selectionGeneration || requestedExecutionId !== workbench.selectedId) return false;
+          const incoming = Array.isArray(page.events) ? page.events : [];
+          workbench.events = append ? workbench.events.concat(incoming) : incoming;
+          workbench.nextCursor = page.next_cursor || ""; workbench.hasMore = page.has_more === true; workbench.timelineError = ""; return true;
+        } catch (error) {
+          if (generation === workbench.selectionGeneration && requestedExecutionId === workbench.selectedId) workbench.timelineError = error.message;
+          return false;
+        } finally {
+          if (generation === workbench.selectionGeneration) { workbench.eventLoading = false; renderWorkbench(); }
+        }
+      }
+      async function selectExecution(id) {
+        workbench.selectionGeneration += 1; workbench.selectedId = id; workbench.events = []; workbench.nextCursor = ""; workbench.hasMore = false;
+        const timelineTab = $("workbench-tab-timeline"); if (matchMedia("(max-width: 900px)").matches) activateWorkbenchTab(timelineTab);
+        renderWorkbench(); await loadWorkbenchEvents();
+      }
+      async function refreshWorkbench() {
+        if (workbench.loading) return false; workbench.loading = true; renderWorkbenchNavigator(); renderWorkbenchControls();
+        try {
+          const response = await api("/executions"); workbench.executions = Array.isArray(response.executions) ? response.executions : [];
+          if (!workbench.executions.some((execution) => execution.id === workbench.selectedId)) {
+            workbench.selectionGeneration += 1; workbench.selectedId = null; workbench.events = []; workbench.nextCursor = ""; workbench.hasMore = false;
+            if (matchMedia("(max-width: 900px)").matches) activateWorkbenchTab($("workbench-tab-executions"));
+          }
+          workbench.listError = "";
+          if (!workbench.selectedId) return true;
+          return await loadWorkbenchEvents({ reset: true });
+        } catch (error) { workbench.listError = error.message; return false; }
+        finally { workbench.loading = false; renderWorkbench(); }
+      }
+      function mutationObserved(kind, execution, events, response) {
+        const expectedStatus = { cancel: "paused", resume: "pending", steer: "leased" }[kind];
+        const expectedType = { cancel: "execution.cancel_requested", resume: "execution.resumed", steer: "execution.steer.requested" }[kind];
+        const expectedRequestId = kind === "steer" ? response?.steer?.request_id : null;
+        if (kind === "steer" && !expectedRequestId) return false;
+        const event = events.find((item) => item.type === expectedType && (kind !== "steer" || item.request_id === expectedRequestId));
+        return execution?.status === expectedStatus && Boolean(event);
+      }
+      async function readMutationEvents(kind, executionId, response) {
+        const events = []; let nextCursor = "", hasMore = true, lastPage = null, pages = 0;
+        while (hasMore && pages < WORKBENCH_VERIFY_MAX_PAGES && events.length < WORKBENCH_VERIFY_MAX_EVENTS) {
+          const params = new URLSearchParams({ limit: String(WORKBENCH_EVENT_LIMIT) });
+          if (nextCursor) params.set("after", nextCursor);
+          const page = await api(`/executions/${encodeURIComponent(executionId)}/events?${params.toString()}`);
+          const incoming = Array.isArray(page.events) ? page.events : [];
+          events.push(...incoming); pages += 1; lastPage = page; hasMore = page.has_more === true;
+          if (mutationObserved(kind, { status: { cancel: "paused", resume: "pending", steer: "leased" }[kind] }, events, response)) break;
+          if (!hasMore) break;
+          const cursor = page.next_cursor || "";
+          if (!cursor || cursor === nextCursor) throw new Error("Post-mutation verification cursor did not advance");
+          nextCursor = cursor;
+        }
+        if (hasMore && !mutationObserved(kind, { status: { cancel: "paused", resume: "pending", steer: "leased" }[kind] }, events, response)) {
+          throw new Error("Post-mutation verification exceeded its bounded event scan");
+        }
+        return { events, page: lastPage || { next_cursor: "", has_more: false } };
+      }
+      async function verifyWorkbenchMutation(kind, executionId, response) {
+        const [listResult, timelineResult] = await Promise.allSettled([
+          api("/executions"),
+          readMutationEvents(kind, executionId, response),
+        ]);
+        if (listResult.status === "rejected" || timelineResult.status === "rejected") {
+          const reasons = [listResult, timelineResult].filter((item) => item.status === "rejected").map((item) => item.reason.message).join("; ");
+          const message = `Post-mutation refresh failed: ${reasons}`;
+          workbench.listError = message; workbench.timelineError = message; renderWorkbench(); return false;
+        }
+        const listPage = listResult.value, timelineRead = timelineResult.value, timelinePage = timelineRead.page,
+          executions = Array.isArray(listPage.executions) ? listPage.executions : [],
+          events = timelineRead.events,
+          execution = executions.find((item) => item.id === executionId);
+        if (!mutationObserved(kind, execution, events, response)) {
+          const message = "Post-mutation verification failed: expected execution state and event were not observed";
+          workbench.listError = message; workbench.timelineError = message; renderWorkbench(); return false;
+        }
+        workbench.executions = executions;
+        if (workbench.selectedId === executionId) { workbench.events = events; workbench.nextCursor = timelinePage.next_cursor || ""; workbench.hasMore = timelinePage.has_more === true; }
+        workbench.listError = ""; workbench.timelineError = ""; renderWorkbench(); return true;
+      }
+      async function workbenchMutation(kind) {
+        const execution = selectedExecution(); if (!execution) return;
+        const operationKey = `${execution.id}:${kind}`; if (pendingMutations.has(operationKey)) return;
+        const paths = { cancel: "cancel", resume: "resume", steer: "steer" }, body = {};
+        if (kind === "cancel") body.reason = "Paused from AMC Workbench";
+        if (kind === "steer") {
+          const message = $("workbench-steer-message").value.trim();
+          if (!message) { setText("workbench-action-status", "Enter a steering instruction."); return; }
+          body.attempt_id = execution.attempt_id; body.message = message;
+        }
+        const logicalKey = `${operationKey}:${execution.attempt_id || "none"}:${body.message || body.reason || "resume"}`;
+        const idempotencyKey = logicalMutationKeys.get(logicalKey) || operationId(); logicalMutationKeys.set(logicalKey, idempotencyKey);
+        body.idempotency_key = idempotencyKey; pendingMutations.add(operationKey); renderWorkbenchControls();
+        setText("workbench-action-status", `${kind} pending…`);
+        try {
+          const response = await api(`/executions/${encodeURIComponent(execution.id)}/${paths[kind]}`, { method: "POST", body: JSON.stringify(body), idempotencyKey });
+          const verified = await verifyWorkbenchMutation(kind, execution.id, response);
+          if (verified) logicalMutationKeys.delete(logicalKey);
+          setText("workbench-action-status", verified ? `${kind} verified from refreshed execution and timeline.` : `${kind} accepted but could not be verified; authoritative refresh failed closed.`);
+        } catch (error) {
+          setText("workbench-action-status", `${kind} failed: ${error.message}. Retry reuses the same idempotency key.`);
+        } finally { pendingMutations.delete(operationKey); renderWorkbenchControls(); }
+      }
+      function applyView() {
+        const showWorkbench = location.hash === "#workbench";
+        $("observatory-view").hidden = showWorkbench; $("workbench-view").hidden = !showWorkbench;
+        $("view-observatory").setAttribute("aria-current", showWorkbench ? "false" : "page");
+        $("view-workbench").setAttribute("aria-current", showWorkbench ? "page" : "false");
+        if (showWorkbench) refreshWorkbench();
+      }
+      addEventListener("hashchange", applyView);
+      const workbenchTabs = Array.from(document.querySelectorAll(".workbench-tabs [role=tab]"));
+      workbenchTabs.forEach((tab) => {
+        tab.addEventListener("click", () => activateWorkbenchTab(tab));
+        tab.addEventListener("keydown", (event) => {
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+          event.preventDefault();
+          const current = workbenchTabs.indexOf(tab), next = event.key === "Home" ? 0 : event.key === "End" ? workbenchTabs.length - 1 : (current + (event.key === "ArrowRight" ? 1 : -1) + workbenchTabs.length) % workbenchTabs.length;
+          activateWorkbenchTab(workbenchTabs[next], { focus: true });
+        });
+      });
+      $("workbench-refresh").addEventListener("click", () => refreshWorkbench());
+      $("workbench-more").addEventListener("click", () => loadWorkbenchEvents({ append: true }));
+      $("workbench-steer").addEventListener("click", () => workbenchMutation("steer"));
+      $("workbench-cancel").addEventListener("click", () => workbenchMutation("cancel"));
+      $("workbench-resume").addEventListener("click", () => workbenchMutation("resume"));
+      function selected(statuses) {
+        return Array.from(document.querySelectorAll(".handoff-select:checked"))
+          .filter((x) => statuses.includes(x.dataset.status))
+          .map((x) => x.value);
+      }
+      async function bulk(label, statuses, path, body) {
+        const ids = selected(statuses);
+        setText(
+          "control-log",
+          ids.length
+            ? `${label} ${ids.length}…`
+            : `No eligible handoffs selected.`,
+        );
+        for (const id of ids) {
+          const ok = await mutate(
+            `/handoffs/${encodeURIComponent(id)}/${path}`,
+            body ? body() : {},
+            { refresh: false },
+          );
+          if (!ok) {
+            setText("control-log", `${label} stopped after a failed mutation.`);
+            await refreshAll();
+            return;
+          }
+        }
+        await refreshAll();
+        setText("control-log", `${label} complete.`);
+      }
+      $("select-handoffs").addEventListener("click", () => {
+        const xs = document.querySelectorAll(".handoff-select"),
+          on = Array.from(xs).some((x) => !x.checked);
+        xs.forEach((x) => (x.checked = on));
+      });
+      $("bulk-accept").addEventListener("click", () =>
+        bulk("Accept", ["open"], "accept"),
+      );
+      $("bulk-review").addEventListener("click", () =>
+        bulk("Review", ["accepted"], "review", () => ({
+          reviewer: $("handoff-reviewer").value,
+          decision: $("handoff-decision").value,
+          notes: $("handoff-notes").value,
+        })),
+      );
+      $("bulk-complete").addEventListener("click", () =>
+        bulk("Complete", ["accepted", "reviewed"], "complete"),
+      );
+      $("clear-filter").addEventListener("click", () => {
+        selectedAgent = null;
+        renderAll();
+      });
+      $("refresh-all").addEventListener("click", refreshAll);
+      $("reset-preferences").addEventListener("click", () => {
+        localStorage.removeItem(prefKey);
+        location.reload();
+      });
+      preferenceIds.forEach((id) =>
+        $(id).addEventListener("change", () => {
+          savePrefs();
+          if (
+            [
+              "handoff-filter",
+              "handoff-assignee",
+              "handoff-limit",
+              "handoff-sla",
+              "retain-events",
+            ].includes(id)
+          ) {
+            refreshAll();
+          }
+        }),
+      );
+      addEventListener("resize", () => {
+        // Legacy route assertion marker; responsive desks are now CSS-driven:
+        // innerWidth <= 600 && agents.length > 6
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (model) renderOrbit();
+        }, 100);
+      });
+      applyView();
+      refreshAll();
+    </script>
+  </body>
+</html>

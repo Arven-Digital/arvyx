@@ -1,0 +1,160 @@
+{
+  "admission": "Owner production directive 2026-11-01; byte-exact digest pinned in native_artifact_policy.NATIVE_ONBOARDING_BINARY_SHA256. Rebuilt 2026-11-02 after REV-0593: the overlay patch is applied fail-closed and its unit tests must run.",
+  "admitted_on": "2026-11-02",
+  "artifact": "arvyx-linux-x86_64",
+  "artifact_size_bytes": 32279088,
+  "binary_sha256": "4c29b4d9f65f35c566acadc729d03334be5458520f747db82f8c795ba6d1a3ca",
+  "build_environment": {
+    "AR": "/home/builder/tools/bin/ar",
+    "CARGO_HOME": "/home/builder/out1/cargo-home",
+    "CARGO_NET_OFFLINE": "true",
+    "CARGO_TARGET_DIR": "/home/builder/out1/target",
+    "CC": "/home/builder/tools/bin/cc",
+    "CMAKE": "/home/builder/tools/bin/cmake",
+    "HOME": "/home/builder/out1/build-home",
+    "LANG": "C.UTF-8",
+    "LD": "/home/builder/tools/bin/ld",
+    "PKG_CONFIG": "/home/builder/tools/bin/pkg-config",
+    "RUSTC": "/home/builder/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin/rustc",
+    "RUSTDOC": "/home/builder/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin/rustdoc",
+    "SOURCE_DATE_EPOCH": "0",
+    "ZIG": "/home/builder/zig-x86_64-linux-0.16.0/zig",
+    "ZIG_GLOBAL_CACHE_DIR": "/home/builder/out1/zig-cache"
+  },
+  "build_host": "python:3.11-slim@sha256:db3ff2e1 container (Debian 13, x86_64), uid 1000, symlink-free copied tool/SDK roots",
+  "build_inputs": {
+    "sdk_roots": [
+      "/home/builder/sdk"
+    ],
+    "toolchain_roots": [
+      "/home/builder/tools",
+      "/home/builder/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu",
+      "/home/builder/zig-x86_64-linux-0.16.0"
+    ],
+    "tools": {
+      "ar": "/home/builder/tools/bin/ar",
+      "cc": "/home/builder/tools/bin/cc",
+      "cmake": "/home/builder/tools/bin/cmake",
+      "ld": "/home/builder/tools/bin/ld",
+      "patch": "/home/builder/tools/bin/patch",
+      "pkg-config": "/home/builder/tools/bin/pkg-config"
+    }
+  },
+  "capability": "onboarding-v1",
+  "distribution": "GitHub release asset of the public repository; install with `arvyx setup --native-binary FILE --native-receipt FILE --native-capability onboarding-v1`",
+  "manifest": {
+    "binary_sha256": "4c29b4d9f65f35c566acadc729d03334be5458520f747db82f8c795ba6d1a3ca",
+    "build_environment": {
+      "AR": "/home/builder/tools/bin/ar",
+      "CARGO_HOME": "/home/builder/out1/cargo-home",
+      "CARGO_NET_OFFLINE": "true",
+      "CARGO_TARGET_DIR": "/home/builder/out1/target",
+      "CC": "/home/builder/tools/bin/cc",
+      "CMAKE": "/home/builder/tools/bin/cmake",
+      "HOME": "/home/builder/out1/build-home",
+      "LANG": "C.UTF-8",
+      "LD": "/home/builder/tools/bin/ld",
+      "PATH": "/home/builder/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin:/home/builder/tools/bin:/home/builder/zig-x86_64-linux-0.16.0",
+      "PKG_CONFIG": "/home/builder/tools/bin/pkg-config",
+      "RUSTC": "/home/builder/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin/rustc",
+      "RUSTDOC": "/home/builder/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin/rustdoc",
+      "SOURCE_DATE_EPOCH": "0",
+      "ZIG": "/home/builder/zig-x86_64-linux-0.16.0/zig",
+      "ZIG_GLOBAL_CACHE_DIR": "/home/builder/out1/zig-cache"
+    },
+    "cargo_lock_sha256": "d6e79361a89a049221eaea001494a7d4f7210c283277c12ab72343221df77302",
+    "cargo_version": "cargo 1.96.1 (356927216 2026-06-26)",
+    "client_overlay_sha256": {
+      "amc_session_rpc.rs": "8a500e8a8458c88dbe5c63981531ef96f4bbed3489120b032b0cc1c5526e9da5",
+      "amc_sessions.rs": "f576ff315db0c0ca42df314a752be3d41623c36b36e32201973d54d1b26203f6"
+    },
+    "declared_build_inputs": {
+      "inventory_sha256": "af79350c8db2a1a2b4da797f18b75e2cf92598f834969e6307c37bbf47f3ea95",
+      "root_sha256": {
+        "/home/builder/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu": "5280070cc29f5c90f22e408a6840e70711f5829c24f12e1cd2f55b9777e319a7",
+        "/home/builder/sdk": "d4d590327e66fe389bbe07b617f791ed9d540c7c40385c4d775c10524cd4b050",
+        "/home/builder/tools": "40fb342dfded5df0b685ddd3d4af8808b954aecce127fae6155046da7c7c539a",
+        "/home/builder/zig-x86_64-linux-0.16.0": "e7fbfc7086ab1fb4ebf6ce2f7845a9414e88e1dfabc6c1d8f2701a5ee7cfdb4a"
+      },
+      "tool_sha256": {
+        "ar": "f8fe09d485b40b1d47c534c96f5cbaaa9148e247aa0494c087104421f48ac5eb",
+        "cc": "a23ecab8ff08f09ad8c80602c2c5df7f49e09c25905cb8975902e101bf72635f",
+        "cmake": "9a2692f4d712265eb29c90c3366bfc40df400ea586b0477edabbcf3bae745dc1",
+        "ld": "d2766988b6a1b1d1518cdc09242e726d1f24e151e16410ada3092b11ffd9081b",
+        "patch": "121ea00cd7ad3567f8a2d23370807c924f40ad4352733120cf9b150ed33e978f",
+        "pkg-config": "37fdaa317c00805da16bc9c4c8de2300ad1e34511c33bf5e5170bf52c0e3a48e"
+      },
+      "tools": {
+        "ar": "/home/builder/tools/bin/ar",
+        "cc": "/home/builder/tools/bin/cc",
+        "cmake": "/home/builder/tools/bin/cmake",
+        "ld": "/home/builder/tools/bin/ld",
+        "patch": "/home/builder/tools/bin/patch",
+        "pkg-config": "/home/builder/tools/bin/pkg-config"
+      }
+    },
+    "explicit_tool_sha256": {
+      "cargo": "a73b2c25573d251489101c0d8f19ad3702eb9761166de5ed8437b472b6c038ce",
+      "rustc": "4a84e05991ad6f2a84c1361c29b52b38c390365bd1fc269b1936c88d482a8928",
+      "rustdoc": "bc1c3300dcb73d37ca07c0e06cb1e3fc46f990ae442c34691e951ce9983aaa6a",
+      "zig": "2317bbb91798556d9d0f38aabdac23db83f0979b25f767259ae474546724087c"
+    },
+    "followup_sha256": null,
+    "input_source_sha256": "29af491396c1bfdc5471a9d9d4201790f72a766fb32f00733e0f8d12e9ce8102",
+    "local_only": true,
+    "native_test_command": [
+      "/home/builder/.rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin/cargo",
+      "test",
+      "--offline",
+      "--locked",
+      "--release",
+      "--bin",
+      "herdr",
+      "client::shell::amc_",
+      "--",
+      "--nocapture"
+    ],
+    "native_test_count": 16,
+    "native_test_filter": "client::shell::amc_",
+    "native_tests_executed": true,
+    "overlay_input_sha256": {
+      "amc-native-mouse.patch": "c0bb34fbd0573fa13bf7ec53bf4bba0ec0de6d6d5c8481721bce647529697d4f",
+      "amc_session_rpc.rs": "8a500e8a8458c88dbe5c63981531ef96f4bbed3489120b032b0cc1c5526e9da5",
+      "amc_sessions.rs": "f576ff315db0c0ca42df314a752be3d41623c36b36e32201973d54d1b26203f6"
+    },
+    "patch_sha256": "c0bb34fbd0573fa13bf7ec53bf4bba0ec0de6d6d5c8481721bce647529697d4f",
+    "prepared_source_sha256": "da05a7c17981e667032e76e7af0b35c08dd82cbd6a127836e8fe67f43920d895",
+    "registry_source_sha256": {
+      "cache": "40781cdf343dd42fddbcbcbf1d44fe7b27428515eefe1704c634b683e2e5c1f8",
+      "index": "4114c9b6fd91c2a191b3bde876a7b3c00cf73fe21ec5fcd79256065c00301027",
+      "src": "1bb35fb037028ba43b60fa9cbab332318fcd9fe394f17789ba4c5070b53dda18"
+    },
+    "release_approved": false,
+    "requested_capabilities": [
+      "onboarding-v1"
+    ],
+    "runtime_acceptance": false,
+    "rustc_version": "rustc 1.96.1 (31fca3adb 2026-06-26)",
+    "source_hash_format": "relative-path+mode+content-sha256-length-framed-v1",
+    "target_cache_sha256": null,
+    "toolchain_scope": "explicit Rust/Zig, compiler/linker/system tools and declared toolchain/SDK trees; operator inventory completeness requires independent build-host review",
+    "zig_cache_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "zig_version": "0.16.0"
+  },
+  "native_tests": {
+    "count": 16,
+    "executed": true,
+    "filter": "client::shell::amc_"
+  },
+  "overlay": "frontends/arvyx (amc-native-mouse.patch, amc_sessions.rs, amc_session_rpc.rs); manifest.overlay_input_sha256 are the digests of the tracked files",
+  "platform": "linux-x86_64",
+  "requested_capabilities": [
+    "onboarding-v1"
+  ],
+  "runtime_acceptance": "not claimed by this receipt; see the ledger continuation of 2026-11-02",
+  "upstream": {
+    "commit": "5bd900d88c80d95f5b145397e45bbeea398b8165",
+    "license": "Apache-2.0 (licenses/Herdr-Apache-2.0.txt)",
+    "repository": "https://github.com/herdrdev/herdr"
+  }
+}

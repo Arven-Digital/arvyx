@@ -1,0 +1,17 @@
+{
+  "roles": [
+    {
+      "role": "ops",
+      "target": "demobot",
+      "title": "ops check",
+      "body": "Run the daily ops synthetic checks and close this thread with receipts."
+    },
+    {
+      "role": "memory",
+      "target": "operator",
+      "title": "memory quality check",
+      "body": "Review recall quality and the pending memory lanes, then close this thread.",
+      "severity": "info"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "provider": "http",
+  "url": "https://api.openai.com/v1/embeddings",
+  "model": "text-embedding-3-small",
+  "api_key_env": "OPENAI_API_KEY",
+  "timeout_seconds": 20,
+  "batch_size": 64,
+  "_note": "provider is any OpenAI-compatible /embeddings endpoint: OpenAI, a local vLLM / llama.cpp / text-embeddings-inference server, or a self-hosted model. Point url at whatever your team runs."
+}

@@ -1,0 +1,7 @@
+{
+  "id": "demobot",
+  "display_name": "Demo Bot",
+  "machine_id": "laptop-a",
+  "runtime_id": "codex-demo",
+  "scopes": ["memory.read", "memory.suggest"]
+}

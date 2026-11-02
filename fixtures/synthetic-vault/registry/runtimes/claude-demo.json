@@ -1,0 +1,5 @@
+{
+  "id": "claude-demo",
+  "display_name": "Claude Demo Runtime",
+  "harness": "claude"
+}

@@ -1,0 +1,420 @@
+{
+  "scope": "Primary-source research for 25 families; metadata-only default discovery, not compatibility or installation certification. No workspace/credential payload reads. No binaries executed. Custom env roots, portable installs, extension stores and remote agents require manual connection.",
+  "retrieved_at": "2026-10-23T19:54:44.006213+00:00",
+  "test_receipt": {
+    "red": "pytest failed collection with ModuleNotFoundError before implementation",
+    "green": "26 passed in 0.09s (targeted fixture suite); compileall passed; scoped diff --check passed. OS descriptors simulated on Linux, not native Windows/macOS execution."
+  },
+  "extra_evidence": {
+    "hermes_profiles": "https://hermes-agent.nousresearch.com/docs/user-guide/multi-profile-gateways",
+    "hermes_profiles_excerpt": "Named profile config.yaml is under profiles/<name>/config.yaml; successfully retrieved separately.",
+    "openclaw_agents": "https://docs.openclaw.ai/concepts/multi-agent",
+    "vscode_profiles": "https://code.visualstudio.com/docs/configure/profiles"
+  },
+  "families": [
+    {
+      "family": "hermes",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/configuration/",
+      "final_url": "https://hermes-agent.nousresearch.com/docs/user-guide/configuration",
+      "http_status": 200,
+      "sha256": "59ec0643abd0a60fb43f6dc57d8787cee158e38945bcbd9ddb79e6e6e71aaa52",
+      "bounded_bytes": 700510,
+      "excerpts": [
+        " reactivate the checkout and restart Hermes. All settings are stored in the ~/.hermes/ directory for easy access. Easiest path to a working config.yaml Run hermes setup --portal \u2014 one OAuth gets you a model provider and all four Tool Gateway tools without hand-editing YAML. Portal subscribers also get 10% off token-billed providers. See Nous Portal . Directory Structure \u200b ~/.he"
+      ],
+      "paths": [
+        ".hermes/config.yaml"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "openclaw",
+      "url": "https://docs.openclaw.ai/concepts/multi-agent",
+      "final_url": "https://docs.openclaw.ai/concepts/multi-agent",
+      "http_status": 200,
+      "sha256": "b87e7843c24cc48bcb1c20f2cd08c033df290624ab282e13c5289ce413dcc886",
+      "bounded_bytes": 365510,
+      "excerpts": [
+        "------------------ | ------------------------------------------------------------------------------------------- |\\n| Config | `~/.openclaw/openclaw.json` | `OPENCLAW_CONFIG_PATH` |\\n| State dir | `~/.openclaw` | `OPENCLAW_STATE_DIR` |\\n| Default agent's workspace | `\\u003cstateDir\\u003e/workspace` (`~/.openclaw-\\u003cprofile\\u003e/workspace` for a named profile) | `agents.entr"
+      ],
+      "paths": [
+        ".openclaw/openclaw.json"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "pi",
+      "url": "https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/configuration.md",
+      "final_url": "https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/configuration.md",
+      "http_status": 200,
+      "sha256": "2179c3e5f219853d985dbf8c90cf402cd4cd0d416fa4e047d1baba757978c433",
+      "bounded_bytes": 253262,
+      "excerpts": [
+        "th\\u003e\\n\\u003c/tr\\u003e\\n\\u003c/thead\\u003e\\n\\u003ctbody\\u003e\\n\\u003ctr\\u003e\\n\\u003ctd\\u003e\\u003ccode\\u003e\\u0026lt;agent-dir\\u0026gt;/settings.json\\u003c/code\\u003e\\u003c/td\\u003e\\n\\u003ctd\\u003eUser-level \\u003ca href=\\\"/earendil-works/pi/blob/main/packages/coding-agent/docs/settings.md\\\"\\u003esettings\\u003c/a\\u003e, including preferences, defaults, resource paths, and P"
+      ],
+      "paths": [
+        ".pi/agent/settings.json"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "claude",
+      "url": "https://code.claude.com/docs/en/settings",
+      "final_url": "https://code.claude.com/docs/en/settings",
+      "http_status": 200,
+      "sha256": "48490cf8385f744bd9c0320cb253147988ce47e5e9993a4c56d3c4e3c1e71690",
+      "bounded_bytes": 707067,
+      "excerpts": [
+        "ttings\",\"mainEntityOfPage\":{\"@id\":\"https://code.claude.com/docs/en/settings#webpage\"},\"dateModified\":\"2026-10-22T00:33:55.475Z\",\"keywords\":\"settings.json, settings, config, configuration, .claude/settings, settings.local.json, managed-settings.json, precedence\",\"publisher\":{\"@id\":\"https://code.claude.com/#organization\"},\"isPartOf\":{\"@id\":\"https://code.claude.com/docs#website\"}}"
+      ],
+      "paths": [
+        ".claude/settings.json"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "codex",
+      "url": "https://developers.openai.com/codex/config-basic/",
+      "final_url": "https://learn.chatgpt.com/docs/config-file/config-basic",
+      "http_status": 200,
+      "sha256": "b0cc6052a3ed7f0570129cb91f92d87522e0573f7dd0b12dc4f4c0d7d0ad3ae3",
+      "bounded_bytes": 416066,
+      "excerpts": [
+        "ng your local Codex client Copy Page Codex reads configuration details from more than one location. Your personal defaults live in ~/.codex/config.toml , and you can add project overrides with .codex/config.toml files. For security, Codex loads project .codex/ layers only when you trust the project. Codex configuration file Codex stores user-level configuration at ~/.codex/conf"
+      ],
+      "paths": [
+        ".codex/config.toml"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "cursor",
+      "url": "https://cursor.com/docs/context/mcp",
+      "final_url": "https://cursor.com/docs/mcp",
+      "http_status": 200,
+      "sha256": "c5693b017f7e84222d17e1003216009cee73cca9a9d693b12452ef75e1400cda",
+      "bounded_bytes": 563266,
+      "excerpts": [
+        ") enables Cursor to connect to external tools and data sources. Install and manage MCP servers from the Customize page or configure them in mcp.json . Why use MCP? MCP connects Cursor to external systems and data. Instead of explaining your project structure repeatedly, integrate directly with your tools. Write MCP servers in any language that can print to stdout or serve an HT"
+      ],
+      "paths": [
+        ".cursor/mcp.json"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "vscode",
+      "url": "https://code.visualstudio.com/docs/configure/profiles",
+      "final_url": "https://code.visualstudio.com/docs/configure/profiles",
+      "http_status": 200,
+      "sha256": "5b3e31645b7a8e7485c3fd8f92003d03eb48c5afe262d64caf638146ba4e3735",
+      "bounded_bytes": 158297,
+      "excerpts": [
+        "; window.appInsights.initialize({ instrumentationKey: \"1a3eb3104447440391ad5f2a6ee06a0a-62879566-bc58-4741-9650-302bf2af703f-7103\", propertyConfiguration: { userConsented: false, gpcDataSharingOptIn: false, callback: { // Stable closure: the SDK calls this per-event, so it picks up the // real consent state once WcpConsent.init() resolves (siteConsent // is still null when this",
+        "t Tools Sessions and Chats Trust &amp; Safety Agent Customization Agent Harnesses Workspace Context Reference Cheat Sheet Tools and Context Settings Reference VS Code Pet Custom Agent File Reference Agent Plugin Authoring Reference MCP Configuration Hooks Reference OpenTelemetry Monitoring Agent Host Architecture Troubleshooting Troubleshooting Debug Chat Interactions Diagnose ",
+        "s &amp; Agent Harnesses Write Code Enterprise Extensibility Docs Documentation API FAQ Release Notes Blog Learn Events Resources Extensions MCP Download Search Download Join VS Code at GitHub Universe! Dismiss this update // Restore dismissal and the session's random starting message before first paint. (function () { var banner = document.currentScript.previousElementSibling; "
+      ],
+      "paths": [],
+      "os_paths": {
+        "linux": [
+          ".config/Code/User/settings.json"
+        ],
+        "darwin": [
+          "Library/Application Support/Code/User/settings.json"
+        ],
+        "windows": [
+          "AppData/Roaming/Code/User/settings.json"
+        ]
+      },
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "copilot",
+      "url": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-programmatic-reference",
+      "final_url": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-programmatic-reference",
+      "http_status": 200,
+      "sha256": "724720c6e94626e3acc7098f13d3ee09bf4952911339787580189215cebe46d8",
+      "bounded_bytes": 692920,
+      "excerpts": [
+        "ersist a model selection across shell sessions, you can set the model key in the CLI configuration file. This file is located at ~/.copilot/settings.json (or $COPILOT_HOME/settings.json if you have set the COPILOT_HOME environment variable). Some models also allow you to set a reasoning effort level, which controls how much time the model spends thinking before responding. JSON"
+      ],
+      "paths": [
+        ".copilot/settings.json"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "opencode",
+      "url": "https://opencode.ai/docs/config/",
+      "final_url": "https://opencode.ai/docs/config/",
+      "http_status": 200,
+      "sha256": "6feb436ec1c0fb63687741e514262c0863f4c7522407be67718656cbf1059f4b",
+      "bounded_bytes": 199753,
+      "excerpts": [
+        "SON config. You can configure OpenCode using a JSON config file. Format OpenCode supports both JSON and JSONC (JSON with Comments) formats. opencode.jsonc { \"$schema\" : \"https://opencode.ai/config.json\" , \"model\" : \"anthropic/claude-sonnet-5-5\" , \"autoupdate\" : true , \"server\" : { \"port\" : 4096 , }, } Locations You can place your config in a couple of different locations and th",
+        "SON config. You can configure OpenCode using a JSON config file. Format OpenCode supports both JSON and JSONC (JSON with Comments) formats. opencode.jsonc { \"$schema\" : \"https://opencode.ai/config.json\" , \"model\" : \"anthropic/claude-sonnet-5-5\" , \"autoupdate\" : true , \"server\" : { \"port\" : 4096 , }, } Locations You can place your config in a couple of different locations and th"
+      ],
+      "paths": [
+        ".config/opencode/opencode.json",
+        ".config/opencode/opencode.jsonc"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "gemini",
+      "url": "https://geminicli.com/docs/reference/configuration/",
+      "final_url": "https://geminicli.com/docs/reference/configuration/",
+      "http_status": 200,
+      "sha256": "a707758f6df7ed573cb152729b99367803d6214d4da039b404d37d646a34cfa0",
+      "bounded_bytes": 523771,
+      "excerpts": [
+        "er(\"pageHide\",d); On this page Introduction Configuration layers Settings files The .gemini directory in your project Available settings in settings.json Example settings.json Shell history Environment variables and .env files Environment variable redaction Command-line arguments Context files (hierarchical instructional context) Example context file content (for example, GEMIN"
+      ],
+      "paths": [
+        ".gemini/settings.json"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "cline",
+      "url": "https://docs.cline.bot/mcp/configuring-mcp-servers",
+      "final_url": "https://docs.cline.bot/mcp/mcp-overview",
+      "http_status": 200,
+      "sha256": "b9d234db72554df1c4d8d880c44344c92fcdfdb2011f1eefd745e8dd056094cd",
+      "bounded_bytes": 224442,
+      "excerpts": [
+        "ify tools appear and test one tool call \u200b Add servers \u200b Manual config Edit your MCP config file and add either: CLI: ~/.cline/data/settings/cline_mcp_settings.json (override with the CLINE_MCP_SETTINGS_PATH env var) IDE extensions: In the Cline panel, click the MCP Servers icon (stacked server icon in the top toolbar). Open the Configure tab. Click Configure MCP Servers (button"
+      ],
+      "paths": [
+        ".cline/data/settings/cline_mcp_settings.json"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "aider",
+      "url": "https://aider.chat/docs/config/aider_conf.html",
+      "final_url": "https://aider.chat/docs/config/aider_conf.html",
+      "http_status": 200,
+      "sha256": "08f3d41e2386bc0eb76f1a6e978d42d57a5777badbbea11518887f33faa93897",
+      "bounded_bytes": 41903,
+      "excerpts": [
+        "der is on GitHub and Discord . GitHub Discord Blog Configuration YAML config file YAML config file Most of aider\u2019s options can be set in an .aider.conf.yml file. Aider will look for a this file in these locations: Your home directory. The root of your git repo. The current directory. If the files above exist, they will be loaded in that order. Files loaded last will take priori"
+      ],
+      "paths": [
+        ".aider.conf.yml"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "goose",
+      "url": "https://block.github.io/goose/",
+      "final_url": "https://block.github.io/goose/",
+      "http_status": 200,
+      "sha256": "fa2d4d3122b94c8eb291a29f48ef9cdb4cdf389b8d46c2ae25115e9da66c1cb5",
+      "bounded_bytes": 498,
+      "excerpts": [],
+      "paths": [],
+      "os_paths": {},
+      "disposition": "Local path documentation could not be verified; manual connection only."
+    },
+    {
+      "family": "continue",
+      "url": "https://docs.continue.dev/customize/deep-dives/configuration",
+      "final_url": "https://docs.continue.dev/customize/deep-dives/configuration",
+      "http_status": 200,
+      "sha256": "011681bc3a1bb89632490ead5ef059aef21100406aa655f3ea7cea75f3375f53",
+      "bounded_bytes": 75988,
+      "excerpts": [
+        "Rules Prompts Autocomplete Development Data Model Context Protocol (MCP) Example MCP Servers Context Providers Model Capabilities Reference config.yaml Reference Migrating Config to YAML Continue Documentation MCP Server config.json Reference (Deprecated) Context Providers (Deprecated) @Codebase (Deprecated) @Docs (Deprecated) Guides How to Understand Configuration Configuring "
+      ],
+      "paths": [
+        ".continue/config.yaml"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "roo-code",
+      "url": "https://docs.roocode.com/features/mcp/using-mcp-in-roo",
+      "final_url": "https://roocodeinc.github.io/Roo-Code/features/mcp/using-mcp-in-roo/",
+      "http_status": 200,
+      "sha256": "9b60344cf0dc4331a31287aaefa6f179941e1ced5dbe87228263718ae11c14ca",
+      "bounded_bytes": 108987,
+      "excerpts": [
+        "verything you need to know about using MCP with Roo Code. Configuring MCP Servers \u200b MCP server configurations can be managed at two levels: Global Configuration : Stored in the mcp_settings.json file, accessible via VS Code settings (see below). These settings apply across all your workspaces unless overridden by a project-level configuration. Project-level Configuration : Defi",
+        "ernal tools and services. This guide covers everything you need to know about using MCP with Roo Code. Configuring MCP Servers \u200b MCP server configurations can be managed at two levels: Global Configuration : Stored in the mcp_settings.json file, accessible via VS Code settings (see below). These settings apply across all your workspaces unless overridden by a project-level conf",
+        "P with Roo Code. Configuring MCP Servers \u200b MCP server configurations can be managed at two levels: Global Configuration : Stored in the mcp_settings.json file, accessible via VS Code settings (see below). These settings apply across all your workspaces unless overridden by a project-level configuration. Project-level Configuration : Defined in a .roo/mcp.json file within your p"
+      ],
+      "paths": [],
+      "os_paths": {},
+      "disposition": "Global configuration is opened through the editor UI; no verified stable global path."
+    },
+    {
+      "family": "kilo-code",
+      "url": "https://kilo.ai/docs/getting-started/settings",
+      "final_url": "https://kilo.ai/docs/getting-started/settings",
+      "http_status": 200,
+      "sha256": "867c7a8c80aa47db4160b391dc20c264fdd76b2a2659e748a812867be2198295",
+      "bounded_bytes": 109127,
+      "excerpts": [
+        "astest way to change your Kilo configuration is to ask the agent to do it for you. The agent has a built-in skill that understands the full kilo.jsonc schema and can read, create, and update your config files directly. Examples of things you can ask: &quot;Switch my default model to Claude Sonnet&quot; &quot;Disable the OpenAI and Groq providers&quot; &quot;Set up an MCP server"
+      ],
+      "paths": [
+        ".config/kilo/kilo.jsonc"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "amp",
+      "url": "https://ampcode.com/manual",
+      "final_url": "https://ampcode.com/docs",
+      "http_status": 200,
+      "sha256": "ead56e7865131f15879fd7d324ebf2c58de296f18737d596f78476db162d9773",
+      "bounded_bytes": 88680,
+      "excerpts": [
+        "ow], html[data-amp-color-scheme='system'][data-amp-auxiliary-window] body { background-color: var(--amp-surface-dark-background-color); } } globalThis.addEventListener('beforeinstallprompt', (event) => { if (/android/i.test(navigator.userAgent)) { event.preventDefault() } globalThis.installPromptEvent = event }) try { document.cookie = `amp-time-zone=${encodeURIComponent( Intl.",
+        "omations Event-Driven Orbs Desktop Self-Hosted CLI Getting Started Keybindings Execute Mode Spawning Orbs Clone Repositories Streaming JSON Configuration Runners Cross-Client Access macOS &amp; iOS Getting Started Use Your Mac as a Runner Puck Meet Puck Slack Integration Collaborate Workspaces Groups Multiplayer Space Customize Plugins Decision Models Global Plugins &amp; Skill",
+        "Puck Slack Integration Collaborate Workspaces Groups Multiplayer Space Customize Plugins Decision Models Global Plugins &amp; Skills Skills MCP AGENTS.md Model Routing Reference SDK Plugin API API Support Getting Help Bug Reports &amp; Diagnostics Enterprise MCP Registry Allowlist Thread Visibility Workspace Entitlements Allowed Models Minimal Data Retention *:first-child:not(:"
+      ],
+      "paths": [],
+      "os_paths": {},
+      "disposition": "No verified bounded local discovery marker in retrieved documentation."
+    },
+    {
+      "family": "qwen-code",
+      "url": "https://qwenlm.github.io/qwen-code-docs/en/users/configuration/settings/",
+      "final_url": "https://qwenlm.github.io/qwen-code-docs/en/users/configuration/settings/",
+      "http_status": 200,
+      "sha256": "dec810de3d14f5572a5f9378db457e75c9c185babcc4b74c9df64c0e0a9ac2ad",
+      "bounded_bytes": 1483106,
+      "excerpts": [
+        "wen directory in your project Configuration migration Consolidation policy for disableAutoUpdate and disableUpdateNag Available settings in settings.json general output review ui ide privacy model fastModel advisorModel visionModel compactionModel imageModel visionBridgeTimeoutMs voiceModel modelFallbacks modelPricing context Troubleshooting File Search Performance tools memory"
+      ],
+      "paths": [
+        ".qwen/settings.json"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "crush",
+      "url": "https://github.com/charmbracelet/crush",
+      "final_url": "https://github.com/charmbracelet/crush",
+      "http_status": 200,
+      "sha256": "81f8af1f8e3d955188d97570d875aefc15152cf87b0ef49184555bca5be0c3b7",
+      "bounded_bytes": 585174,
+      "excerpts": [
+        "\"auto\\\"\\u003eCrush runs great with no configuration. That said, if you do need or want to\\ncustomize Crush, you can, with a \\u003ccode\\u003ecrushrc\\u003c/code\\u003e.\\u003c/p\\u003e\\n\\u003cp dir=\\\"auto\\\"\\u003eA \\u003ccode\\u003ecrushrc\\u003c/code\\u003e is just Bash with some Crush-specific builtins. It\u2019s a lot like\\na \\u003ccode\\u003e.bashrc\\u003c/code\\u003e, just for your Crush. "
+      ],
+      "paths": [
+        ".config/crush/crushrc"
+      ],
+      "os_paths": {},
+      "disposition": "Supported for literal default markers only; presence does not verify a working agent."
+    },
+    {
+      "family": "auggie",
+      "url": "https://docs.augmentcode.com/cli/overview",
+      "final_url": "https://docs.augmentcode.com/cli/overview",
+      "http_status": 200,
+      "sha256": "adaa22d05d63b053c4e21b863c87e2997e091f91be86a2c86ab893c2eeb9bb2e",
+      "bounded_bytes": 341153,
+      "excerpts": [
+        ". :root{--banner-height:0px!important} (function i(a,b,c,d,e){try{let f,g,h=[];try{h=window.location.pathname.split(\"/\").filter(a=>\"\"!==a&&\"global\"!==a).slice(0,2)}catch{h=[]}let i=h.map(a=>c.find(b=>b.toLowerCase()===a.toLowerCase())).find(a=>void 0!==a),j=[];for(let c of(i?j.push(i):j.push(b),j.push(\"global\"),j)){if(!c)continue;let b=a[c];if(b?.content){f=b.content,g=c;break}",
+        "sual Studio Code JetBrains IDEs Vim and Neovim Context Engine MCP Context Engine SDK Context Connectors Augment Code Review Admin Analytics Configuration Models &amp; Pricing Available Models Token-Based Pricing Troubleshooting Feedback Request and Session IDs Logs (function () { try { if (window.__mintlifyInitialSidebarScrollDone) return; var path = (window.location.pathname |",
+        "ed Introduction Cosmos Getting Started Configuring Cosmos Software Factory Environments Sessions Experts Workflow Automation Cosmos Advisor Settings Connectors Spaces Guides Keyboard shortcuts Auggie CLI Overview Setup Auggie Configure Auggie Interactive mode Automation Cosmos ACP SDK CLI reference Other clients Visual Studio Code JetBrains IDEs Vim and Neovim Context Engine MC"
+      ],
+      "paths": [],
+      "os_paths": {},
+      "disposition": "Configuration reference unavailable; manual connection only."
+    },
+    {
+      "family": "warp",
+      "url": "https://docs.warp.dev/getting-started/readme",
+      "final_url": "https://docs.warp.dev/",
+      "http_status": 200,
+      "sha256": "9c7ad5f3045d589291cf17da89571563110b1e5ec866aec3fb669f43b225b50f",
+      "bounded_bytes": 135963,
+      "excerpts": [
+        "ld); else body.insertBefore(script, body.firstChild); }; window.rudderAnalyticsMount = function() { !function() { if (\"undefined\" == typeof globalThis) { var globalObject = function getGlobal() { return \"undefined\" != typeof self ? self : \"undefined\" != typeof window ? window : null; }(); if (globalObject) Object.defineProperty(globalObject, \"globalThis\", { value: globalObject,",
+        " completions Autosuggestions Windows and Tabs Overview Tabs Vertical Tabs Split panes Tab Configs Configurable toolbar Global hotkey Launch Configurations (Legacy) Sessions Overview Session navigation Session restoration Terminal appearance Overview Themes Custom themes Prompt Input position Text, fonts, &amp; cursor Size, opacity, &amp; blurring Pane dimming &amp; focus Blocks",
+        "ut position Text, fonts, &amp; cursor Size, opacity, &amp; blurring Pane dimming &amp; focus Blocks behavior Tabs behavior Custom app icons Settings file Overview All settings reference File locations Warpify overview Overview Warpify subshells SSH with Warp features More Features Overview Accessibility Files, links, &amp; scripts Markdown viewer Working directory Text selectio"
+      ],
+      "paths": [],
+      "os_paths": {},
+      "disposition": "Product documentation does not establish a verified local agent marker."
+    },
+    {
+      "family": "zed",
+      "url": "https://zed.dev/docs/configuring-zed",
+      "final_url": "https://zed.dev/docs/reference/all-settings",
+      "http_status": 200,
+      "sha256": "f9e9728e8649dbf74ddaf1571fcc1bc370e1b6d17b7f0744d2d91ca68768de26",
+      "bounded_bytes": 250976,
+      "excerpts": [
+        " \"lsp\": { \"yaml-language-server\": { \"settings\": { \"yaml\": { \"keyOrdering\": true // Enforces alphabetical ordering of keys in maps } } } } } Global LSP Settings Description: Configuration for global LSP settings that apply to all language servers Setting: global_lsp_settings Default: { \"global_lsp_settings\": { \"button\": true, \"request_timeout\": 120, \"max_buffer_line_length\": 200",
+        "t Default: \"comfortable\" Options \"standard\" , \"comfortable\" or { \"custom\": float } ( 1 is compact, 2 is loose) Centered Layout Description: Configuration for the centered layout mode. Setting: centered_layout Default: { \"centered_layout\": { \"left_padding\": 0.2, \"right_padding\": 0.2 } } Options The left_padding and right_padding options define the relative width of the left and ",
+        "t.documentElement; html.setAttribute('data-theme', theme); html.setAttribute('data-color-scheme', theme); html.className = theme; })(); All Settings | All Settings var path_to_root = \"../\"; var default_theme = window.matchMedia(\"(prefers-color-scheme: dark)\").matches ? \"dark\" : \"light\"; // Mark as JS-enabled document.body.classList.remove('no-js'); document.body.classList.add('"
+      ],
+      "paths": [],
+      "os_paths": {},
+      "disposition": "Settings schema verified, but no global settings path verified in retrieved reference."
+    },
+    {
+      "family": "windsurf",
+      "url": "https://docs.windsurf.com/windsurf/cascade/mcp",
+      "final_url": "https://docs.devin.ai/desktop/cascade/mcp",
+      "http_status": 200,
+      "sha256": "21657003191cad7e85d0035676998f257829c4ca1a6ebcc2ca2c8d7a5fa8d6ae",
+      "bounded_bytes": 888073,
+      "excerpts": [
+        ". :root{--banner-height:0px!important} (function i(a,b,c,d,e){try{let f,g,h=[];try{h=window.location.pathname.split(\"/\").filter(a=>\"\"!==a&&\"global\"!==a).slice(0,2)}catch{h=[]}let i=h.map(a=>c.find(b=>b.toLowerCase()===a.toLowerCase())).find(a=>void 0!==a),j=[];for(let c of(i?j.push(i):j.push(b),j.push(\"global\"),j)){if(!c)continue;let b=a[c];if(b?.content){f=b.content,g=c;break}",
+        "h\", true, false ) Devin Docs home page English Search... \u2318 K Ask Assistant \u2318 I Support Devin Devin Search... Navigation Cascade Cascade MCP Configuration Cloud CLI Desktop Enterprise Use Cases API Federal :root{--topbar-tabs-height:3rem} Devin Desktop Editor Devin Local Agent Cascade Overview Arena Mode Modes App Deploys Web and Docs Search Memories &amp; Rules Skills AGENTS.md",
+        "election of MCP servers for Cascade to use. See the official MCP docs for more information. Enterprise users must manually turn this on via settings The MCP configuration on this page applies to the legacy Cascade agent only. The Devin Local agent \u2014 the default agent for new tabs \u2014 configures MCP servers in the Devin CLI config files instead. \u200b Adding a new MCP Cascade MCP serv"
+      ],
+      "paths": [],
+      "os_paths": {},
+      "disposition": "Documentation redirects to Devin paths; do not attribute Devin state to a Windsurf installation."
+    },
+    {
+      "family": "trae",
+      "url": "https://docs.trae.ai/ide/model-context-protocol",
+      "final_url": "https://docs.trae.ai/ide/model-context-protocol",
+      "http_status": 200,
+      "sha256": "b39699aee14aed85f3209ef27750a7792cff416d3bee449f8be8286e2c15826e",
+      "bounded_bytes": 1935958,
+      "excerpts": [
+        "95:\"a3d5a3ba\",9071:\"5cb50523\",9074:\"aac8aea3\",9076:\"80d00629\",9106:\"d0ccbc6f\",9597:\"4edf8852\"}[e]+\".css\",b.g=function(){if(\"object\"==typeof globalThis)return globalThis;try{return this||new Function(\"return this\")()}catch(e){if(\"object\"==typeof window)return window}}(),b.hmd=e=>((e=Object.create(e)).children||(e.children=[]),Object.defineProperty(e,\"exports\",{enumerable:!0,set:",
+        "raeCode\",\"40e95d0f\":\"Step 4: Write scripts using TraeCode\",\"db515c10\":\"Step 5: Preview the result in the Unity Editor\",\"44e49dae\":\"Advanced configuration: Unity MCP Server\",\"0bc99872\":\"Step 1: Install Unity AI\",\"88b4c2cb\":\"Step 2: Complete the Unity MCP Server configuration\",\"d5fca6ce\":\"Step 3: Add Unity MCP Server to TraeCode\",\"b20ec786\":\"Step 4: Call Unity MCP Server in TraeC",
+        "ile\",\"e850cb37\":\"Dispatch tasks\",\"5fd27c72\":\"Add context\",\"cda9768d\":\"Monitor task progress\",\"e9796014\":\"Manage tasks\",\"f34c652a\":\"Personal settings\",\"9a77de64\":\"FAQs\"},\"zh_doc_id\":\"6acc901b0d6c2504fde692bc\",\"is_letters_updated\":false,\"online_reuse_word_count\":0,\"online_word_count\":1236,\"publish_at\":\"2026-10-12T08:07:43.944Z\",\"version_id\":\"6acc954fe577e205057f4571\",\"subs\":[]},{"
+      ],
+      "paths": [],
+      "os_paths": {},
+      "disposition": "Retrieved client-rendered reference provides no verified global discovery path."
+    },
+    {
+      "family": "junie",
+      "url": "https://www.jetbrains.com/help/junie/customize-guidelines.html",
+      "final_url": "https://junie.jetbrains.com/docs/",
+      "http_status": 200,
+      "sha256": "2f4c6e50b6c6048db12d3e8fdc8a0247c3bfb88d27db4f78762497bb5378e007",
+      "bounded_bytes": 203,
+      "excerpts": [],
+      "paths": [],
+      "os_paths": {},
+      "disposition": "Reference redirects; workspace guidelines are not a safe global discovery marker."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# Evidence-client toolchain lock (release-provenance job only).
+#
+# The project runtime is Python standard-library-only; this file is NOT part of
+# the project or the dev environment. It pins the third-party stdio MCP client
+# used by the release-provenance workflow to produce `mcp_client_real` evidence
+# inside CI, off the operator's machine, and sign it with the CI principal.
+#
+# Regenerate with:
+#   uv pip compile --generate-hashes --python-version 3.11 \
+#     --output-file requirements/mcp-client.lock requirements/mcp-client.in
+mcp==2.3.0

@@ -1,0 +1,33 @@
+{
+  "status": "alpha-request-response",
+  "summary": "Arvyx MCP currently supports JSON-RPC request/response over stdio and HTTP. Streaming transports are not advertised.",
+  "transports": [
+    {
+      "name": "direct-stdio",
+      "entrypoint": "python3 -m arvyx_control.cli mcp",
+      "supported": true,
+      "streaming": false,
+      "notes": "Best fit for local read-only MCP clients."
+    },
+    {
+      "name": "http-json-rpc",
+      "endpoint": "/mcp",
+      "supported": true,
+      "streaming": false,
+      "notes": "Used by the local Control Center API and safe-mcp-bridge upstream."
+    },
+    {
+      "name": "safe-mcp-bridge-stdio-to-http",
+      "entrypoint": "safe-mcp-bridge run <config>",
+      "supported": true,
+      "streaming": false,
+      "notes": "Best fit when a stdio client needs a scoped HTTP MCP upstream."
+    },
+    {
+      "name": "sse",
+      "supported": false,
+      "streaming": true,
+      "notes": "Not implemented in the alpha release."
+    }
+  ]
+}

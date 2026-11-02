@@ -1,0 +1,5 @@
+{
+  "id": "codex-demo",
+  "display_name": "Codex Demo Runtime",
+  "harness": "codex"
+}

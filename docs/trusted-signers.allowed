@@ -1,0 +1,44 @@
+# Pinned trusted signers for machine-evidence attestations (OpenSSH allowed_signers format).
+#
+# These public keys verify signed MCP-client evidence and CI run-provenance.
+# They provide artifact integrity; they do NOT define Arvyx release governance.
+# Release governance is documented multi-model review under
+# `.arvyx/model-reviews/` and `.arvyx/release-reviews/`.
+#
+# Empty/comment-only means signed machine evidence cannot verify (fail closed).
+# Never store a private key in this repository.
+#
+# Being pinned is not the same as being release-grade. Pinning decides whether a
+# signature verifies; `docs/release-grade-signers.allowed` decides whose signature
+# can carry a *public* release. `arvyx release-candidate` blocks the public
+# verdict when supplied provenance or MCP evidence is signed by a pinned principal
+# that is absent from that list, so a host-drill signature cannot open the public
+# gate even though it verifies. A missing or comment-only list blocks the public
+# verdict rather than falling back to any pinned signer.
+#
+# Format (one signer per line):
+#   <principal> <keytype> <base64-public-key>
+# Example:
+#   ci-release@example ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA...REPLACE_ME
+#
+# MCP evidence signing:
+#   arvyx evidence sign --evidence <file.json> --key <ssh_private_key> --principal <pinned-id>
+# CI provenance signing:
+#   arvyx attest provenance --check <id> --result pass --key <ssh_private_key> --principal <pinned-id> --output <file>
+
+# CI release signer. The private key exists only as the `release-provenance`
+# environment secret ARVEN_RELEASE_SIGNING_KEY; it is never written to disk in
+# this repository or on the operator host. Provenance signed by this principal is
+# the release-grade machine evidence.
+# Rotation history is kept in the maintainers' decision records.
+# Rotated 2026-11-02 for the public candidate pipeline (the previous key had no
+# recoverable private half; no evidence was ever signed with it).
+arven-release-tooling-ci ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEHT3nXFEquantSksEqnDPIVYBg5CSuSjidU+2k3d6FW
+
+# Production release signer. Pinned so its historical evidence keeps verifying.
+arvyx-release-tooling ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID7M7rxDzSU8KZCWYXmztEboSrH2owd59x0hG+5Ap8Rk
+# Host drill signer. It is NOT release-grade: it can sign evidence that no CI run
+# produced, so it must not satisfy a public-release gate. Kept pinned because the
+# host drill and readiness flow signs with it; scoped by
+# docs/release-grade-signers.allowed rather than silently trusted.
+arven-release-tooling-local ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAebiogx/mBAGR74SvOldLPUyAfPsbv3laLEwAdsh4Kn

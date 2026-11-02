@@ -1,0 +1,15 @@
+.external-delegation { display: grid; gap: 1.25rem; max-width: 70rem; margin-inline: auto; }
+.external-delegation h2, .external-delegation h3 { margin: 0; }
+.external-delegation form, .external-delegation fieldset { display: grid; gap: 1rem; }
+.external-delegation fieldset { border: 1px solid var(--border, #777); border-radius: .5rem; padding: 1rem; margin-block: 1rem; min-width: 0; }
+.external-delegation label { display: grid; gap: .4rem; font-weight: 500; }
+.external-delegation input, .external-delegation textarea, .external-delegation select { color: inherit; background: var(--background, transparent); border: 1px solid var(--border, #777); border-radius: .35rem; padding: .6rem; max-width: 100%; }
+.external-delegation textarea { resize: vertical; }
+.external-delegation .external-delegation-check { display: flex; align-items: flex-start; gap: .6rem; }
+.external-delegation aside { padding: 1rem; border-inline-start: 3px solid var(--primary, #888); background: var(--muted, transparent); }
+.external-delegation pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }
+.external-delegation .external-delegation-records { list-style: none; padding: 0; display: grid; gap: 1rem; }
+.external-delegation .external-delegation-records > li { border: 1px solid var(--border, #777); border-radius: .5rem; padding: 1rem; overflow-wrap: anywhere; }
+.external-delegation button { margin-block: .3rem; margin-inline-end: .5rem; }
+.external-delegation :focus-visible { outline: 2px solid var(--ring, #739dff); outline-offset: 3px; }
+@media (max-width: 40rem) { .external-delegation fieldset { padding: .65rem; } .external-delegation button { white-space: normal; height: auto; min-height: 2.5rem; } }

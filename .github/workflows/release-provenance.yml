@@ -1,0 +1,650 @@
+name: Release provenance
+
+# Required repository controls:
+# - `release-provenance` environment has required reviewers, a private denylist secret,
+#   and only protected v* deployment tags.
+# - a tag ruleset restricts v* creation to release maintainers.
+# - canonical CI must already be green on the exact tagged commit.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  mcp-evidence:
+    # The producer imports and runs a third-party dependency tree (the official MCP
+    # SDK and its transitive packages). That work gets its own runner on purpose: a
+    # compromised dependency cannot reach the signing job's checkout, its interpreter,
+    # or its environment, and the only thing that crosses the boundary is the produced
+    # evidence bytes. A hashed pin proves which bytes run, not that those bytes deserve
+    # a private signing key, so the key must not live on the same runner at all.
+    #
+    # It also gets read-only repository contents and no persisted checkout credential:
+    # the point of the split is to deny this job release-writing authority, not just the
+    # SSH key, and a write-scoped token in the environment would leave it able to publish
+    # a release or mint an attestation whose identity the upgrade path trusts.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Require a protected release tag
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          set -Eeuo pipefail
+          test "$REF_TYPE" = tag
+          case "$REF_NAME" in v*) ;; *) exit 1 ;; esac
+          test "$REF_PROTECTED" = true
+
+      - name: Check out exact tag commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+
+      - name: Produce real MCP client evidence
+        # Closes `mcp_client_real` structurally: the release pipeline, not an operator's
+        # shell, produces the external-client evidence on the exact tagged commit. The
+        # client is the official MCP Python SDK stdio client, i.e. a third-party protocol
+        # implementation rather than arvyx's own CLI; it is not an agent UI, and the
+        # evidence file says that plainly. Its lock is deliberately separate from
+        # requirements/dev.lock: the project runtime stays standard-library-only and only
+        # this job needs a client library.
+        env:
+          PYTHONPATH: packages/arvctl/src
+        run: |
+          set -Eeuo pipefail
+          client_venv="${RUNNER_TEMP}/mcp-evidence-client"
+          python -m venv "$client_venv"
+          "$client_venv/bin/python" -m pip install --quiet --disable-pip-version-check \
+            --require-hashes -r requirements/mcp-client.lock
+          "$client_venv/bin/python" scripts/mcp_client_real_evidence.py \
+            --output dist/evidence.mcp-client.json
+          test -s dist/evidence.mcp-client.json
+
+      - name: Upload produced evidence for the signing job
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mcp-client-evidence
+          path: dist/evidence.mcp-client.json
+          if-no-files-found: error
+          retention-days: 1
+
+  provenance:
+    needs: [mcp-evidence]
+    runs-on: ubuntu-latest
+    environment: release-provenance
+    permissions:
+      contents: write
+      checks: read
+      actions: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Require a protected release tag
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          set -Eeuo pipefail
+          test "$REF_TYPE" = tag
+          case "$REF_NAME" in v*) ;; *) exit 1 ;; esac
+          test "$REF_PROTECTED" = true
+
+      - name: Check out exact tag commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+
+      - name: Install release tooling from hashed lock
+        run: |
+          python -m pip install --require-hashes -r requirements/dev.lock -r requirements/secret-edge.lock
+          python -m pip install --no-deps --no-build-isolation -e .
+
+      - name: Bind release tag to package version
+        # Runs after the package install because the mapping lives in the package
+        # (`arvyx_control.release_tag`) and is the single source for both this
+        # binding and the release-mode step below.
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          PYTHONPATH: packages/arvctl/src
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          import os, tomllib
+          from pathlib import Path
+
+          from arvyx_control.release_tag import canonical_release_tag
+
+          version = tomllib.loads(Path('pyproject.toml').read_text(encoding='utf-8'))['project']['version']
+          expected = canonical_release_tag(version)
+          if os.environ['REF_NAME'] != expected:
+              raise SystemExit(f'release tag must be exactly {expected} for package version {version}')
+          PY
+
+      - name: Install pinned Gitleaks
+        env:
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          set -Eeuo pipefail
+          archive="${RUNNER_TEMP}/gitleaks_8.30.1_linux_x64.tar.gz"
+          curl -fsSL --proto '=https' --tlsv1.2 \
+            -o "$archive" \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          printf '%s  %s\n' "$GITLEAKS_SHA256" "$archive" | sha256sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP" gitleaks
+          chmod 0755 "${RUNNER_TEMP}/gitleaks"
+
+      - name: Determine release mode and load previous retained image
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_TAG: ${{ github.ref_name }}
+          PYTHONPATH: packages/arvctl/src
+        run: |
+          set -Eeuo pipefail
+          gh release list --limit 100 --json tagName,isDraft,isPrerelease,publishedAt \
+            > "${RUNNER_TEMP}/releases.json"
+          previous_tag="$(python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          from arvyx_control.release_tag import is_release_tag, release_order
+
+          current = os.environ['CURRENT_TAG']
+          if not is_release_tag(current):
+              raise SystemExit(f'release tag must be a canonical release tag, not {current!r}')
+          current_version = release_order(current)
+          releases = json.loads(Path(os.environ['RUNNER_TEMP'], 'releases.json').read_text(encoding='utf-8'))
+          candidates = []
+          for item in releases:
+              tag = str(item.get('tagName', ''))
+              if not is_release_tag(tag):
+                  continue
+              version = release_order(tag)
+              if version is not None and not item.get('isDraft') and not item.get('isPrerelease'):
+                  if version < current_version:
+                      candidates.append((version, tag))
+          print(max(candidates)[1] if candidates else '')
+          PY
+          )"
+          if test -z "$previous_tag"; then
+            echo 'RELEASE_MODE=first' >> "$GITHUB_ENV"
+            exit 0
+          fi
+          previous_dir="${RUNNER_TEMP}/previous-release"
+          mkdir -p "$previous_dir"
+          gh release download "$previous_tag" \
+            --pattern 'arvyx-image.tar.gz' \
+            --pattern 'SHA256SUMS' \
+            --dir "$previous_dir"
+          (cd "$previous_dir" && \
+            grep '  arvyx-image.tar.gz$' SHA256SUMS | sha256sum -c -)
+          gh attestation verify \
+            "$previous_dir/arvyx-image.tar.gz" \
+            --repo "$GITHUB_REPOSITORY"
+          previous_image="$(python - <<'PY'
+          import gzip, json, os, re, tarfile
+          from pathlib import Path
+
+          archive = Path(os.environ['RUNNER_TEMP'], 'previous-release', 'arvyx-image.tar.gz')
+          with gzip.open(archive, 'rb') as compressed, tarfile.open(fileobj=compressed, mode='r|') as bundle:
+              manifest = None
+              for member in bundle:
+                  if member.name == 'manifest.json':
+                      source = bundle.extractfile(member)
+                      manifest = json.load(source) if source is not None else None
+                      break
+          tags = manifest[0].get('RepoTags', []) if isinstance(manifest, list) and len(manifest) == 1 else []
+          if len(tags) != 1 or re.fullmatch(r'arvyx:[0-9a-f]{40}', tags[0]) is None:
+              raise SystemExit('previous image archive has an invalid immutable tag')
+          print(tags[0])
+          PY
+          )"
+          gzip -dc "$previous_dir/arvyx-image.tar.gz" | docker load
+          docker image inspect "$previous_image" >/dev/null
+          echo 'RELEASE_MODE=upgrade' >> "$GITHUB_ENV"
+          echo "PREVIOUS_IMAGE=$previous_image" >> "$GITHUB_ENV"
+
+      - name: Require successful canonical CI on exact tag SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          gh api \
+            --paginate --slurp \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?filter=latest&per_page=100" \
+            > "${RUNNER_TEMP}/check-runs.json"
+          gh api --paginate --slurp \
+            "/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${GITHUB_SHA}&per_page=100" \
+            > "${RUNNER_TEMP}/ci-runs.json"
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP'])
+          repo, sha = os.environ['GITHUB_REPOSITORY'], os.environ['GITHUB_SHA']
+          def pages(payload, key):
+              if not isinstance(payload, list) or not payload:
+                  raise SystemExit('missing paginated response')
+              records = []
+              for page in payload:
+                  if not isinstance(page, dict) or not isinstance(page.get(key), list):
+                      raise SystemExit('malformed paginated response')
+                  records.extend(page[key])
+              if any(not isinstance(item, dict) for item in records):
+                  raise SystemExit('malformed record')
+              return records
+          checks = pages(json.loads((root / 'check-runs.json').read_text()), 'check_runs')
+          runs = pages(json.loads((root / 'ci-runs.json').read_text()), 'workflow_runs')
+          canonical = [run for run in runs if run.get('head_sha') == sha
+                       and run.get('path') == '.github/workflows/ci.yml'
+                       and (run.get('repository') or {}).get('full_name') == repo
+                       and (run.get('head_repository') or {}).get('full_name') == repo
+                       and run.get('event') in {'push', 'workflow_dispatch'}]
+          if not canonical:
+              raise SystemExit('no canonical CI run on exact SHA')
+          for run in canonical:
+              if any(type(run.get(key)) is not int or run[key] <= 0 for key in ('id', 'run_number', 'run_attempt', 'check_suite_id')):
+                  raise SystemExit('invalid canonical run identity')
+          # Explicit latest filter above preserves default latest-per-name semantics.
+          # The historical-success allegation is not assumed. A distinct later CI
+          # run or rerun must nevertheless never borrow an earlier run's success.
+          run = max(canonical, key=lambda item: (item['run_number'], item['run_attempt'], item['id']))
+          if run.get('status') != 'completed' or run.get('conclusion') != 'success':
+              raise SystemExit('latest canonical CI is not completed successfully')
+          endpoint = f"/repos/{repo}/actions/runs/{run['id']}/attempts/{run['run_attempt']}/jobs?per_page=100"
+          jobs = pages(json.loads(subprocess.run(['gh', 'api', '--paginate', '--slurp', endpoint],
+                       check=True, capture_output=True, text=True).stdout), 'jobs')
+          # Linux is the verified platform; macOS and Windows matrix jobs are
+          # conditional and do not gate a release until their receipts exist.
+          required = {'test'} | {
+              f'ubuntu-latest / Python {version}'
+              for version in ('3.11', '3.12', '3.13')
+          }
+          for name in sorted(required):
+              matches = [job for job in jobs if job.get('name') == name]
+              if len(matches) != 1:
+                  raise SystemExit(f'missing or ambiguous canonical job: {name}')
+              job = matches[0]
+              if job.get('run_id') != run['id'] or job.get('head_sha') != sha or job.get('status') != 'completed' or job.get('conclusion') != 'success':
+                  raise SystemExit(f'canonical job is not successful on exact SHA: {name}')
+              linked = [check for check in checks if check.get('name') == name
+                        and check.get('url') == job.get('check_run_url')]
+              if len(linked) != 1:
+                  raise SystemExit(f'missing or ambiguous check/job binding: {name}')
+              check = linked[0]
+              if (check.get('app') or {}).get('slug') != 'github-actions' or (check.get('check_suite') or {}).get('id') != run['check_suite_id'] or check.get('head_sha') != sha or check.get('status') != 'completed' or check.get('conclusion') != 'success':
+                  raise SystemExit(f'noncanonical check identity or result: {name}')
+          PY
+
+      - name: Materialize private release denylist
+        env:
+          ARVEN_PRIVATE_DENYLIST_B64: ${{ secrets.ARVEN_PRIVATE_DENYLIST_B64 }}
+        run: |
+          set -Eeuo pipefail
+          test -n "$ARVEN_PRIVATE_DENYLIST_B64"
+          python - <<'PY'
+          import base64, os
+          from pathlib import Path
+          target = Path(os.environ['RUNNER_TEMP']) / 'private-denylist.txt'
+          target.write_bytes(base64.b64decode(os.environ['ARVEN_PRIVATE_DENYLIST_B64'], validate=True))
+          if not target.read_bytes().strip():
+              raise SystemExit('private release denylist is empty')
+          target.chmod(0o600)
+          with Path(os.environ['GITHUB_ENV']).open('a', encoding='utf-8') as handle:
+              handle.write(f'ARVYX_PRIVATE_DENYLIST={target}\n')
+          PY
+
+      - name: Set up supported Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24.11.1"
+      - name: Strict private-context scan with the release denylist
+        # Runs before any third-party build step, with `-S` so no site-packages hook
+        # from the hash-locked tooling executes while the real list is on disk; the
+        # list is then removed and every later scanner invocation uses the synthetic
+        # example list.
+        env:
+          PYTHONPATH: packages/arvctl/src
+        run: |
+          set -Eeuo pipefail
+          python -S scripts/private_context_scan.py
+          rm -f "$ARVYX_PRIVATE_DENYLIST"
+          echo "ARVYX_PRIVATE_DENYLIST=${GITHUB_WORKSPACE}/fixtures/private-denylist.example.txt" >> "$GITHUB_ENV"
+
+      - name: Prepare pinned frontend dependencies (requires Node >=24.11)
+        run: make frontend-deps
+
+      - name: Gate the exact tagged source before building release bytes
+        env:
+          PYTHONPATH: packages/arvctl/src:packages/safe-mcp-bridge/src
+          COVERAGE_FILE: ${{ runner.temp }}/release.coverage
+        run: |
+          set -Eeuo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          make ci PYTHON=python
+          coverage report --fail-under=75
+          # Scanner mechanics with the example list; the strict scan with the release
+          # denylist ran above, before any third-party code.
+          python scripts/private_context_scan.py
+          tree="$(mktemp -d)"
+          trap 'rm -rf "$tree"' EXIT
+          git archive HEAD | tar -xf - -C "$tree"
+          "${RUNNER_TEMP}/gitleaks" dir "$tree" --no-banner --redact=100
+          make dependency-audit PYTHON=python
+          make license-check PYTHON=python
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - name: Build and test retained wheel and sdist exactly once
+        run: |
+          set -Eeuo pipefail
+          mkdir -p dist
+          python -m build --no-isolation --outdir dist
+          sha256sum dist/*.whl dist/*.tar.gz > "${RUNNER_TEMP}/package-artifacts.sha256"
+          python scripts/package_install_smoke.py --artifacts dist --json \
+            | tee "${RUNNER_TEMP}/package-install.json"
+          sha256sum -c "${RUNNER_TEMP}/package-artifacts.sha256"
+          cp "${RUNNER_TEMP}/package-install.json" dist/package-install.json
+
+      - name: Generate wheel and sdist CycloneDX SBOMs
+        run: |
+          set -Eeuo pipefail
+          wheel="$(find dist -maxdepth 1 -type f -name '*.whl' -print -quit)"
+          sdist="$(find dist -maxdepth 1 -type f -name '*.tar.gz' -print -quit)"
+          test -n "$wheel" && test -n "$sdist"
+          python -m venv "${RUNNER_TEMP}/wheel-sbom-env"
+          "${RUNNER_TEMP}/wheel-sbom-env/bin/python" -m pip install --no-deps --quiet "$wheel"
+          cyclonedx-py environment "${RUNNER_TEMP}/wheel-sbom-env/bin/python" \
+            --pyproject pyproject.toml --output-reproducible \
+            --output-file dist/wheel.sbom.cdx.json
+          python -m venv "${RUNNER_TEMP}/sdist-sbom-env"
+          "${RUNNER_TEMP}/sdist-sbom-env/bin/python" -m pip install --no-deps --no-build-isolation --quiet "$sdist"
+          cyclonedx-py environment "${RUNNER_TEMP}/sdist-sbom-env/bin/python" \
+            --pyproject pyproject.toml --output-reproducible \
+            --output-file dist/sdist.sbom.cdx.json
+          sha256sum -c "${RUNNER_TEMP}/package-artifacts.sha256"
+
+      - name: Build and smoke retained image exactly once
+        env:
+          RELEASE_IMAGE: arvyx:${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          docker build \
+            --build-arg "ARVYX_RELEASE_BUILD_ID=${GITHUB_SHA}" \
+            --iidfile "${RUNNER_TEMP}/image.iid" \
+            -t "$RELEASE_IMAGE" .
+          if test "$RELEASE_MODE" = first; then
+            python scripts/docker_runtime_smoke.py \
+              --image-tag "$RELEASE_IMAGE" --skip-build --keep-image \
+              --release-mode first --json \
+              | tee "${RUNNER_TEMP}/docker-runtime-built.json"
+          else
+            python scripts/docker_runtime_smoke.py \
+              --image-tag "$RELEASE_IMAGE" --skip-build --keep-image \
+              --release-mode upgrade --previous-image "$PREVIOUS_IMAGE" --json \
+              | tee "${RUNNER_TEMP}/docker-runtime-built.json"
+          fi
+          cp "${RUNNER_TEMP}/docker-runtime-built.json" dist/docker-runtime-built.json
+
+      - name: Prove staged backup restore cutover and retained-volume rollback
+        env:
+          RELEASE_IMAGE: arvyx:${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          python scripts/release_restore_drill.py --image "$RELEASE_IMAGE" --json \
+            | tee "${RUNNER_TEMP}/release-restore-drill.json"
+          cp "${RUNNER_TEMP}/release-restore-drill.json" dist/release-restore-drill.json
+
+      - name: Generate retained image SPDX SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          image: arvyx:${{ github.sha }}
+          format: spdx-json
+          output-file: dist/image.sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Retain, reload, and re-smoke exact image archive
+        env:
+          PYTHONPATH: packages/arvctl/src:packages/safe-mcp-bridge/src
+          RELEASE_IMAGE: arvyx:${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          python scripts/bridge_dogfood_smoke.py | tee "${RUNNER_TEMP}/safe-mcp-bridge-e2e.txt"
+          cp "${RUNNER_TEMP}/safe-mcp-bridge-e2e.txt" dist/safe-mcp-bridge-e2e.txt
+          expected_id="$(cat "${RUNNER_TEMP}/image.iid")"
+          docker save "$RELEASE_IMAGE" | gzip -n -9 > dist/arvyx-image.tar.gz
+          sha256sum dist/arvyx-image.tar.gz > "${RUNNER_TEMP}/image-artifact.sha256"
+          docker image rm "$RELEASE_IMAGE"
+          gzip -dc dist/arvyx-image.tar.gz | docker load
+          loaded_id="$(docker image inspect --format '{{.Id}}' "$RELEASE_IMAGE")"
+          test "$loaded_id" = "$expected_id"
+          if test "$RELEASE_MODE" = first; then
+            python scripts/docker_runtime_smoke.py \
+              --image-tag "$RELEASE_IMAGE" --skip-build --keep-image \
+              --release-mode first --json \
+              | tee "${RUNNER_TEMP}/docker-runtime-retained.json"
+          else
+            python scripts/docker_runtime_smoke.py \
+              --image-tag "$RELEASE_IMAGE" --skip-build --keep-image \
+              --release-mode upgrade --previous-image "$PREVIOUS_IMAGE" --json \
+              | tee "${RUNNER_TEMP}/docker-runtime-retained.json"
+          fi
+          cp "${RUNNER_TEMP}/docker-runtime-retained.json" dist/docker-runtime-retained.json
+          sha256sum -c "${RUNNER_TEMP}/image-artifact.sha256"
+          sha256sum -c "${RUNNER_TEMP}/package-artifacts.sha256"
+
+      - name: Sign run-provenance for the exact tagged SHA
+        env:
+          ARVEN_RELEASE_SIGNING_KEY: ${{ secrets.ARVEN_RELEASE_SIGNING_KEY }}
+        run: |
+          set -Eeuo pipefail
+          test -n "$ARVEN_RELEASE_SIGNING_KEY"
+          key="$(mktemp)"
+          chmod 600 "$key"
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$ARVEN_RELEASE_SIGNING_KEY" > "$key"
+          export PYTHONPATH=packages/arvctl/src:packages/safe-mcp-bridge/src
+          for check in docker_runtime safe_mcp_bridge_e2e; do
+            python -m arvyx_control.cli attest provenance \
+              --check "$check" --result pass --repo . \
+              --key "$key" --principal arven-release-tooling-ci \
+              --workflow "${GITHUB_WORKFLOW} ${GITHUB_REF_NAME} @ ${GITHUB_SHA}" \
+              --output "dist/${check}.provenance.json" --json
+          done
+          python - <<'PY'
+          import json, sys
+          from pathlib import Path
+          sys.path.insert(0, 'packages/arvctl/src')
+          from arvyx_control import attestation
+          allowed = attestation.allowed_signers_path(Path('.').resolve())
+          verified = 0
+          for path in sorted(Path('dist').glob('*.provenance.json')):
+              payload = json.loads(path.read_text(encoding='utf-8'))
+              ok, error = attestation.verify_payload(
+                  payload, namespace=attestation.NS_RUN_PROVENANCE, allowed_signers=allowed
+              )
+              principal = payload.get('attestation', {}).get('principal')
+              if not ok:
+                  raise SystemExit(f'{path.name} does not verify against the pin: {error}')
+              if principal != 'arven-release-tooling-ci':
+                  raise SystemExit(f'{path.name} is signed by {principal!r}, not the CI principal')
+              if principal not in attestation.release_grade_principals(Path('.').resolve()):
+                  raise SystemExit(f'{path.name} signer is not release-grade')
+              verified += 1
+              print(f'{path.name}: verified against docs/trusted-signers.allowed as {principal}')
+          if verified == 0:
+              raise SystemExit('no run-provenance was signed')
+          PY
+
+      - name: Download the produced MCP client evidence
+        # The bytes come from the separate `mcp-evidence` job. Nothing that the producer's
+        # dependency tree could have touched on its own runner exists here, and the only
+        # thing that crosses the job boundary is the staged file below.
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: mcp-client-evidence
+          path: ${{ runner.temp }}/mcp-evidence-staged
+
+      - name: Accept exactly the produced evidence file
+        # An artifact is an archive: it can carry more than the one file the producer was
+        # supposed to upload, and `dist/` already holds release bytes that later get
+        # hashed, attested and published. Only one exact regular file is accepted, and it
+        # is the only thing copied into `dist/`.
+        run: |
+          set -Eeuo pipefail
+          staged="${RUNNER_TEMP}/mcp-evidence-staged"
+          test -d "$staged"
+          members="$(find "$staged" -mindepth 1)"
+          printf 'staged members:\n%s\n' "$members"
+          test "$(printf '%s\n' "$members" | grep -c .)" -eq 1
+          test -f "$staged/evidence.mcp-client.json"
+          test ! -L "$staged/evidence.mcp-client.json"
+          # The one-file boundary still allows arbitrary bytes inside that file, and the
+          # validator's own ceiling is 64 KiB; enforce it here too, before anything is
+          # copied over release bytes.
+          test "$(stat -c %s "$staged/evidence.mcp-client.json")" -le 65536
+          install -m 0644 "$staged/evidence.mcp-client.json" dist/evidence.mcp-client.json
+          test -s dist/evidence.mcp-client.json
+          sha256sum dist/evidence.mcp-client.json
+
+      - name: Sign and verify real MCP client evidence
+        # Only this step holds the release signing key. It signs the bytes the
+        # previous step produced and refuses the job unless the signature verifies
+        # against the pinned trust list, the principal is release-grade, and the
+        # evidence is bound to this exact tagged tree.
+        env:
+          ARVEN_RELEASE_SIGNING_KEY: ${{ secrets.ARVEN_RELEASE_SIGNING_KEY }}
+          PYTHONPATH: packages/arvctl/src
+        run: |
+          set -Eeuo pipefail
+          test -n "$ARVEN_RELEASE_SIGNING_KEY"
+          key="$(mktemp)"
+          chmod 600 "$key"
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$ARVEN_RELEASE_SIGNING_KEY" > "$key"
+          python -m arvyx_control.cli evidence sign \
+            --evidence dist/evidence.mcp-client.json \
+            --key "$key" --principal arven-release-tooling-ci --json
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          from arvyx_control import attestation
+          from arvyx_control.mcp_client_evidence import validate_mcp_client_evidence
+
+          repo = Path('.').resolve()
+          path = Path('dist/evidence.mcp-client.json')
+          payload = json.loads(path.read_text(encoding='utf-8'))
+          allowed = attestation.allowed_signers_path(repo)
+          ok, error = attestation.verify_payload(
+              payload, namespace=attestation.NS_MCP_CLIENT, allowed_signers=allowed
+          )
+          if not ok:
+              raise SystemExit(f'MCP evidence signature does not verify against the pin: {error}')
+          principal = payload.get('attestation', {}).get('principal')
+          if principal != 'arven-release-tooling-ci':
+              raise SystemExit(f'MCP evidence is signed by {principal!r}, not the CI principal')
+          if principal not in attestation.release_grade_principals(repo):
+              raise SystemExit(
+                  f'{principal!r} is not release-grade; the public gate would stay blocked'
+              )
+          head = subprocess.run(
+              ['git', 'rev-parse', 'HEAD'], capture_output=True, text=True, check=True
+          ).stdout.strip()
+          tree = subprocess.run(
+              ['git', 'rev-parse', 'HEAD^{tree}'], capture_output=True, text=True, check=True
+          ).stdout.strip()
+          if payload.get('git_head') != head or payload.get('git_tree') != tree:
+              raise SystemExit('MCP evidence is not bound to the tagged commit tree')
+          validation = validate_mcp_client_evidence(
+              path,
+              expected_git_head=head,
+              expected_git_tree=tree,
+              max_age_hours=24 * 14,
+              require_attestation=True,
+              allowed_signers=allowed,
+          )
+          if not validation['ok'] or validation.get('self_attested'):
+              raise SystemExit(f"MCP client evidence is not releasable: {validation['errors']}")
+          print(
+              f"mcp_client_real: client={validation['client']} "
+              f"signer={principal} tree={tree[:12]}"
+          )
+          PY
+
+      - name: Bind artifacts to SBOMs and hash exact retained bytes
+        run: |
+          set -Eeuo pipefail
+          sha256sum -c "${RUNNER_TEMP}/package-artifacts.sha256"
+          sha256sum -c "${RUNNER_TEMP}/image-artifact.sha256"
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          dist = Path('dist')
+          wheel = next(dist.glob('*.whl'))
+          sdist = next(p for p in dist.glob('*.tar.gz') if p.name != 'arvyx-image.tar.gz')
+          image = dist / 'arvyx-image.tar.gz'
+          def digest(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+          mapping = {
+              wheel.name: {'sha256': digest(wheel), 'sbom': 'wheel.sbom.cdx.json'},
+              sdist.name: {'sha256': digest(sdist), 'sbom': 'sdist.sbom.cdx.json'},
+              image.name: {'sha256': digest(image), 'sbom': 'image.sbom.spdx.json'},
+          }
+          (dist / 'artifact-sbom-map.json').write_text(
+              json.dumps(mapping, indent=2, sort_keys=True) + '\n', encoding='utf-8'
+          )
+          PY
+          (cd dist && sha256sum * > SHA256SUMS.tmp && mv SHA256SUMS.tmp SHA256SUMS)
+
+      - name: Attest exact tested release artifact bytes
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-artifacts-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Create the draft GitHub release with the signed assets
+        # Draft: the maintainer runs `arvyx release-candidate` against these exact
+        # signed assets and publishes the draft only when the verdict allows
+        # (PUBLISHING.md). Alpha, beta and rc tags are marked as prereleases.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: packages/arvctl/src
+        run: |
+          set -Eeuo pipefail
+          (cd dist && sha256sum -c SHA256SUMS)
+          flags="--draft"
+          # The same tag grammar as the version binding above (v1.2.3-alpha.N, -beta.N, -rc.N).
+          if python -c 'import os, sys; from arvyx_control.release_tag import is_prerelease_tag; sys.exit(0 if is_prerelease_tag(os.environ["GITHUB_REF_NAME"]) else 1)'; then
+            flags="$flags --prerelease"
+          fi
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --verify-tag \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            $flags

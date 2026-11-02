@@ -1,0 +1,23 @@
+Arvyx
+Copyright 2026 Arven Digital
+
+This product includes software developed by Arven Digital.
+
+Licensed under the Apache License, Version 2.0. You may obtain a copy of the
+License in the LICENSE file distributed with this work or at:
+https://www.apache.org/licenses/LICENSE-2.0
+
+Cockpit terminal behavior is adapted and modified from Herdr,
+revision 5bd900d88c80d95f5b145397e45bbeea398b8165 (Apache-2.0).
+References: src/layout.rs, src/agent_resume.rs, src/client/endpoint/catalog.rs.
+UI adaptations: src/ui/sidebar.rs, src/ui/sidebar/tokens.rs, src/ui/panes.rs.
+Full upstream license: licenses/Herdr-Apache-2.0.txt.
+The AMC Python implementation does not import Herdr's executable or dependencies.
+
+Cockpit team interactions are adapted and modified from Paperclip,
+revision efce9356b553a08f77a5877bb0ceac68d2cc4ad8.
+Copyright (c) 2025 Paperclip AI. Licensed under the MIT License.
+Full upstream license: licenses/Paperclip-MIT.txt; also embedded in cockpit_team.py.
+References: Dashboard.tsx, Approvals.tsx, ApprovalCard.tsx and Issues.tsx.
+UI navigation adaptations: ui/src/components/Sidebar.tsx and primary-sidebar-styles.ts.
+No Paperclip company/database/billing authority or executable dependencies imported.

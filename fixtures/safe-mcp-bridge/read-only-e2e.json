@@ -1,0 +1,117 @@
+{
+  "audit_events": [
+    {
+      "event": "tools_list_filtered",
+      "allowed_tools": [
+        "memory.recall",
+        "memory.excerpt",
+        "memory.context_pack"
+      ],
+      "upstream_tools": 15,
+      "visible_tools": 3
+    },
+    {
+      "event": "request_forwarded",
+      "tool": "memory.recall"
+    },
+    {
+      "event": "tool_blocked",
+      "code": -32001,
+      "tool": "control.bus_post"
+    }
+  ],
+  "blocked_call": {
+    "request": {
+      "jsonrpc": "2.0",
+      "id": "blocked",
+      "method": "tools/call",
+      "params": {
+        "name": "control.bus_post",
+        "arguments": {
+          "actor": "demobot",
+          "channel": "ops",
+          "message": "should be blocked"
+        }
+      }
+    },
+    "response": {
+      "jsonrpc": "2.0",
+      "id": "blocked",
+      "error": {
+        "code": -32001,
+        "message": "tool blocked by safe-mcp-bridge policy: control.bus_post"
+      }
+    }
+  },
+  "description": "Public-safe transcript from the read-only safe-mcp-bridge dogfood contract.",
+  "doctor": {
+    "ok": true,
+    "policy_mode": "allowlist",
+    "redaction_enabled": true,
+    "target": "http://127.0.0.1:18765/mcp"
+  },
+  "recall_call": {
+    "request": {
+      "jsonrpc": "2.0",
+      "id": "recall",
+      "method": "tools/call",
+      "params": {
+        "name": "memory.recall",
+        "arguments": {
+          "max_tokens": 120,
+          "project": "demo-agent",
+          "question": "which guardrail proxy protects credentials"
+        }
+      }
+    },
+    "response": {
+      "jsonrpc": "2.0",
+      "id": "recall",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "The safe MCP bridge narrows client access and keeps control writes out of read-only clients."
+          }
+        ],
+        "structuredContent": {
+          "answer": [
+            "The safe MCP bridge belongs between clients and the memory surface.",
+            "Read-only clients only receive cited memory tools."
+          ],
+          "confidence": 0.75,
+          "sources": [
+            {
+              "path": "projects/demo-agent/DECISIONS.md",
+              "lines": "3-12"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "tools_list": {
+    "request": {
+      "jsonrpc": "2.0",
+      "id": "list",
+      "method": "tools/list"
+    },
+    "response": {
+      "jsonrpc": "2.0",
+      "id": "list",
+      "result": {
+        "tools": [
+          {
+            "name": "memory.recall"
+          },
+          {
+            "name": "memory.excerpt"
+          },
+          {
+            "name": "memory.context_pack"
+          }
+        ]
+      }
+    }
+  }
+}
