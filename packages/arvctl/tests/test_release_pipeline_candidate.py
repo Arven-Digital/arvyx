@@ -25,6 +25,16 @@ from arvyx_control.release_candidate import release_candidate_report
 
 
 class ReleaseCandidatePipelineTests(unittest.TestCase):
+    def setUp(self) -> None:
+        # The same example denylist RecallTests provides: the pipeline audits the
+        # repository and must find a loaded denylist, whatever the host environment.
+        self._denylist_environment = patch.dict(
+            os.environ,
+            {"ARVYX_PRIVATE_DENYLIST": str(ROOT / "fixtures" / "private-denylist.example.txt")},
+        )
+        self._denylist_environment.start()
+        self.addCleanup(self._denylist_environment.stop)
+
     @patch.dict(os.environ, {"ARVYX_PRIVATE_DENYLIST": str(ROOT / "requirements/dev.lock/not-a-directory")})
     def test_release_candidate_report_blocks_preview_without_assurance(self) -> None:
         result = release_candidate_report(

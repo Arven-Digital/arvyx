@@ -25,6 +25,16 @@ from arvyx_control.release_candidate import release_candidate_report
 
 
 class DogfoodPipelineTests(unittest.TestCase):
+    def setUp(self) -> None:
+        # The same example denylist RecallTests provides: the pipeline audits the
+        # repository and must find a loaded denylist, whatever the host environment.
+        self._denylist_environment = patch.dict(
+            os.environ,
+            {"ARVYX_PRIVATE_DENYLIST": str(ROOT / "fixtures" / "private-denylist.example.txt")},
+        )
+        self._denylist_environment.start()
+        self.addCleanup(self._denylist_environment.stop)
+
     def test_self_dogfood_imports_public_docs_and_recalls_retrieval(self) -> None:
         result = dogfood_self(repo=ROOT)
         checks = {check.name: check for check in result.checks}
