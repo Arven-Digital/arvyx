@@ -32,8 +32,8 @@
       ]
     },
     ".github/workflows/ci.yml": {
-      "exported_sha256": "0d91160fb4f9f44fc1c67b968fb0d59d0c5d550ad28495e363cde961e7f7442e",
-      "source_sha256": "7e61bb966ef8c5bc433ae3bcf80e3dfb7e9176f8c79735beac7d698c7644a709",
+      "exported_sha256": "a03f703f01958a233874616d4012c0c79e2306007998c73ea9f16772eff98903",
+      "source_sha256": "17f68ede1fbb1aed526f808559f0f24902b1a607ac6685d8d76315b4fddace69",
       "transforms": [
         "override:config/public-candidate/.github/workflows/ci.yml",
         "strip-private-notice"
@@ -93,16 +93,16 @@
       "transforms": []
     },
     "PUBLISHING.md": {
-      "exported_sha256": "a14c40b5157af0eba27d2ad10be7c9679579596a62ed1494f2962fe52408ee06",
-      "source_sha256": "61cfd18b9bd76218bd5c3949c0ca02172e07722c34603cecee1e0bda4433c4de",
+      "exported_sha256": "7e11fbd15554a0540d1c73ff6f176870a57f5a35d4f652b54c88852c9c0d3351",
+      "source_sha256": "1c9ef75b035afc17c314ac88d42b3d727c60d0aa790ebe48c0cd2732538b5d66",
       "transforms": [
         "override:config/public-candidate/PUBLISHING.md",
         "strip-private-notice"
       ]
     },
     "README.md": {
-      "exported_sha256": "e55f7501c206cfac59baedae3ecbb4f182cfb180a09a2c8df493df6111672fac",
-      "source_sha256": "09b0520def03884b3b1a8093fafdf8d49599ad8b7fd1f4dcc83de1ed6d6d3150",
+      "exported_sha256": "d0e97aa5626413a68f2b24cf8ffb83fa795608f92c26fdbfa1bc7455fdbf9e6b",
+      "source_sha256": "76872cb656ae766b16d97aa495c36b0746d3e0b45914ab7119f99204395e677b",
       "transforms": [
         "override:config/public-candidate/README.md",
         "strip-private-notice"
@@ -361,8 +361,8 @@
       "transforms": []
     },
     "docs/limitations.md": {
-      "exported_sha256": "15710b770fe4c062c9480e9a39573da786df4913f27f2d9f8c0f70b338cb1fa9",
-      "source_sha256": "15710b770fe4c062c9480e9a39573da786df4913f27f2d9f8c0f70b338cb1fa9",
+      "exported_sha256": "a7a4550d2091597073e2f430d7e4a9e8098e297663675c2963b2743a9daf0f27",
+      "source_sha256": "a7a4550d2091597073e2f430d7e4a9e8098e297663675c2963b2743a9daf0f27",
       "transforms": []
     },
     "docs/local-quickstart.md": {
@@ -6193,6 +6193,6 @@
       "transforms": []
     }
   },
-  "source_tree": "d675a92e4375b5f0d8261dacfcb19df6f12dfb94",
+  "source_tree": "0d4f69253ff4ce8a194e57c1999e0c4bb8edb0ee",
   "version": 1
 }

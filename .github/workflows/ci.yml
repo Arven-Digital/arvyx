@@ -16,7 +16,8 @@ permissions:
 
 jobs:
   platform-tests:
-    # Opt-in because private-repo hosted-runner cost requires owner approval.
+    # Opt-in because hosted-runner minutes cost money. Linux is the supported
+    # platform; the release workflow requires these three jobs on the tagged commit.
     if: vars.HOSTED_ACTIONS_ENABLED == 'true'
     name: ${{ matrix.os }} / Python ${{ matrix.python }}
     strategy:
@@ -29,6 +30,66 @@ jobs:
             python: "3.12"
           - os: ubuntu-latest
             python: "3.13"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install package and developer tools from hashed lock
+        run: |
+          python -m pip install --require-hashes -r requirements/dev.lock -r requirements/secret-edge.lock
+          python -m pip install --no-deps --no-build-isolation -e .
+
+      - name: Provide a trusted private temporary directory
+        # Native artifact policy refuses group/world-writable ancestors (e.g. /tmp);
+        # the tests place synthetic native bytes under TMPDIR, so give them a private
+        # directory the product's own policy accepts (same step as the correctness job).
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for base in "$RUNNER_TEMP" "$HOME"; do
+            dir="$base/arvyx-private-tmp"
+            mkdir -p "$dir" && chmod 700 "$dir"
+            if python -c 'import os, sys; from arvyx_control.native_artifact_policy import open_native_directory; os.close(open_native_directory(sys.argv[1]))' "$dir"; then
+              echo "TMPDIR=$dir" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "::warning::no private temporary directory accepted by the native policy on this runner"
+      - name: Run unit tests
+        timeout-minutes: 30
+        run: python -m coverage run --branch -m pytest packages/arvctl/tests tests -q
+
+      - name: Build and smoke installed wheel and sdist outside checkout
+        run: python scripts/package_install_smoke.py --json
+
+      - name: Validate public secret shapes
+        run: python scripts/private_context_scan.py --shapes-only
+
+      - name: Validate tracked-path release boundary
+        run: python scripts/public_release_boundary.py
+
+      - name: Validate Docker and MCP compatibility files
+        run: |
+          python scripts/docker_compose_check.py --json
+          python scripts/mcp_streaming_compat_check.py --json
+
+
+  # macOS and Windows have no acceptance receipts yet (docs/limitations.md, Platform
+  # support). They run only when the owner opts in and are not required by the
+  # release workflow; failures are reported, never masked.
+  experimental-platform-tests:
+    if: vars.HOSTED_ACTIONS_ENABLED == 'true' && vars.HOSTED_EXPERIMENTAL_PLATFORMS == 'true'
+    name: experimental ${{ matrix.os }} / Python ${{ matrix.python }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
           - os: macos-latest
             python: "3.11"
           - os: macos-latest
@@ -56,7 +117,24 @@ jobs:
           python -m pip install --require-hashes -r requirements/dev.lock -r requirements/secret-edge.lock
           python -m pip install --no-deps --no-build-isolation -e .
 
+      - name: Provide a trusted private temporary directory
+        # Native artifact policy refuses group/world-writable ancestors (e.g. /tmp);
+        # the tests place synthetic native bytes under TMPDIR, so give them a private
+        # directory the product's own policy accepts (same step as the correctness job).
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for base in "$RUNNER_TEMP" "$HOME"; do
+            dir="$base/arvyx-private-tmp"
+            mkdir -p "$dir" && chmod 700 "$dir"
+            if python -c 'import os, sys; from arvyx_control.native_artifact_policy import open_native_directory; os.close(open_native_directory(sys.argv[1]))' "$dir"; then
+              echo "TMPDIR=$dir" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "::warning::no private temporary directory accepted by the native policy on this runner"
       - name: Run unit tests
+        timeout-minutes: 30
         run: python -m coverage run --branch -m pytest packages/arvctl/tests tests -q
 
       - name: Build and smoke installed wheel and sdist outside checkout

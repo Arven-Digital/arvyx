@@ -144,10 +144,11 @@ as unavailable rather than falling back.
 ## Platform support
 
 Linux is the supported platform: the required CI job runs the full suite on
-Linux for every push and pull request. macOS and
-Windows jobs exist in the matrix and run when the repository variable
-`HOSTED_ACTIONS_ENABLED` is `true`; until their receipts exist they are
-conditional. The Makefile assumes a POSIX shell; on Windows run
+Linux for every push and pull request, and the
+release workflow requires the Linux matrix on the tagged commit. macOS and Windows
+jobs exist as an experimental matrix that runs only when the repository variables
+`HOSTED_ACTIONS_ENABLED` and `HOSTED_EXPERIMENTAL_PLATFORMS` are both `true`; until
+their receipts exist they are not supported. The Makefile assumes a POSIX shell; on Windows run
 `python -m arvyx_control.cli ...` directly or use Git Bash.
 
 ## Safety boundary

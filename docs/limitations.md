@@ -113,7 +113,8 @@ Check: `packages/arvctl/src/arvyx_control/static/index.html`,
   on Linux for every push and pull request. The maintainers keep the clean-machine
   journey receipt in their private records.
 - macOS and Windows are conditional. Their hosted CI jobs run only when the
-  repository variable `HOSTED_ACTIONS_ENABLED` is `true`; until candidate-SHA
+  repository variables `HOSTED_ACTIONS_ENABLED` and `HOSTED_EXPERIMENTAL_PLATFORMS`
+  are both `true`, and the release workflow does not require them; until candidate-SHA
   matrix receipts exist, they are not verified.
 - The Makefile and documented commands assume a POSIX shell. On Windows, run
   `python -m arvyx_control.cli ...` directly or use Git Bash; that path is
