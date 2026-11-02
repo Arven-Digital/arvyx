@@ -2,7 +2,7 @@
 # The project runtime is Python standard-library-only; do not add the project here.
 build==1.6.1
 coverage==7.17.0
-cyclonedx-bom==7.5.0
+cyclonedx-bom==7.6.0
 pip-audit==2.10.1
 pip-licenses==5.5.0
 setuptools==84.2.1
