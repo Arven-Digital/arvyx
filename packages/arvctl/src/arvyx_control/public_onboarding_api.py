@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+from .security import bounded_json_loads
 from pathlib import Path
 import secrets
 import sqlite3
@@ -357,7 +358,7 @@ def handler_for(api, fallback=None):
                         if len(value) != len(pairs):
                             raise ValueError('duplicate fields')
                         return value
-                    body = json.loads(raw, object_pairs_hook=unique) if size else {}
+                    body = bounded_json_loads(raw, object_pairs_hook=unique) if size else {}
                     if proof:
                         if self.command != 'POST' or type(body) is not dict:
                             raise ValueError

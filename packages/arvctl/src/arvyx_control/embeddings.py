@@ -12,7 +12,7 @@ from urllib.request import Request
 from urllib.parse import urlsplit
 from .http_bounds import BoundedOpener
 
-from .security import is_http_url
+from .security import bounded_json_loads, is_http_url
 
 
 _OPENER = BoundedOpener()
@@ -152,7 +152,7 @@ def _embed_batch(config: EmbeddingConfig, batch: list[str]) -> list[list[float]]
             if len(data) > 1024 * 1024:
                 raise EmbeddingError("embeddings response exceeds limit")
             _check_response_depth(data)
-            payload = json.loads(data.decode("utf-8"))
+            payload = bounded_json_loads(data.decode("utf-8"))
     except HTTPError as exc:
         exc.close()
         raise EmbeddingError(f"embeddings endpoint HTTP {exc.code}") from None

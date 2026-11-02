@@ -7,6 +7,7 @@ import base64
 import binascii
 import fcntl
 import json
+from .security import bounded_json_loads
 import os
 from pathlib import Path
 import re
@@ -1548,7 +1549,7 @@ def handle_connection(client, service, dispatcher):
     with exchange_deadline(OWNER_TIMEOUT) as end:
         try:
             raw = receive_frame(client, end, REQUEST_CAP)
-            request = json.loads(raw)
+            request = bounded_json_loads(raw)
             if not isinstance(request, dict):
                 raise ValueError("request must be an object")
             budget = validate_budget(request.pop('_budget_seconds', OWNER_TIMEOUT))

@@ -758,8 +758,11 @@ def private_patterns(repo: Path | None = None) -> list[re.Pattern[str]]:
 
 # JSON nesting is a product limit, not an interpreter accident. Python 3.11 raised
 # RecursionError for a few hundred nested arrays; 3.12 and later parse thousands of
-# levels, so every external JSON intake checks this bound before parsing and reports
-# the same refusal on every supported interpreter.
+# levels. Every network and loopback intake (HTTP bodies of the API, the onboarding
+# API, the control room and the external API, MCP stdio lines, owner-socket frames,
+# pairing messages, remote embedding responses) and the projection checkpoint check
+# this bound before parsing and report the same refusal on every supported
+# interpreter. Readers of local, operator-owned files keep RecursionError handling.
 MAX_JSON_NESTING = 256
 
 
@@ -799,11 +802,18 @@ def json_nesting_depth(text: str, *, limit: int = MAX_JSON_NESTING) -> int:
     return deepest
 
 
-def bounded_json_loads(text: str, *, limit: int = MAX_JSON_NESTING):
-    """``json.loads`` with the explicit nesting bound applied first."""
+def bounded_json_loads(text: str | bytes, *, limit: int = MAX_JSON_NESTING, **kwargs):
+    """``json.loads`` with the explicit nesting bound applied first.
+
+    Bytes are decoded as UTF-8 before scanning (a decoding error propagates as
+    ``UnicodeDecodeError``, as it would from ``json.loads``); keyword arguments such
+    as ``object_pairs_hook`` are passed through.
+    """
+    if isinstance(text, (bytes, bytearray)):
+        text = bytes(text).decode("utf-8")
     if json_nesting_depth(text, limit=limit) > limit:
         raise JSONNestingError(f"JSON nesting exceeds the limit of {limit}")
     try:
-        return json.loads(text)
+        return json.loads(text, **kwargs)
     except RecursionError as exc:  # interpreter bound below ours: same contract
         raise JSONNestingError("JSON nesting exceeds parser limit") from exc

@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+from .security import bounded_json_loads
 import os
 from pathlib import Path
 import secrets
@@ -85,7 +86,7 @@ class LocalHandler(PaperclipHandler):
                 if len(result) != len(pairs):
                     raise ValueError('duplicate fields')
                 return result
-            payload = json.loads(raw, object_pairs_hook=unique)
+            payload = bounded_json_loads(raw, object_pairs_hook=unique)
             if self.path == '/api/local-enrollments':
                 return self.reply(201, self.server.bindings.enroll(payload))
             return self.reply(200, self.server.bindings.bind(payload))

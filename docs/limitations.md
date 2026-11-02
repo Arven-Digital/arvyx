@@ -171,11 +171,13 @@ scheduled, or implied by this page.
   with the admitted onboarding-v1 artifact digest (receipt under
   `frontends/arvyx/receipts/`, rebuilt 2026-11-02 with the overlay patch applied
   fail-closed and its unit tests executed); macOS, Windows and other
-  architectures report the frontend as unavailable. The admitted build's chooser
-  is accepted on a real pseudo-terminal against a synthetic store
+  architectures report the frontend as unavailable. The maintainers ran the
+  chooser acceptance on a real pseudo-terminal against a synthetic store
   (`scripts/native_chooser_pty_acceptance.py`: open, exact target, activity-ordered
-  Last 5, search, scroll, close, no transcript bytes, no launch); exact pane
-  presentation with a live Hermes binding is not yet exercised. A second,
+  Last 5, search, scroll, close, no transcript bytes, no launch); the receipt is
+  attached to the release beside the artifact, not stored in this tree, and the
+  script needs a POSIX host, the admitted binary and the `pyte` terminal emulator.
+  Exact pane presentation with a live Hermes binding is not yet exercised. A second,
   older `mouse-existing` digest stays pinned for installations that already
   carry it; it predates the fail-closed build and has no public receipt, so new
   installations should use the onboarding-v1 artifact, which carries both

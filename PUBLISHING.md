@@ -45,9 +45,11 @@ explicit human action on the exact candidate commit.
 
    `public_release_allowed` must be true. A blocked verdict means deleting the
    draft and the tag, not editing the draft.
-6. Attach the native frontend artifact `arvyx-linux-x86_64` and its receipt
-   `frontends/arvyx/receipts/onboarding-v1-linux-x86_64.json` to the release; the
-   binary digest must equal `NATIVE_ONBOARDING_BINARY_SHA256`.
+6. Attach the native frontend artifact `arvyx-linux-x86_64`, its receipt
+   `frontends/arvyx/receipts/onboarding-v1-linux-x86_64.json` and the chooser
+   acceptance receipt (`native-chooser-pty-acceptance.json`, produced by
+   `scripts/native_chooser_pty_acceptance.py` against that exact binary) to the
+   release; the binary digest must equal `NATIVE_ONBOARDING_BINARY_SHA256`.
 7. Build the npm tarball from the exact tagged checkout, smoke it, record its
    digest in the release notes and publish it under the prerelease dist-tag so
    `latest` never points at an alpha:

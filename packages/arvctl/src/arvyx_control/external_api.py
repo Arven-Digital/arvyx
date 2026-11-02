@@ -9,6 +9,7 @@ from datetime import timedelta
 import hashlib
 from http.server import BaseHTTPRequestHandler
 import json
+from .security import bounded_json_loads
 import math
 import sqlite3
 from urllib.parse import urlsplit, parse_qsl
@@ -669,7 +670,7 @@ class ExternalAPI:
             if not isinstance(cursor, str) or len(cursor) > 2048:
                 raise ValueError('invalid audit cursor')
             try:
-                decoded = json.loads(base64.b64decode(cursor, altchars=b'-_', validate=True))
+                decoded = bounded_json_loads(base64.b64decode(cursor, altchars=b'-_', validate=True))
             except (ValueError, UnicodeError) as error:
                 raise ValueError('invalid audit cursor') from error
             if (type(decoded) is not list or len(decoded) != 5
@@ -720,7 +721,7 @@ def make_server(api, *, port=0):
                             raise ValueError('duplicate key')
                         result[key] = value
                     return result
-                body = json.loads(raw, object_pairs_hook=pairs) if raw else {}
+                body = bounded_json_loads(raw, object_pairs_hook=pairs) if raw else {}
                 status, result = api.dispatch(self.command, self.path,
                     self.headers.get('Authorization', ''), body)
             except ReplicaAuthorityUnavailable:

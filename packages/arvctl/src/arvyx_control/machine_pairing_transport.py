@@ -2,6 +2,7 @@
 import base64
 import hashlib
 import json
+from .security import bounded_json_loads
 import os
 from pathlib import Path
 import secrets
@@ -184,7 +185,7 @@ def make_server(transport, port=0):
                 body = self.rfile.read(length)
                 if len(body) != length:
                     raise ValueError('incomplete request body')
-                data = json.loads(body, object_pairs_hook=_unique_object)
+                data = bounded_json_loads(body, object_pairs_hook=_unique_object)
                 if not isinstance(data, dict):
                     raise ValueError('object required')
                 if self.path == '/challenge':
@@ -229,13 +230,13 @@ def remote_action(directory, url, name, purpose, code=None):
                 raise ValueError('pairing response size limit exceeded')
             if response.length not in (None, 0):
                 raise ValueError('incomplete pairing response; nothing retried')
-            result = json.loads(payload, object_pairs_hook=_unique_object)
+            result = bounded_json_loads(payload, object_pairs_hook=_unique_object)
             if not isinstance(result, dict):
                 raise ValueError('pairing response object required')
         return result
     challenge = post('/challenge', {**PairingTransport.public(key, name), 'purpose': purpose, 'code': code or ''})
     message = base64.b64decode(challenge['message'], validate=True)
-    binding = json.loads(message)
+    binding = bounded_json_loads(message)
     expected = PairingTransport.public(key, name)
     if (binding.get('protocol') != 'amc-pairing-v1' or binding.get('nonce') != challenge['challenge']
             or binding.get('purpose') != purpose or binding.get('name') != name

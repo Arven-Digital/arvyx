@@ -10,6 +10,7 @@ import hashlib
 import hmac
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+from .security import bounded_json_loads
 from pathlib import Path
 import re
 import secrets
@@ -393,7 +394,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 if len(result) != len(pairs):
                     raise ValueError('Duplicate JSON fields rejected')
                 return result
-            data = json.loads(raw, object_pairs_hook=unique_fields)
+            data = bounded_json_loads(raw, object_pairs_hook=unique_fields)
             if self.path == '/api/team/action':
                 if not isinstance(data, dict) or set(data) != {'action', 'payload'} or not isinstance(data['action'], str):
                     raise ValueError('Exact action envelope required')

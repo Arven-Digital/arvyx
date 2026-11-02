@@ -7,6 +7,10 @@ profile, no transcript exposure (the synthetic transcript body must never reach 
 screen). Writes a receipt JSON and exits non-zero on any unmet expectation.
 
 Usage: python native_chooser_pty_acceptance.py --binary /path/arvyx --out /dir [--rows 40 --cols 120]
+
+Maintainer acceptance tool, not a CI gate: it needs a POSIX host, the admitted
+onboarding-v1 binary (any other digest is refused) and the `pyte` terminal emulator,
+which is a tool-only dependency outside the hashed runtime locks.
 """
 from __future__ import annotations
 
@@ -160,7 +164,15 @@ def main() -> int:
     args = parser.parse_args()
     binary = args.binary.resolve(strict=True)
     args.out.mkdir(parents=True, exist_ok=True)
-    receipt: dict = dict(binary=str(binary), binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+    digest = hashlib.sha256(binary.read_bytes()).hexdigest()
+    # Only the admitted onboarding-v1 bytes are an acceptance subject; any other
+    # binary would produce a receipt about something the product never admits.
+    from arvyx_control.native_artifact_policy import NATIVE_ONBOARDING_BINARY_SHA256
+    if digest != NATIVE_ONBOARDING_BINARY_SHA256:
+        print(f'refusing: {binary} is not the admitted onboarding-v1 artifact ({digest[:12]}… != '
+              f'{NATIVE_ONBOARDING_BINARY_SHA256[:12]}…)', file=sys.stderr)
+        return 2
+    receipt: dict = dict(binary=str(binary), binary_sha256=digest, admitted=True,
                          synthetic_only=True, provider=False, steps=[], api_calls=[], failures=[])
 
     base = Path(tempfile.mkdtemp(prefix='native-chooser-', dir=os.environ.get('TMPDIR')))
@@ -286,6 +298,8 @@ def main() -> int:
                 pass
         server.shutdown()
         api.close()
+        import shutil
+        shutil.rmtree(base, ignore_errors=True)  # synthetic state only; the receipt is the record
     receipt['ok'] = not receipt['failures']
     receipt['synthetic_titles'] = titles
     (args.out / 'native-chooser-pty-acceptance.json').write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')

@@ -946,6 +946,7 @@
     "packages/arvctl/tests/test_hermes_history.py": "public-approved",
     "packages/arvctl/tests/test_hermes_profile_launch.py": "public-approved",
     "packages/arvctl/tests/test_index_migration.py": "public-approved",
+    "packages/arvctl/tests/test_json_nesting_bound.py": "public-approved",
     "packages/arvctl/tests/test_latest15_archive_liveness.py": "public-approved",
     "packages/arvctl/tests/test_latest15_dashboard_authority.py": "public-approved",
     "packages/arvctl/tests/test_latest15_decision_notifier.py": "public-approved",
