@@ -216,9 +216,10 @@ Before enabling the timer, run the same command once with `--dry-run`. It valida
 
 Packaging templates:
 
-- `config/agent-delivery-routes.example.json`
-- `deploy/systemd/arvyx-agent-delivery.service`
-- `deploy/systemd/arvyx-agent-delivery.timer`
+- `config/agent-delivery-routes.example.json` (shipped)
+- a systemd oneshot service plus timer running `python -m arvyx_control.dispatcher`
+  with the route file and vault above (the maintainers' deployment kit names them
+  `arvyx-agent-delivery.service` and `.timer`; they are not shipped in this repository)
 
 Before installing the production units, create `/etc/arvyx-v2/routes.d` as a root-owned non-secret configuration directory and stage `agent-delivery-routes.json` there with an atomic replace. The API mounts only this directory read-only; keep `control.env` and `agent-delivery.env` outside it.
 

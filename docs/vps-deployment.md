@@ -91,9 +91,51 @@ HTTP.
 
 ## 4. TLS reverse proxy
 
-Install Caddy from its official packages and copy `deploy/Caddyfile.example` to
-`/etc/caddy/Caddyfile`. Compose `.env` is not inherited by systemd. Install an
-explicit root-owned environment file and service drop-in:
+Install Caddy from its official packages and write `/etc/caddy/Caddyfile` with
+TLS outside and loopback HTTP inside; a minimal, hardened example:
+
+```caddyfile
+{
+	servers {
+		timeouts {
+			read_body 10s
+			read_header 5s
+			write 30s
+			idle 2m
+		}
+		max_header_size 32KB
+	}
+}
+
+{$ARVYX_DOMAIN} {
+	encode zstd gzip
+	request_body {
+		max_size 1MB
+	}
+	reverse_proxy 127.0.0.1:{$ARVYX_PORT} {
+		transport http {
+			dial_timeout 5s
+			response_header_timeout 15s
+			read_timeout 15s
+			write_timeout 15s
+		}
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+	log {
+		output file /var/log/caddy/arvyx-access.log
+		format json
+	}
+}
+```
+
+Compose `.env` is not inherited by systemd. Install an explicit root-owned
+environment file and service drop-in:
 
 ```bash
 set -a; . ./.env; set +a

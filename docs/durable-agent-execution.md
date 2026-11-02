@@ -255,7 +255,7 @@ agent posting the same title cannot suppress the operator page. The existing
 `max_attempts` dead letter plus one autonomous replay still bounds targets that
 fail without reporting BLOCKED.
 
-Production activation is tracked in `deploy/systemd/arvyx-execution-worker.service` and `.timer`. The oneshot runs inside the supervised API container every five seconds and consumes the same root-owned route and credential references as agent delivery. Installing the code without installing and enabling this timer is not an autonomy rollout.
+Production activation is a systemd oneshot service plus timer (the maintainers' deployment kit names them `arvyx-execution-worker.service` and `.timer`; they are not shipped in this repository, so write the unit around the `execution` command above). The oneshot runs inside the supervised API container every five seconds and consumes the same root-owned route and credential references as agent delivery. Installing the code without installing and enabling such a timer is not an autonomy rollout.
 
 ## Health and recovery
 
@@ -304,8 +304,9 @@ most one bounded remediation per subject:
 
 All mutations go through the fenced execution domain functions, every
 remediation is idempotent, and a dedicated lock serializes whole ticks, so an
-overlapping run cannot double-activate anything. Production activation is
-`deploy/systemd/arvyx-execution-watchdog.service` + `.timer` (60 s cadence).
+overlapping run cannot double-activate anything. Production activation is a
+systemd oneshot plus timer at a 60 s cadence (`arvyx-execution-watchdog` in the
+maintainers' deployment kit; not shipped in this repository).
 
 ## Operator replay and HOLD
 

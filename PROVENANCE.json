@@ -101,8 +101,8 @@
       ]
     },
     "README.md": {
-      "exported_sha256": "d0e97aa5626413a68f2b24cf8ffb83fa795608f92c26fdbfa1bc7455fdbf9e6b",
-      "source_sha256": "76872cb656ae766b16d97aa495c36b0746d3e0b45914ab7119f99204395e677b",
+      "exported_sha256": "0dfca25d9bef420791676e69f23ff8afe20211216e941b20fd492e4538c1fe11",
+      "source_sha256": "73be0bffe3f3135238fa27f85eca0bef638ea044c0de2b98e688482048a16355",
       "transforms": [
         "override:config/public-candidate/README.md",
         "strip-private-notice"
@@ -321,8 +321,8 @@
       "transforms": []
     },
     "docs/durable-agent-execution.md": {
-      "exported_sha256": "f11e6dae5d0e1035bc3613bd6c6a905d4f893e4b9e821ceb8d737ffdda141f3c",
-      "source_sha256": "f11e6dae5d0e1035bc3613bd6c6a905d4f893e4b9e821ceb8d737ffdda141f3c",
+      "exported_sha256": "fd61a07acc0e2e23618b936937b01b6867eaab4fda423b0bdc458f37f4033af7",
+      "source_sha256": "fd61a07acc0e2e23618b936937b01b6867eaab4fda423b0bdc458f37f4033af7",
       "transforms": []
     },
     "docs/error-diagnostics.md": {
@@ -413,8 +413,8 @@
       ]
     },
     "docs/outbox.md": {
-      "exported_sha256": "cc27d05ce915b5ad96c337f2da43b6276037cf54ab0be51f8cb7b2bd5140f55e",
-      "source_sha256": "cc27d05ce915b5ad96c337f2da43b6276037cf54ab0be51f8cb7b2bd5140f55e",
+      "exported_sha256": "9c9876dc159bb14b3cd32e75048ee2dc8a0e4314d1b101e083d9c6b4a1561118",
+      "source_sha256": "9c9876dc159bb14b3cd32e75048ee2dc8a0e4314d1b101e083d9c6b4a1561118",
       "transforms": []
     },
     "docs/product.md": {
@@ -509,8 +509,8 @@
       "transforms": []
     },
     "docs/vps-deployment.md": {
-      "exported_sha256": "6b6a1fe995a770f05aaae3546a3312b0af59a305b1547f999dde644e8fa4d468",
-      "source_sha256": "64ecf3cb4e3e981d6c9d313fa133886ec260179b961f188c5d7f98d61223a37a",
+      "exported_sha256": "c6270d4d756d4541ee2815fba6fc7e00b2f8425aab15128e481a11731ce7ddb3",
+      "source_sha256": "b2686376178150909e1ca2f6660dc301d5f7fcb0345ef6d282b130cdd5b740a1",
       "transforms": [
         "replace:rule-0",
         "replace:rule-2"
@@ -6243,6 +6243,6 @@
       "transforms": []
     }
   },
-  "source_tree": "483263fe14fbe09d76f236093a9b380a02b49437",
+  "source_tree": "c616f77091bb00f7a97739a93145287896bf231d",
   "version": 1
 }
