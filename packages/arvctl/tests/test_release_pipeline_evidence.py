@@ -35,6 +35,18 @@ class EvidencePipelineTests(unittest.TestCase):
         self._denylist_environment.start()
         self.addCleanup(self._denylist_environment.stop)
 
+    _default_export = None
+
+    @classmethod
+    def default_export(cls):
+        """One real default export per class; the tests below read it, the CLI test
+        forwards it, so the pipeline runs once instead of once per test."""
+        if cls._default_export is None:
+            cls._default_export = export_evidence(
+                repo=ROOT, vault=VAULT, benchmark_cases=ROOT / "fixtures" / "recall-benchmark.json",
+            )
+        return cls._default_export
+
     def test_evidence_export_writes_release_review_bundle(self) -> None:
         import tempfile
 
@@ -62,11 +74,7 @@ class EvidencePipelineTests(unittest.TestCase):
         self.assertTrue(payload["release_blockers"])
 
     def test_evidence_export_redacts_absolute_paths(self) -> None:
-        result = export_evidence(
-            repo=ROOT,
-            vault=VAULT,
-            benchmark_cases=ROOT / "fixtures" / "recall-benchmark.json",
-        )
+        result = self.default_export()
 
         self.assertEqual(result.repo, ".")
         self.assertEqual(result.vault, "fixtures/synthetic-vault")
@@ -127,32 +135,35 @@ class EvidencePipelineTests(unittest.TestCase):
         self.assertFalse(any("mcp_client_real" in blocker for blocker in result.release_blockers))
 
     def test_cli_evidence_export_json_output(self) -> None:
+        """CLI contract: arguments reach export_evidence, the JSON is the report, the
+        exit code follows the internal checks. The pipeline itself is covered above."""
         import tempfile
         from contextlib import redirect_stdout
         from io import StringIO
+        from arvyx_control import cli
+
+        report = self.default_export()
+        calls = []
+
+        def forward(**kwargs):
+            calls.append(kwargs)
+            return report
 
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "evidence.json"
             out = StringIO()
-            with redirect_stdout(out):
-                code = main(
-                    [
-                        "evidence",
-                        "export",
-                        "--repo",
-                        str(ROOT),
-                        "--vault",
-                        str(VAULT),
-                        "--output",
-                        str(output),
-                        "--json",
-                    ]
-                )
-            output_exists = output.exists()
+            with patch.object(cli, "export_evidence", side_effect=forward), redirect_stdout(out):
+                code = main(["evidence", "export", "--repo", str(ROOT), "--vault", str(VAULT),
+                             "--output", str(output), "--json"])
 
         self.assertEqual(code, 0)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]["repo"], ROOT)
+        self.assertEqual(calls[0]["vault"], VAULT)
+        self.assertEqual(calls[0]["output"], output)
+        self.assertEqual(calls[0]["benchmark_cases"].name, "recall-benchmark.json")  # CLI default, repo-relative
         payload = json.loads(out.getvalue())
-        self.assertTrue(output_exists)
+        self.assertEqual(payload, json.loads(report.to_json()))
         self.assertEqual(payload["recall_benchmark"]["score"], 100)
         self.assertEqual(payload["recall_benchmarks"]["lexical"]["score"], 100)
         self.assertEqual(payload["recall_benchmarks"]["hybrid"]["score"], 100)

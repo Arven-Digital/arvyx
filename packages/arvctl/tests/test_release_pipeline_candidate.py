@@ -35,13 +35,21 @@ class ReleaseCandidatePipelineTests(unittest.TestCase):
         self._denylist_environment.start()
         self.addCleanup(self._denylist_environment.stop)
 
-    @patch.dict(os.environ, {"ARVYX_PRIVATE_DENYLIST": str(ROOT / "requirements/dev.lock/not-a-directory")})
+    _default_report = None
+
+    @classmethod
+    def default_report(cls):
+        """One real default report per class (denylist path deliberately invalid, as
+        the assurance test needs); the CLI test forwards it instead of re-running."""
+        if cls._default_report is None:
+            with patch.dict(os.environ, {"ARVYX_PRIVATE_DENYLIST": str(ROOT / "requirements/dev.lock/not-a-directory")}):
+                cls._default_report = release_candidate_report(
+                    repo=ROOT, vault=VAULT, benchmark_cases=ROOT / "fixtures/recall-benchmark.json",
+                )
+        return cls._default_report
+
     def test_release_candidate_report_blocks_preview_without_assurance(self) -> None:
-        result = release_candidate_report(
-            repo=ROOT,
-            vault=VAULT,
-            benchmark_cases=ROOT / "fixtures/recall-benchmark.json",
-        )
+        result = self.default_report()
 
         self.assertFalse(result.private_preview_allowed)
         self.assertFalse(result.public_release_allowed)
@@ -107,24 +115,30 @@ class ReleaseCandidatePipelineTests(unittest.TestCase):
 
     @patch.dict(os.environ, {"ARVYX_PRIVATE_DENYLIST": str(ROOT / "requirements/dev.lock/not-a-directory")})
     def test_cli_release_candidate_json_output(self) -> None:
+        """CLI contract: arguments reach release_candidate_report, the JSON is the
+        report, exit 1 while the private preview is blocked."""
         from contextlib import redirect_stdout
         from io import StringIO
+        from arvyx_control import cli
+
+        report = self.default_report()
+        calls = []
+
+        def forward(**kwargs):
+            calls.append(kwargs)
+            return report
 
         out = StringIO()
-        with redirect_stdout(out):
-            code = main(
-                [
-                    "release-candidate",
-                    "--repo",
-                    str(ROOT),
-                    "--vault",
-                    str(VAULT),
-                    "--json",
-                ]
-            )
+        with patch.object(cli, "release_candidate_report", side_effect=forward), redirect_stdout(out):
+            code = main(["release-candidate", "--repo", str(ROOT), "--vault", str(VAULT), "--json"])
 
         self.assertEqual(code, 1)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]["repo"], ROOT)
+        self.assertEqual(calls[0]["vault"], VAULT)
+        self.assertFalse(calls[0]["require_provenance"])
         payload = json.loads(out.getvalue())
+        self.assertEqual(payload, json.loads(report.to_json()))
         self.assertFalse(payload["private_preview_allowed"])
         self.assertFalse(payload["public_release_allowed"])
         self.assertTrue(payload["internal_evidence_blockers"])

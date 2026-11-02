@@ -1033,6 +1033,7 @@
     "packages/arvctl/tests/test_release_grade_signers.py": "public-approved",
     "packages/arvctl/tests/test_release_pipeline_candidate.py": "public-approved",
     "packages/arvctl/tests/test_release_pipeline_dogfood.py": "public-approved",
+    "packages/arvctl/tests/test_release_pipeline_dogfood_release_host.py": "public-approved",
     "packages/arvctl/tests/test_release_pipeline_evidence.py": "public-approved",
     "packages/arvctl/tests/test_remaining_claims_t9b.py": "public-approved",
     "packages/arvctl/tests/test_remote_delegation_journey.py": "public-approved",

@@ -1,0 +1,67 @@
+"""Self-dogfood pipeline test with signed release-host evidence (its own worker).
+
+Moved out of test_recall.py so that pytest-xdist (one file per worker) spreads the
+release-pipeline tests, each of which runs a full audit and benchmark, across
+workers instead of serialising them behind the rest of that module.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import tempfile
+from pathlib import Path
+import unittest
+from unittest.mock import patch
+
+from test_recall import (  # noqa: E402  (shared fixtures and helpers of the recall suite)
+    ROOT, VAULT, _git_head, _git_tree, _make_pinned_signer, _pinned_release_policy,
+    _release_host_fake_run, _write_signed_external_mcp_evidence, main,
+)
+from arvyx_control.dogfood import dogfood_self
+from arvyx_control.evidence import export_evidence
+from arvyx_control.mcp_client_evidence import generate_mcp_client_evidence
+from arvyx_control.release_candidate import release_candidate_report
+
+
+class DogfoodReleaseHostPipelineTests(unittest.TestCase):
+    def setUp(self) -> None:
+        # The same example denylist RecallTests provides: the pipeline audits the
+        # repository and must find a loaded denylist, whatever the host environment.
+        self._denylist_environment = patch.dict(
+            os.environ,
+            {"ARVYX_PRIVATE_DENYLIST": str(ROOT / "fixtures" / "private-denylist.example.txt")},
+        )
+        self._denylist_environment.start()
+        self.addCleanup(self._denylist_environment.stop)
+
+    def test_self_dogfood_accepts_release_host_evidence(self) -> None:
+        import subprocess
+        from unittest.mock import patch
+
+        head = _git_head()
+        tree = _git_tree()
+        real_run = subprocess.run
+
+        fake_run = _release_host_fake_run(real_run, head, tree)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            evidence = Path(tmp) / "mcp-client-evidence.json"
+            key, allowed = _make_pinned_signer(Path(tmp))
+            _write_signed_external_mcp_evidence(evidence, key)
+            with _pinned_release_policy(allowed):
+                with patch("arvyx_control.release_host.shutil.which", return_value="/usr/bin/docker"):
+                    with patch("arvyx_control.release_host.subprocess.run", side_effect=fake_run):
+                        result = dogfood_self(
+                            repo=ROOT,
+                            run_docker=True,
+                            run_bridge=True,
+                            mcp_client_evidence=evidence,
+                        )
+
+        checks = {check.name: check for check in result.checks}
+        release_blockers = checks["evidence_after_self_import"].detail["release_blockers"]
+        self.assertTrue(result.ok)
+        self.assertFalse(any("docker_runtime" in blocker for blocker in release_blockers))
+        self.assertFalse(any("safe_mcp_bridge_e2e" in blocker for blocker in release_blockers))
+        self.assertFalse(any("mcp_client_real" in blocker for blocker in release_blockers))

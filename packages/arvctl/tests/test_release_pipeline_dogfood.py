@@ -35,8 +35,17 @@ class DogfoodPipelineTests(unittest.TestCase):
         self._denylist_environment.start()
         self.addCleanup(self._denylist_environment.stop)
 
+    _default_result = None
+
+    @classmethod
+    def default_result(cls):
+        """One real default self-dogfood per class; the CLI test forwards it."""
+        if cls._default_result is None:
+            cls._default_result = dogfood_self(repo=ROOT)
+        return cls._default_result
+
     def test_self_dogfood_imports_public_docs_and_recalls_retrieval(self) -> None:
-        result = dogfood_self(repo=ROOT)
+        result = self.default_result()
         checks = {check.name: check for check in result.checks}
 
         self.assertTrue(result.ok)
@@ -44,46 +53,30 @@ class DogfoodPipelineTests(unittest.TestCase):
         self.assertTrue(checks["recall_public_docs"].ok)
         self.assertTrue(checks["evidence_after_self_import"].ok)
 
-    def test_self_dogfood_accepts_release_host_evidence(self) -> None:
-        import subprocess
-        from unittest.mock import patch
-
-        head = _git_head()
-        tree = _git_tree()
-        real_run = subprocess.run
-
-        fake_run = _release_host_fake_run(real_run, head, tree)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            evidence = Path(tmp) / "mcp-client-evidence.json"
-            key, allowed = _make_pinned_signer(Path(tmp))
-            _write_signed_external_mcp_evidence(evidence, key)
-            with _pinned_release_policy(allowed):
-                with patch("arvyx_control.release_host.shutil.which", return_value="/usr/bin/docker"):
-                    with patch("arvyx_control.release_host.subprocess.run", side_effect=fake_run):
-                        result = dogfood_self(
-                            repo=ROOT,
-                            run_docker=True,
-                            run_bridge=True,
-                            mcp_client_evidence=evidence,
-                        )
-
-        checks = {check.name: check for check in result.checks}
-        release_blockers = checks["evidence_after_self_import"].detail["release_blockers"]
-        self.assertTrue(result.ok)
-        self.assertFalse(any("docker_runtime" in blocker for blocker in release_blockers))
-        self.assertFalse(any("safe_mcp_bridge_e2e" in blocker for blocker in release_blockers))
-        self.assertFalse(any("mcp_client_real" in blocker for blocker in release_blockers))
-
     def test_cli_self_dogfood_json_output(self) -> None:
+        """CLI contract: the repo argument reaches dogfood_self, the JSON is the
+        result, exit 0 when every check passed."""
         from contextlib import redirect_stdout
         from io import StringIO
+        from arvyx_control import cli
+
+        result = self.default_result()
+        calls = []
+
+        def forward(**kwargs):
+            calls.append(kwargs)
+            return result
 
         out = StringIO()
-        with redirect_stdout(out):
+        with patch.object(cli, "dogfood_self", side_effect=forward), redirect_stdout(out):
             code = main(["dogfood", "self", "--repo", str(ROOT), "--json"])
 
         self.assertEqual(code, 0)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]["repo"], ROOT)
+        self.assertFalse(calls[0]["run_docker"])
+        self.assertFalse(calls[0]["run_bridge"])
         payload = json.loads(out.getvalue())
+        self.assertEqual(payload, json.loads(result.to_json()))
         self.assertTrue(payload["ok"])
         self.assertTrue(any(check["name"] == "recall_public_docs" and check["ok"] for check in payload["checks"]))

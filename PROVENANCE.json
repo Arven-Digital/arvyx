@@ -1,7 +1,7 @@
 {
   "counts": {
     "excluded": 261,
-    "exported": 1228,
+    "exported": 1229,
     "overrides": 9
   },
   "destination_repository": "Arven-Digital/arvyx",
@@ -5205,18 +5205,23 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_release_pipeline_candidate.py": {
-      "exported_sha256": "96eaf7d6853017d7a73883263facb895fa7e4c3bc7ee59cf9a88bf539fb3dca9",
-      "source_sha256": "96eaf7d6853017d7a73883263facb895fa7e4c3bc7ee59cf9a88bf539fb3dca9",
+      "exported_sha256": "7149c2a3ef80085ebd03d5c4ef52ba6f442b02d4f6a00354d4e3ecc2994f103b",
+      "source_sha256": "7149c2a3ef80085ebd03d5c4ef52ba6f442b02d4f6a00354d4e3ecc2994f103b",
       "transforms": []
     },
     "packages/arvctl/tests/test_release_pipeline_dogfood.py": {
-      "exported_sha256": "90dd7a419835c2373f83a63da06ad28d79f4960988c28d8a0797f34bfd25136c",
-      "source_sha256": "90dd7a419835c2373f83a63da06ad28d79f4960988c28d8a0797f34bfd25136c",
+      "exported_sha256": "4bd436aa6d45074d2d480af8d1edf4fc6b88ebf1edf7ae17d06e325418387e5f",
+      "source_sha256": "4bd436aa6d45074d2d480af8d1edf4fc6b88ebf1edf7ae17d06e325418387e5f",
+      "transforms": []
+    },
+    "packages/arvctl/tests/test_release_pipeline_dogfood_release_host.py": {
+      "exported_sha256": "0d3a55d581b5bce02d8d66bfcc9c1025dce27a3e2f73cb494e8e063f795d6880",
+      "source_sha256": "0d3a55d581b5bce02d8d66bfcc9c1025dce27a3e2f73cb494e8e063f795d6880",
       "transforms": []
     },
     "packages/arvctl/tests/test_release_pipeline_evidence.py": {
-      "exported_sha256": "9e109190eca6b2261fbcd3520c27226b8c14b78ead99ac46dbd4c713566b2867",
-      "source_sha256": "9e109190eca6b2261fbcd3520c27226b8c14b78ead99ac46dbd4c713566b2867",
+      "exported_sha256": "300b1811a4c37ef252c87d2a6f29f8adfb76d46459ceb7ca4bb49dcd18f0f4da",
+      "source_sha256": "300b1811a4c37ef252c87d2a6f29f8adfb76d46459ceb7ca4bb49dcd18f0f4da",
       "transforms": []
     },
     "packages/arvctl/tests/test_remaining_claims_t9b.py": {
@@ -6218,6 +6223,6 @@
       "transforms": []
     }
   },
-  "source_tree": "1cb709a0a9bf8edeac7afa32d4bae7ecc76f3dbc",
+  "source_tree": "a3b8e487cbbfd4327eaee9d0a45d3ba80731c0f2",
   "version": 1
 }
