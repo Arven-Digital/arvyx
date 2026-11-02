@@ -153,7 +153,9 @@ jobs:
           python scripts/docker_compose_check.py --json
           python scripts/mcp_streaming_compat_check.py --json
 
-  # Required aggregate cannot go green when either independent gate fails.
+  # Required aggregate: green only when security, every correctness shard and
+  # integration succeeded, and only if the shards' combined branch coverage clears
+  # the floor.
   test:
     runs-on: ubuntu-latest
     if: ${{ always() }}

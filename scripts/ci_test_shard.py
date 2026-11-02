@@ -20,10 +20,15 @@ TEST_ROOTS = ("packages/arvctl/tests", "tests")
 
 
 def test_files(root: Path = ROOT) -> list[Path]:
-    files: list[Path] = []
+    """Every file pytest would collect under the test roots (its default patterns,
+    recursively), so a file in a subdirectory or named ``*_test.py`` cannot fall
+    between the shards."""
+    files: set[Path] = set()
     for relative in TEST_ROOTS:
-        files.extend(sorted((root / relative).glob("test_*.py")))
-    return files
+        for pattern in ("test_*.py", "*_test.py"):
+            files.update(path for path in (root / relative).rglob(pattern)
+                         if "__pycache__" not in path.parts)
+    return sorted(files)
 
 
 def shards(count: int, root: Path = ROOT) -> list[list[Path]]:

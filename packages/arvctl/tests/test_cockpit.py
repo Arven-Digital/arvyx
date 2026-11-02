@@ -138,7 +138,17 @@ class CockpitTests(unittest.TestCase):
                 break
             time.sleep(.02)
         self.assertIn("33 101\r\n", result["output"])
-        self.assertEqual(self.service.read(sid, actor="operator", cursor=result["cursor"])["output"], "")
+        # The shell may still be printing its prompt after the stty output; drain until
+        # the cursor is quiet so the delta read below observes exactly nothing new.
+        cursor = result["cursor"]
+        deadline = time.monotonic() + 3
+        while time.monotonic() < deadline:
+            delta = self.service.read(sid, actor="operator", cursor=cursor)
+            if delta["output"] == "":
+                break
+            cursor = delta["cursor"]
+            time.sleep(.02)
+        self.assertEqual(self.service.read(sid, actor="operator", cursor=cursor)["output"], "")
         with self.assertRaises(ValueError):
             self.service.resize(sid, rows=0, columns=80, actor="operator")
 

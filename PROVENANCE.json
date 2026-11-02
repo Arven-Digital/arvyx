@@ -32,8 +32,8 @@
       ]
     },
     ".github/workflows/ci.yml": {
-      "exported_sha256": "1c5092554a8c5d12c588a1a115ff5e7e270ba3725d07aa3b74397dc886a11ab5",
-      "source_sha256": "54b124124b03a740ae1602b79eb53ad2a74d703af9cf7bfdf157dd108039ac09",
+      "exported_sha256": "79deabb43348776649dd9ce7f8b40c9005fb8d4273b6906bfe4a65ecbfad222b",
+      "source_sha256": "7898adda8e661db59efb2c6bab354b0e1efca1e96042a38c1065bf2b0c5a3d8f",
       "transforms": [
         "override:config/public-candidate/.github/workflows/ci.yml",
         "strip-private-notice"
@@ -109,8 +109,8 @@
       ]
     },
     "SECURITY.md": {
-      "exported_sha256": "26ff647b4b49e459e611b7dfcd1e15fa3e7770bb0c72505ffcd59107a9bbc8d1",
-      "source_sha256": "26ff647b4b49e459e611b7dfcd1e15fa3e7770bb0c72505ffcd59107a9bbc8d1",
+      "exported_sha256": "5b4acd6fa44f84f841d86b2bf9ff6c887690cc16125e5572cef96eedfa95dc1f",
+      "source_sha256": "5b4acd6fa44f84f841d86b2bf9ff6c887690cc16125e5572cef96eedfa95dc1f",
       "transforms": []
     },
     "apps/control-center-api/README.md": {
@@ -4075,8 +4075,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_ci_test_shard.py": {
-      "exported_sha256": "3ae11b6708fe975add2bc546fee25a13ef3c25514b8fef68e65640e3324240d9",
-      "source_sha256": "3ae11b6708fe975add2bc546fee25a13ef3c25514b8fef68e65640e3324240d9",
+      "exported_sha256": "2eb28a8acf14d698e67896a3e10fc6578f109991b5d523ecd5d2d1a915fbc6a8",
+      "source_sha256": "2eb28a8acf14d698e67896a3e10fc6578f109991b5d523ecd5d2d1a915fbc6a8",
       "transforms": []
     },
     "packages/arvctl/tests/test_claude_code_history.py": {
@@ -4085,8 +4085,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit.py": {
-      "exported_sha256": "95d8c530b80789b56e38918a9f1b5cbdab97e50677da75aa285e539dbf74a5cf",
-      "source_sha256": "95d8c530b80789b56e38918a9f1b5cbdab97e50677da75aa285e539dbf74a5cf",
+      "exported_sha256": "556abbf31801a72751286f8d1267cc51afc559175e3587166645ce9bb77627bf",
+      "source_sha256": "556abbf31801a72751286f8d1267cc51afc559175e3587166645ce9bb77627bf",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_adapters.py": {
@@ -5985,8 +5985,8 @@
       "transforms": []
     },
     "scripts/ci_test_shard.py": {
-      "exported_sha256": "e818233330effe1f7472a2e6e23adb26e24a4bb6f563af36a21d21bc9de6a3ff",
-      "source_sha256": "e818233330effe1f7472a2e6e23adb26e24a4bb6f563af36a21d21bc9de6a3ff",
+      "exported_sha256": "74838e29c8696b2cba927e38f5d20ba72c9ffb74437327127dcff5357e5fdb7c",
+      "source_sha256": "74838e29c8696b2cba927e38f5d20ba72c9ffb74437327127dcff5357e5fdb7c",
       "transforms": []
     },
     "scripts/cockpit_arvyx_acceptance.py": {
@@ -6243,6 +6243,6 @@
       "transforms": []
     }
   },
-  "source_tree": "9f55e5c2c857559f4f68b8c48c8b4c9f959ebeba",
+  "source_tree": "8ffb62cef801822bd9da4e5e52a1f44d84fc9f45",
   "version": 1
 }

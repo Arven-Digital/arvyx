@@ -50,3 +50,17 @@ def test_cli_prints_repository_relative_paths_for_one_shard():
     bad = subprocess.run([sys.executable, str(ROOT / "scripts/ci_test_shard.py"), "--count", "2", "--index", "3"],
                          capture_output=True, text=True, cwd=ROOT)
     assert bad.returncode != 0
+
+
+def test_shard_union_equals_what_pytest_collects():
+    """pytest's own collection is the oracle: a file the shards miss would run in no CI
+    shard and silently leave the coverage floor."""
+    module = _module()
+    out = subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q", "-p", "no:cacheprovider",
+         "packages/arvctl/tests", "tests"],
+        check=True, capture_output=True, text=True, cwd=ROOT,
+    ).stdout
+    collected = {ROOT / line.split("::", 1)[0] for line in out.splitlines() if "::" in line}
+    assert collected, "pytest collected nothing"
+    assert collected == set(module.test_files())

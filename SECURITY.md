@@ -45,10 +45,11 @@ carry no value and are not findings.
 `ci.yml` runs `security` (strict private-context scan with the real denylist,
 release-boundary classification, Gitleaks), `correctness` (dependency audit and
 licence inventory, the MCP evidence client, preflight contracts, the Python suite
-with its branch-coverage floor) and `integration` (frontend and npm tests, package
+in two coverage-measured shards) and `integration` (frontend and npm tests, package
 smoke, integration gates, Docker runtime smoke) as independent jobs, so a failure
 in one never hides the others' evidence; the required `test` check passes only
-when all three succeed, and no timeout is treated as a pass. Node 24.11.1
+when all of them succeed and the shards' combined branch coverage clears the 75 %
+floor, and no timeout is treated as a pass. Node 24.11.1
 and Python 3.11 are pinned. A green run is a prerequisite for a release, not
 release clearance.
 
