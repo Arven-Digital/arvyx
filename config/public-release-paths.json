@@ -1198,6 +1198,7 @@
     "scripts/mcp_client_examples_check.py": "public-approved",
     "scripts/mcp_client_real_evidence.py": "public-approved",
     "scripts/mcp_streaming_compat_check.py": "public-approved",
+    "scripts/native_chooser_pty_acceptance.py": "public-approved",
     "scripts/npm_package_smoke.py": "public-approved",
     "scripts/package_install_smoke.py": "public-approved",
     "scripts/paperclip_fixture.py": "public-approved",

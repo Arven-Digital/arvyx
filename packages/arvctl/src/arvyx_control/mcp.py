@@ -3,6 +3,7 @@ from __future__ import annotations
 from .diagnostics import boundary, capture
 
 import json
+from .security import JSONNestingError, bounded_json_loads
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -509,13 +510,13 @@ def handle_json_line(
     audit_surface: str = "mcp-stdio",
 ) -> str | None:
     try:
-        payload = json.loads(line)
+        payload = bounded_json_loads(line)
+    except JSONNestingError:
+        return json.dumps(_error(None, -32700, "parse error: JSON nesting exceeds parser limit"), sort_keys=True)
     except json.JSONDecodeError as exc:
         return json.dumps(_error(None, -32700, f"parse error: {exc.msg}"), sort_keys=True)
     except ValueError:
         return json.dumps(_error(None, -32700, "parse error: JSON value refused by parser"), sort_keys=True)
-    except RecursionError:
-        return json.dumps(_error(None, -32700, "parse error: JSON nesting exceeds parser limit"), sort_keys=True)
     if not isinstance(payload, dict):
         return json.dumps(_error(None, -32600, "request must be a JSON object"), sort_keys=True)
     response = handle_request(

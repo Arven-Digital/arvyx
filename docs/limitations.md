@@ -119,7 +119,11 @@ Check: `packages/arvctl/src/arvyx_control/static/index.html`,
 - The Makefile and documented commands assume a POSIX shell. On Windows, run
   `python -m arvyx_control.cli ...` directly or use Git Bash; that path is
   also conditional.
-- Python 3.11 or newer is required.
+- Python 3.11 or newer is required. The suite runs on 3.11, 3.12 and 3.13 in CI.
+  Python 3.13 verifies TLS peers with `VERIFY_X509_STRICT`: a CA used for the
+  secret-delivery or pairing endpoints must carry `basicConstraints CA:TRUE` and
+  a `keyUsage` with `keyCertSign`, and leaves need `keyUsage`, a SAN and an EKU;
+  a bare `openssl req -x509` certificate is refused there.
 
 ## Non-goals
 
@@ -167,8 +171,11 @@ scheduled, or implied by this page.
   with the admitted onboarding-v1 artifact digest (receipt under
   `frontends/arvyx/receipts/`, rebuilt 2026-11-02 with the overlay patch applied
   fail-closed and its unit tests executed); macOS, Windows and other
-  architectures report the frontend as unavailable. The admitted build has not
-  yet been exercised on a real PTY with a disposable stored profile. A second,
+  architectures report the frontend as unavailable. The admitted build's chooser
+  is accepted on a real pseudo-terminal against a synthetic store
+  (`scripts/native_chooser_pty_acceptance.py`: open, exact target, activity-ordered
+  Last 5, search, scroll, close, no transcript bytes, no launch); exact pane
+  presentation with a live Hermes binding is not yet exercised. A second,
   older `mouse-existing` digest stays pinned for installations that already
   carry it; it predates the fail-closed build and has no public receipt, so new
   installations should use the onboarding-v1 artifact, which carries both

@@ -27,6 +27,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 import json
+from .security import bounded_json_loads
 import os
 from pathlib import Path
 import stat
@@ -263,10 +264,11 @@ def _is_sha256(value: object) -> bool:
 def _load(state: Path) -> tuple[dict[str, object] | None, str]:
     path = checkpoint_path(state)
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        raw = bounded_json_loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         return None, "missing"
     except (OSError, ValueError, UnicodeDecodeError, RecursionError):
+        # JSONNestingError is a ValueError: over-deep checkpoints are unreadable.
         return None, "unreadable"
     return _validate(state, raw)
 

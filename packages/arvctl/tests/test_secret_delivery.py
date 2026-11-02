@@ -39,11 +39,17 @@ def certificates(root):
     """Ephemeral, test-only identity. Private keys never in argv/output/artifacts."""
     def run(*args):
         subprocess.run(['openssl', *args], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    run('req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1', '-subj', '/CN=Synthetic CA', '-keyout', str(root/'ca.key'), '-out', str(root/'ca.pem'))
+    # RFC 5280 profile: Python 3.13 verifies with VERIFY_X509_STRICT by default, so the
+    # CA must carry a critical keyUsage with keyCertSign and the leaves must declare
+    # their own key usage; an operator's real PKI already does.
+    run('req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1', '-subj', '/CN=Synthetic CA',
+        '-addext', 'basicConstraints=critical,CA:TRUE', '-addext', 'keyUsage=critical,keyCertSign,cRLSign',
+        '-keyout', str(root/'ca.key'), '-out', str(root/'ca.pem'))
     for name in ('server', 'operator', 'sender', 'other'):
         run('req', '-newkey', 'rsa:2048', '-nodes', '-subj', '/CN=localhost', '-keyout', str(root/(name+'.key')), '-out', str(root/(name+'.csr')))
         ext = root/(name+'.ext')
-        ext.write_text('subjectAltName=DNS:localhost\nextendedKeyUsage=serverAuth,clientAuth\n')
+        ext.write_text('basicConstraints=CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\n'
+                       'subjectAltName=DNS:localhost\nextendedKeyUsage=serverAuth,clientAuth\n')
         run('x509', '-req', '-days', '1', '-in', str(root/(name+'.csr')), '-CA', str(root/'ca.pem'), '-CAkey', str(root/'ca.key'), '-CAcreateserial', '-extfile', str(ext), '-out', str(root/(name+'.pem')))
     for path in root.glob('*.key'):
         path.chmod(0o600)

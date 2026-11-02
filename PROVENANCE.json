@@ -1,7 +1,7 @@
 {
   "counts": {
     "excluded": 261,
-    "exported": 1223,
+    "exported": 1224,
     "overrides": 9
   },
   "destination_repository": "Arven-Digital/arvyx",
@@ -361,8 +361,8 @@
       "transforms": []
     },
     "docs/limitations.md": {
-      "exported_sha256": "a7a4550d2091597073e2f430d7e4a9e8098e297663675c2963b2743a9daf0f27",
-      "source_sha256": "a7a4550d2091597073e2f430d7e4a9e8098e297663675c2963b2743a9daf0f27",
+      "exported_sha256": "822320d39f2477d86f062c2770f830ffd2b861f99884b934601acc9f0adfea0c",
+      "source_sha256": "822320d39f2477d86f062c2770f830ffd2b861f99884b934601acc9f0adfea0c",
       "transforms": []
     },
     "docs/local-quickstart.md": {
@@ -3203,8 +3203,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/api.py": {
-      "exported_sha256": "b3154bc7b600cf1bfd7088d2f273f7f47967bca339973e7eee26de48b3820611",
-      "source_sha256": "b3154bc7b600cf1bfd7088d2f273f7f47967bca339973e7eee26de48b3820611",
+      "exported_sha256": "7d2351a07228bc08df8dc04fc62430499b23b0e18b9eb38a1aad900f0a352c2f",
+      "source_sha256": "7d2351a07228bc08df8dc04fc62430499b23b0e18b9eb38a1aad900f0a352c2f",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/attestation.py": {
@@ -3655,8 +3655,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/mcp.py": {
-      "exported_sha256": "2c5fe80ab33e90335b872737742bb5ca5eba0c174df43b5fc34b7ca76e5c3de5",
-      "source_sha256": "2c5fe80ab33e90335b872737742bb5ca5eba0c174df43b5fc34b7ca76e5c3de5",
+      "exported_sha256": "d1847a25e1ecefe74076339c831b1fa759f5837b7ce51f78dbd87d287c829104",
+      "source_sha256": "d1847a25e1ecefe74076339c831b1fa759f5837b7ce51f78dbd87d287c829104",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/mcp_client_evidence.py": {
@@ -3750,8 +3750,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/projection_cache.py": {
-      "exported_sha256": "fc12778e0a05f1871c12cc9e35bcce6d85822a53cf9926887a2c02a00c6b0994",
-      "source_sha256": "fc12778e0a05f1871c12cc9e35bcce6d85822a53cf9926887a2c02a00c6b0994",
+      "exported_sha256": "122fdde292660bcf7b92942cc9146a65eff19da190c547f33875f551d258cde7",
+      "source_sha256": "122fdde292660bcf7b92942cc9146a65eff19da190c547f33875f551d258cde7",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/promotion_transaction.py": {
@@ -3870,8 +3870,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/security.py": {
-      "exported_sha256": "1e738474047a92f9d82f5e398f46ce49b5c51b05a49af6857e51cdfaacaee054",
-      "source_sha256": "1e738474047a92f9d82f5e398f46ce49b5c51b05a49af6857e51cdfaacaee054",
+      "exported_sha256": "7df5e63e2f3088a3c30a6fce8909668133416f7a43685419c25dfed6070d500e",
+      "source_sha256": "7df5e63e2f3088a3c30a6fce8909668133416f7a43685419c25dfed6070d500e",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/session.py": {
@@ -5315,8 +5315,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_secret_delivery.py": {
-      "exported_sha256": "ec822dd13c41eea695ec1793c262692679ac16456ad9f35cdffd24ab8b71a962",
-      "source_sha256": "ec822dd13c41eea695ec1793c262692679ac16456ad9f35cdffd24ab8b71a962",
+      "exported_sha256": "77b9cf935c9847764ccaf6fbe19e577cd39d6ce9fe818ae39f0cb89be7becff7",
+      "source_sha256": "77b9cf935c9847764ccaf6fbe19e577cd39d6ce9fe818ae39f0cb89be7becff7",
       "transforms": []
     },
     "packages/arvctl/tests/test_secret_delivery_access.py": {
@@ -6051,6 +6051,11 @@
       "source_sha256": "ee5379f8a0b1dd7bddc4990a0d2211ee019ce47d148284440d49d4f6caa52d46",
       "transforms": []
     },
+    "scripts/native_chooser_pty_acceptance.py": {
+      "exported_sha256": "0797025646e0a9ac748696336eee030247ddc94eb6bcec84532697aac4a61da9",
+      "source_sha256": "0797025646e0a9ac748696336eee030247ddc94eb6bcec84532697aac4a61da9",
+      "transforms": []
+    },
     "scripts/npm_package_smoke.py": {
       "exported_sha256": "dc1fb7398e1b6e707e512919f1e4984aea05fce65137dc96fefb3783db85c83a",
       "source_sha256": "dc1fb7398e1b6e707e512919f1e4984aea05fce65137dc96fefb3783db85c83a",
@@ -6193,6 +6198,6 @@
       "transforms": []
     }
   },
-  "source_tree": "0d4f69253ff4ce8a194e57c1999e0c4bb8edb0ee",
+  "source_tree": "dcc5211d673b441e966277cd010ffdfc00cf0a55",
   "version": 1
 }

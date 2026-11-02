@@ -754,3 +754,56 @@ def load_secret_scan_allowlist(repo: Path) -> set[str]:
 
 def private_patterns(repo: Path | None = None) -> list[re.Pattern[str]]:
     return [*private_name_patterns(repo), SECRET_RE]
+
+
+# JSON nesting is a product limit, not an interpreter accident. Python 3.11 raised
+# RecursionError for a few hundred nested arrays; 3.12 and later parse thousands of
+# levels, so every external JSON intake checks this bound before parsing and reports
+# the same refusal on every supported interpreter.
+MAX_JSON_NESTING = 256
+
+
+class JSONNestingError(ValueError):
+    """Raised before parsing when a JSON text nests deeper than MAX_JSON_NESTING."""
+
+
+def json_nesting_depth(text: str, *, limit: int = MAX_JSON_NESTING) -> int:
+    """Return the maximum bracket nesting of ``text`` (strings and escapes ignored).
+
+    Stops counting at ``limit + 1`` so an adversarial document costs one linear pass
+    and no memory beyond a counter.
+    """
+    depth = 0
+    deepest = 0
+    in_string = False
+    escaped = False
+    for char in text:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char in "[{":
+            depth += 1
+            if depth > deepest:
+                deepest = depth
+                if deepest > limit:
+                    return deepest
+        elif char in "]}":
+            depth -= 1 if depth else 0
+    return deepest
+
+
+def bounded_json_loads(text: str, *, limit: int = MAX_JSON_NESTING):
+    """``json.loads`` with the explicit nesting bound applied first."""
+    if json_nesting_depth(text, limit=limit) > limit:
+        raise JSONNestingError(f"JSON nesting exceeds the limit of {limit}")
+    try:
+        return json.loads(text)
+    except RecursionError as exc:  # interpreter bound below ours: same contract
+        raise JSONNestingError("JSON nesting exceeds parser limit") from exc
