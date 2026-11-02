@@ -1448,9 +1448,15 @@ def read_events(state: Path, *, max_bytes: int | None = None) -> list[ControlEve
         appended = False
         if cached is not None and cached[0] == stat.st_ino and stat.st_mtime_ns >= cached[4]:
             if stat.st_size == cached[1]:
-                if stat.st_mtime_ns == cached[4] and (
-                        not _racy(cached[4], cached[8]) or _prefix_bytes_match(state, cached[1], cached[7])):
-                    return list(cached[3])
+                if stat.st_mtime_ns == cached[4]:
+                    if not _racy(cached[4], cached[8]):
+                        return list(cached[3])
+                    if _prefix_bytes_match(state, cached[1], cached[7]):
+                        # The bytes still match: refresh the caching time so the entry
+                        # stops being racy once the window has passed, instead of being
+                        # re-hashed on every later read of an idle log.
+                        _EVENT_CACHE[key] = (*cached[:8], time.time_ns())
+                        return list(cached[3])
             elif stat.st_size > cached[1] and _prefix_unchanged(state, cached[1], cached[5], cached[6]):
                 appended = True
         if not appended:

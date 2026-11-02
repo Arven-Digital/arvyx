@@ -123,7 +123,9 @@ _RACY_TIMESTAMP_NS = 50_000_000
 def _settle_racy_files(root, root_id, files, parts_by_path, limits):
     """Re-read files pinned inside the current timestamp tick once it has passed."""
     def latest(entry):
-        return max(entry.identity[5], entry.identity[6])
+        # ctime alone: it is set by the kernel on every change and cannot be chosen
+        # by a writer, whereas mtime may be arbitrary (utime, a future clock).
+        return entry.identity[6]
     fresh = [entry for entry in files if latest(entry) + _RACY_TIMESTAMP_NS > time.time_ns()]
     if not fresh:
         return
@@ -314,6 +316,9 @@ def snapshot_workspace(root, paths=None, *, limits=WorkspaceLimits(), exclude_pa
     omitted content still consumes the aggregate byte budget. Discovery stores a
     metadata inventory rechecked before/after reads; changed workspaces require
     a new manifest. This is not an atomic snapshot or a 24-hour content freeze.
+    Files changed within the last few milliseconds are pinned only after their
+    timestamp tick has passed (a bounded wait); one that changes meanwhile fails
+    with "entry changed during discovery", which a caller may simply retry.
     """
     if not isinstance(limits, WorkspaceLimits) or any(
         type(n) is not int or n < 0 for n in

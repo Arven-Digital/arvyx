@@ -190,3 +190,20 @@ class RacyTimestampTests(unittest.TestCase):
         control._EVENT_CACHE[key] = (*entry[:8], entry[4] + control._EVENT_CACHE_RACY_NS)  # noqa: SLF001
         with mock.patch.object(control, "_prefix_bytes_match", side_effect=AssertionError("unexpected re-read")):
             self.assertEqual([event.id for event in control.read_events(self.state)], ["evt_1", "evt_2"])
+
+    def test_verified_racy_hit_refreshes_the_caching_time(self) -> None:
+        self._write([_event(1), _event(2)])
+        control.read_events(self.state)
+        key = str(self.state.resolve())
+        racy_entry = control._EVENT_CACHE[key]  # noqa: SLF001
+        self.assertTrue(control._racy(racy_entry[4], racy_entry[8]))  # noqa: SLF001
+        # A later equal-size hit, once the window has passed, must be served without
+        # re-reading: the verified racy hit refreshed the caching time.
+        later = racy_entry[4] + control._EVENT_CACHE_RACY_NS + 1  # noqa: SLF001
+        with mock.patch.object(control.time, "time_ns", return_value=later):
+            control.read_events(self.state)  # racy hit: bytes verified, time refreshed
+            refreshed = control._EVENT_CACHE[key]  # noqa: SLF001
+            self.assertEqual(refreshed[8], later)
+            self.assertFalse(control._racy(refreshed[4], refreshed[8]))  # noqa: SLF001
+            with mock.patch.object(control, "_prefix_bytes_match", side_effect=AssertionError("unexpected re-read")):
+                self.assertEqual([event.id for event in control.read_events(self.state)], ["evt_1", "evt_2"])
