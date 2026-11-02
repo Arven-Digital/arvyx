@@ -52,6 +52,18 @@ Check: `packages/arvctl/src/arvyx_control/embeddings.py`,
 
 Check: [mcp-streaming.md](mcp-streaming.md).
 
+## Inputs: JSON nesting is bounded
+
+- Every network and loopback intake (MCP stdio and HTTP, the control APIs, the
+  onboarding and control-room servers, pairing, delivery and replica peers, remote
+  embedding and broker replies) refuses a JSON document nested deeper than
+  **256** levels before parsing it. The refusal is the ordinary decode error of
+  that surface (JSON-RPC `-32700`, HTTP `400`); the limit does not depend on the
+  Python version's recursion behaviour. The bridge keeps its own stricter
+  post-parse limit of 64 for the requests it forwards.
+- Legitimate payloads are flat; the bound exists so a hostile peer cannot pick the
+  interpreter's recursion limit as a failure mode. It is not configurable.
+
 ## Topology: one host, not distributed
 
 - Control state is one append-only JSONL event log on one host, serialized by

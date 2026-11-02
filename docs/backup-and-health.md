@@ -168,8 +168,8 @@ The [retained-generation protocol](capture-retained-generations.md) now requires
 an independently qualified store issuer's exact signed complete-generation
 commitment for acknowledgement and relocation. Human key pinning is explicit;
 no ordinary directory or self-signed promise becomes a qualified immutable store.
-SUP-04/L4 and REV-0512/0544 remain OPEN for storage qualification and unexecuted
-protocol acceptance. No store was provisioned or physical retention proven.
+Storage qualification and the protocol acceptance it needs remain open and
+unexecuted. No store was provisioned or physical retention proven.
 The private `relocate_capture_offload` RPC implements exact-head confirmed
 legacy adoption or chain relocation only with target retention admission.
 Optional bound-chain copying retains

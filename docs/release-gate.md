@@ -65,7 +65,7 @@ gh attestation verify <artifact> --repo Arven-Digital/arvyx
 sha256sum -c SHA256SUMS
 ```
 
-The job that runs the unpinned third-party MCP client is separate from the
+The job that runs the hash-locked third-party MCP client is separate from the
 signing job; only the single evidence file crosses that boundary. The signing
 job itself installs hash-locked Python tooling and the integrity-pinned npm
 closure before it signs; a build/sign job split is recorded as future work.

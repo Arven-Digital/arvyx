@@ -43,6 +43,10 @@ explicit human action on the exact candidate commit.
      --mcp-client-evidence tmp/release-assets/evidence.mcp-client.json --json
    ```
 
+   If your `gh` version does not resolve a draft by tag, download the run's
+   artifact instead: `gh run download <run-id> --name release-artifacts-<sha>
+   --dir tmp/release-assets`.
+
    `public_release_allowed` must be true. A blocked verdict means deleting the
    draft and the tag, not editing the draft.
 6. Attach the native frontend artifact `arvyx-linux-x86_64`, its receipt

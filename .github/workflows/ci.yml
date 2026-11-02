@@ -60,7 +60,8 @@ jobs:
               exit 0
             fi
           done
-          echo "::warning::no private temporary directory accepted by the native policy on this runner"
+          echo "::error::no private temporary directory accepted by the native policy on this runner"
+          exit 1
       - name: Run unit tests
         timeout-minutes: 30
         run: python -m coverage run --branch -m pytest packages/arvctl/tests tests -q
@@ -132,7 +133,8 @@ jobs:
               exit 0
             fi
           done
-          echo "::warning::no private temporary directory accepted by the native policy on this runner"
+          echo "::error::no private temporary directory accepted by the native policy on this runner"
+          exit 1
       - name: Run unit tests
         timeout-minutes: 30
         run: python -m coverage run --branch -m pytest packages/arvctl/tests tests -q

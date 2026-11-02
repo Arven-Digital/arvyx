@@ -779,6 +779,11 @@ class JSONNestingError(json.JSONDecodeError):
     def __init__(self, message: str) -> None:
         super().__init__(message, "", 0)
 
+    def __str__(self) -> str:
+        # JSONDecodeError would append "line 1 column 1 (char 0)" from the empty
+        # document; the bound has no position, so the message stands alone.
+        return self.msg
+
 
 def json_nesting_depth(text: str, *, limit: int = MAX_JSON_NESTING) -> int:
     """Return the maximum bracket nesting of ``text`` (strings and escapes ignored).

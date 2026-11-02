@@ -41,8 +41,9 @@ Running-effect revocation semantics and independent-host acceptance remain open.
 
 Offload continuation is NOT retained-generation storage authority. A directory
 inode and a saved traversal cursor cannot prove an earlier visited bundle still
-exists. SUP-04/L4 and REV-0512/0544 remain OPEN/HOLD; do not rely on segmented
-verification to authorize production pruning, relocation or history retention.
+exists. Storage qualification for retained generations remains open; do not rely
+on segmented verification to authorize production pruning, relocation or history
+retention.
 No retention protocol or automatic cleanup is supplied by this checkpoint.
 
 Bundled Paperclip schemas do not establish AMC dispatch authority. The G28 FQDN,

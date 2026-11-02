@@ -286,26 +286,26 @@ the external onboarding ledger record (private, not exported).
 
 ## Focus75 agent07: exact remaining acceptance gaps
 
-This offline source pass does not close REV-0107, REV-0108, REV-0111, REV-0112
-or REV-0114. It corrects stale composition descriptions; no product runtime,
+This offline source pass does not close the five acceptance gaps below. It
+corrects stale composition descriptions; no product runtime,
 provider, credential, trust-pin or deployment changes were performed.
 
-- **REV-0107:** Pairing proves possession and enrolls an identity only. The
+- **Pairing:** Pairing proves possession and enrolls an identity only. The
   `/challenge` and `/prove` listener does not install a remote service, resolve
   credentials, establish isolation or create an executor binding. A separately
   approved installation and exact remote-owner execution journey is still needed.
-- **REV-0108:** `AgentCreation.create` publishes a private instruction directory
+- **Agent creation:** `AgentCreation.create` publishes a private instruction directory
   and immutable `metadata_only` record. An opaque `provider_auth_handle` is not
   resolved. `local_composition` installs an empty `AgentSessions` adapter map;
   profile creation does not configure or launch a harness. Secure credential
   resolution, explicit launch consent and verified exact runtime connection remain.
-- **REV-0111:** Explicit delegation configuration exists, but is not a remote
+- **Delegation:** Explicit delegation configuration exists, but is not a remote
   installer or a source of executor roles. Existing durable policy, exact leaf
   endpoints and (for independent remote authority) coordinator/receiver binding
   must be provisioned separately. End-to-end host/sandbox/root effects and
   revocation/lost-reply acceptance remain unperformed. Do not replace these with
   permissive callbacks, role auto-enrollment or a root shell.
-- **REV-0112:** The older assertion that real-local external integration is
+- **Real-local external integration:** The older assertion that real-local external integration is
   entirely disabled is stale: `cockpit_local.build_local_server` accepts
   `external_config`, `external_presentation.load_presentation` composes an
   existing export authority, and `main.tsx` renders `ExternalAuthorityPanel` in
@@ -314,7 +314,7 @@ provider, credential, trust-pin or deployment changes were performed.
   the separately authenticated ExternalAPI; mounting the shared MCP router here
   would violate the boundary. Prompt/skill/artifact export primitives do not
   establish complete product authoring units or installed collaborator acceptance.
-- **REV-0114:** Two exact digests are admitted: the historical `mouse-existing`
+- **Native artifact admission:** Two exact digests are admitted: the historical `mouse-existing`
   artifact and the reproducibly built onboarding-v1 artifact whose receipt is
   `frontends/arvyx/receipts/onboarding-v1-linux-x86_64.json`. `verify_native_bytes`
   checks the requested capability against the matched digest, so the historical

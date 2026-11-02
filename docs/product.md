@@ -6,8 +6,8 @@ admission. Logical endpoint equality is insufficient after reprovisioning. This
 source contract does not qualify independent-host execution or settle running-
 effect revocation; a timeout never means cancellation. Explicit local human
 approval remains authoritative, without an invented second remote-human gesture.
-Retained-generation offload storage authority remains unresolved (SUP-04/L4,
-REV-0512/0544). Bounded verification progress is not safe history pruning or a
+Retained-generation offload storage authority remains unresolved; it is an open
+item, not a shipped capability. Bounded verification progress is not safe history pruning or a
 completed capacity-recovery product. Tests, builds, CI and native/runtime
 acceptance for the integrated bytes remain unperformed; a release still requires
 the exact-tree candidate verdict and the maintainer's approval.

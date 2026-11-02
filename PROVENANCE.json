@@ -32,8 +32,8 @@
       ]
     },
     ".github/workflows/ci.yml": {
-      "exported_sha256": "a03f703f01958a233874616d4012c0c79e2306007998c73ea9f16772eff98903",
-      "source_sha256": "17f68ede1fbb1aed526f808559f0f24902b1a607ac6685d8d76315b4fddace69",
+      "exported_sha256": "52559d9de3e840122a40fc69349e65948c252ada025a225b471dac5ee27569f9",
+      "source_sha256": "6bddea8685c08d3a38a024ffbdf95cf05cec8f7cb08747fd7da26547e71cbb2e",
       "transforms": [
         "override:config/public-candidate/.github/workflows/ci.yml",
         "strip-private-notice"
@@ -93,8 +93,8 @@
       "transforms": []
     },
     "PUBLISHING.md": {
-      "exported_sha256": "8fd02f4d667fbab3cf4fb44d555cd9046abc07815e7e0588e32417e1f30b7246",
-      "source_sha256": "c8dc8168e0ee3bda2f76707939ee2e89954a65d1ed9c6494903f2e2fa8a9799c",
+      "exported_sha256": "4119d7db1f60f04a8fef130c16360ca13b74b57ad6d45e7d768c5c7ac38442f4",
+      "source_sha256": "e3f46e3fc0a77106738127d7c3a80cbf2077642be57f504872446b44bea93876",
       "transforms": [
         "override:config/public-candidate/PUBLISHING.md",
         "strip-private-notice"
@@ -276,8 +276,8 @@
       "transforms": []
     },
     "docs/architecture.md": {
-      "exported_sha256": "d2959a3937c919d29ca33e8879c47b4f8becd1a0ad22dade90ee0f07c4d13a36",
-      "source_sha256": "d2959a3937c919d29ca33e8879c47b4f8becd1a0ad22dade90ee0f07c4d13a36",
+      "exported_sha256": "81e1f52acc72a5cf6c215ac72007de6e8aad30f788dcc2d8c0270253a9f8484a",
+      "source_sha256": "81e1f52acc72a5cf6c215ac72007de6e8aad30f788dcc2d8c0270253a9f8484a",
       "transforms": []
     },
     "docs/auth.md": {
@@ -286,8 +286,8 @@
       "transforms": []
     },
     "docs/backup-and-health.md": {
-      "exported_sha256": "b693bc8466db22e7b3bb38414b1e1a21bfbb96bcc5273241dbd684d29fcd4ae1",
-      "source_sha256": "b693bc8466db22e7b3bb38414b1e1a21bfbb96bcc5273241dbd684d29fcd4ae1",
+      "exported_sha256": "ecfb254206711ff8ff634bdf9ed150b4a4349f22531b772a111c77f386977495",
+      "source_sha256": "ecfb254206711ff8ff634bdf9ed150b4a4349f22531b772a111c77f386977495",
       "transforms": []
     },
     "docs/capture-retained-generations.md": {
@@ -361,8 +361,8 @@
       "transforms": []
     },
     "docs/limitations.md": {
-      "exported_sha256": "0e9f3d982c1f298b83de301771d2fc005f702011c22fd5adb1498e6d33aec8b1",
-      "source_sha256": "0e9f3d982c1f298b83de301771d2fc005f702011c22fd5adb1498e6d33aec8b1",
+      "exported_sha256": "5e2a2fdcae9c52019d31a7b42c9b44a26192a7ce1dee77f236c74f05fb8a8a42",
+      "source_sha256": "5e2a2fdcae9c52019d31a7b42c9b44a26192a7ce1dee77f236c74f05fb8a8a42",
       "transforms": []
     },
     "docs/local-quickstart.md": {
@@ -418,13 +418,13 @@
       "transforms": []
     },
     "docs/product.md": {
-      "exported_sha256": "11c6bfc1e9aed4761bab442cc24667547e8bc850ca2514bd0f6e98146673aad7",
-      "source_sha256": "11c6bfc1e9aed4761bab442cc24667547e8bc850ca2514bd0f6e98146673aad7",
+      "exported_sha256": "d88c6174faf5b276734dcc958ac90fe8418a20c5c2165bf6169e8cf9fa246967",
+      "source_sha256": "d88c6174faf5b276734dcc958ac90fe8418a20c5c2165bf6169e8cf9fa246967",
       "transforms": []
     },
     "docs/public-onboarding-integration.md": {
-      "exported_sha256": "6cf71b372134b746ef85e685fa32616a19e1cc47f3e467557c5775a36bfd9b6b",
-      "source_sha256": "6cf71b372134b746ef85e685fa32616a19e1cc47f3e467557c5775a36bfd9b6b",
+      "exported_sha256": "43afb87e790a0deddeec2cadd224eafb58cdcbf525ddec36e6a59ef2bcc876e8",
+      "source_sha256": "43afb87e790a0deddeec2cadd224eafb58cdcbf525ddec36e6a59ef2bcc876e8",
       "transforms": []
     },
     "docs/quickstart.md": {
@@ -438,8 +438,8 @@
       "transforms": []
     },
     "docs/release-gate.md": {
-      "exported_sha256": "a77fdf64e276d3c8537d41e90496c29a3c6ad7c455e5e5921c28f1701d7b3438",
-      "source_sha256": "bb4758bb7873f5d754cf0eaee27a4c6d0e3be3318b33bbe565f0a09b7ea725bd",
+      "exported_sha256": "fed2fd3f5e561fb8948786bf8c2b066a8997230e5932c6e3212199d548a93fad",
+      "source_sha256": "e0cbf3c9aae36345c5ccc20b967d70ecfb6349ef9d3c95592a68cc0b95faf2be",
       "transforms": [
         "override:config/public-candidate/docs/release-gate.md",
         "strip-private-notice"
@@ -3785,8 +3785,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/release_candidate.py": {
-      "exported_sha256": "b7ddd8bbe0a04c113521fa358ed0c495444d1c232f42aab70e51ba34027cea71",
-      "source_sha256": "b7ddd8bbe0a04c113521fa358ed0c495444d1c232f42aab70e51ba34027cea71",
+      "exported_sha256": "e7885880e3e8c0db22ea05a35c07dba0ffb672c742442eef4638df2741660ec6",
+      "source_sha256": "e7885880e3e8c0db22ea05a35c07dba0ffb672c742442eef4638df2741660ec6",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/release_host.py": {
@@ -3870,8 +3870,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/security.py": {
-      "exported_sha256": "a834517707f2f3d957064f6ba53842cd83fee35ec615cc7d7b89a28abc3ad406",
-      "source_sha256": "a834517707f2f3d957064f6ba53842cd83fee35ec615cc7d7b89a28abc3ad406",
+      "exported_sha256": "ccab4c2ef51ccc8261b607bef3dd207dec8eda3f8275c5866382e1bb62f76161",
+      "source_sha256": "ccab4c2ef51ccc8261b607bef3dd207dec8eda3f8275c5866382e1bb62f76161",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/session.py": {
@@ -4780,8 +4780,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_json_nesting_bound.py": {
-      "exported_sha256": "53ae49f1c4b0c732d8e9c8c28b1ee1cb2f76956252596242afde83baccf7dd97",
-      "source_sha256": "53ae49f1c4b0c732d8e9c8c28b1ee1cb2f76956252596242afde83baccf7dd97",
+      "exported_sha256": "802be3f76df6ed29ab71dbba2e7a05b98b404c1fb09a54bf2f3243c6843fa905",
+      "source_sha256": "802be3f76df6ed29ab71dbba2e7a05b98b404c1fb09a54bf2f3243c6843fa905",
       "transforms": []
     },
     "packages/arvctl/tests/test_latest15_archive_liveness.py": {
@@ -6203,6 +6203,6 @@
       "transforms": []
     }
   },
-  "source_tree": "f6ed360471fd0e285ac4761a048c479c79d79fc8",
+  "source_tree": "4279fa0d7fa2a8f6879c3e8952dc6d3da0345179",
   "version": 1
 }

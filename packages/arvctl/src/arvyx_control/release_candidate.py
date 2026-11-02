@@ -86,8 +86,10 @@ def release_candidate_report(
             self_dogfood_ok=self_dogfood.ok,
         )
         public_release_blockers = list(evidence.release_blockers)
-        if not require_provenance:
-            public_release_blockers.append("signed release-grade run-provenance is required for public release")
+        provenance_blocker = "signed release-grade run-provenance is required for public release"
+        if not require_provenance and provenance_blocker not in public_release_blockers:
+            # release_host_report already names it; one line per blocker.
+            public_release_blockers.append(provenance_blocker)
         if not _private_denylist_loaded(evidence_dict):
             public_release_blockers.append("private context denylist was not loaded")
         non_release_grade = _non_release_grade_signers(
