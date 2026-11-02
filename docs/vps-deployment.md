@@ -110,7 +110,7 @@ TLS outside and loopback HTTP inside; a minimal, hardened example:
 {$ARVYX_DOMAIN} {
 	encode zstd gzip
 	request_body {
-		max_size 1MB
+		max_size 2MB
 	}
 	reverse_proxy 127.0.0.1:{$ARVYX_PORT} {
 		transport http {
@@ -121,7 +121,7 @@ TLS outside and loopback HTTP inside; a minimal, hardened example:
 		}
 	}
 	header {
-		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
 		Referrer-Policy "no-referrer"
@@ -133,6 +133,10 @@ TLS outside and loopback HTTP inside; a minimal, hardened example:
 	}
 }
 ```
+
+The body cap sits above the API's own 1 MiB limit so the API, not the proxy,
+produces the documented refusal; the Caddy package creates `/var/log/caddy`;
+leave `log_credentials` off (the default) so bearer headers never reach the log.
 
 Compose `.env` is not inherited by systemd. Install an explicit root-owned
 environment file and service drop-in:

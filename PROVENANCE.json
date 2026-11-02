@@ -93,16 +93,16 @@
       "transforms": []
     },
     "PUBLISHING.md": {
-      "exported_sha256": "4119d7db1f60f04a8fef130c16360ca13b74b57ad6d45e7d768c5c7ac38442f4",
-      "source_sha256": "e3f46e3fc0a77106738127d7c3a80cbf2077642be57f504872446b44bea93876",
+      "exported_sha256": "cad5238773c1797625b9c4cc44e66a78edc9bd921e2560f3edc7f903ebb04272",
+      "source_sha256": "5da55a5c7509f26a01ea07629e569848cb0a52f423b4952fce67886890620b2e",
       "transforms": [
         "override:config/public-candidate/PUBLISHING.md",
         "strip-private-notice"
       ]
     },
     "README.md": {
-      "exported_sha256": "0dfca25d9bef420791676e69f23ff8afe20211216e941b20fd492e4538c1fe11",
-      "source_sha256": "73be0bffe3f3135238fa27f85eca0bef638ea044c0de2b98e688482048a16355",
+      "exported_sha256": "60ea76c9af7b20d3abe1362d24203450b20df7f06c067335aa9a60f56bdead30",
+      "source_sha256": "02cd8547673c0501932e19101b082a757d9247542f04c4a12569b96cd0794143",
       "transforms": [
         "override:config/public-candidate/README.md",
         "strip-private-notice"
@@ -509,8 +509,8 @@
       "transforms": []
     },
     "docs/vps-deployment.md": {
-      "exported_sha256": "c6270d4d756d4541ee2815fba6fc7e00b2f8425aab15128e481a11731ce7ddb3",
-      "source_sha256": "b2686376178150909e1ca2f6660dc301d5f7fcb0345ef6d282b130cdd5b740a1",
+      "exported_sha256": "a075de29032e01276d7564ee5a3aa0a36875b401d6ca76af0ec8b5ae8e66a688",
+      "source_sha256": "aaf1c07739601b23d3118469ac20207cd3910944f8fd45109d6502f14c970223",
       "transforms": [
         "replace:rule-0",
         "replace:rule-2"
@@ -6243,6 +6243,6 @@
       "transforms": []
     }
   },
-  "source_tree": "c616f77091bb00f7a97739a93145287896bf231d",
+  "source_tree": "d94ca0bd5ef014697d6e3a6d76af17c62a27643b",
   "version": 1
 }

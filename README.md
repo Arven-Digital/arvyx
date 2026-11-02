@@ -66,7 +66,8 @@ agents, not an agent framework, a vector database or a transcript archive.
 - Discover local harness profiles, register an identity, connect read-only
   session metadata (Hermes, Claude Code, Codex), browse Last 5 / All sessions
   with search and pagination, and prepare reviewed workspaces, in the browser
-  (`arvyx web`) or in the terminal (`arvyx amc setup`).
+  (`arvyx web`) or in the terminal (`arvyx amc setup`); both are commands of the
+  npm launcher, which runs the same Python modules a source checkout has.
 - A native terminal frontend (Linux x86_64) over owner-managed sessions, built
   reproducibly and admitted by digest only.
 - Owner-side services: machine enrollment, proof-backed pairing, backup
@@ -75,9 +76,9 @@ agents, not an agent framework, a vector database or a transcript archive.
 **Release evidence as executable gates**
 - `arvyx audit`, `readiness`, `benchmark`, `dogfood self`, `evidence export` and
   `release-candidate` turn the release decision into checks you can run; CI signs
-  run-provenance and real MCP-client evidence, two independent model reviews are
-  attested per tree, and a release is published only after the candidate verdict
-  on the signed assets.
+  run-provenance and real MCP-client evidence, two model reviews by different
+  providers are recorded per tree as unsigned, tree-bound receipts, and a release
+  is published only after the candidate verdict on the signed assets.
 
 ## How it fits together
 
@@ -101,6 +102,9 @@ for the npm package and the web control room. Linux is the supported platform
 (see [Platform support](#platform-support)).
 
 ### npm
+
+The package is published as `arvyx@alpha` with each prerelease; until a release
+exists you can install from the GitHub release assets or from source below.
 
 ```bash
 npm install -g arvyx@alpha
@@ -145,14 +149,19 @@ are in [docs/local-quickstart.md](docs/local-quickstart.md).
 
 Each release carries the Python wheel and sdist, the Docker image archive, their
 SBOMs, the signed run-provenance and MCP-client evidence, a `SHA256SUMS` file,
-the native terminal frontend for Linux x86_64 with its receipts, and
-`verdict.json` (the `release-candidate` verdict on exactly those assets). Verify
+and, attached by the maintainer after the verdict (PUBLISHING.md step 6), the
+native terminal frontend for Linux x86_64 with its receipts and `verdict.json`,
+the `release-candidate` verdict computed on exactly those signed assets. Verify
 before use:
 
 ```bash
 sha256sum -c SHA256SUMS
 gh attestation verify arvyx-0.1.0a0-py3-none-any.whl --repo Arven-Digital/arvyx
 ```
+
+`SHA256SUMS` and the attestation cover the workflow-built assets. The hand-attached
+native binary is verified against its pinned digest by `arvyx setup`; its receipts
+and `verdict.json` are plain JSON records.
 
 ### From source
 
@@ -231,15 +240,18 @@ as unavailable rather than falling back.
 ## Security posture
 
 - Local-first: the API and the control room bind to 127.0.0.1; remote access is
-  an explicit TLS reverse proxy you configure. No telemetry, no outbound calls
-  unless you configure a notifier, an embedding endpoint or a secret broker.
+  an explicit TLS reverse proxy you configure. No telemetry; the only outbound
+  connections are the ones you configure (a notifier, an embedding endpoint, a
+  secret broker, a replica source, delivery routes, the bridge's upstream, a
+  remote delegation peer).
 - Least authority: scopes per token, exact-command approvals, consent records for
   every connection, and fail-closed defaults (a missing policy denies launches; an
   unknown native digest is refused; a torn log fails the read).
 - Secret hygiene: secret-shape and private-context scanners run on every push, the
   broker keeps raw values out of memory, and recall redacts secret shapes.
-- Bounded inputs: every network and loopback intake refuses over-deep JSON before
-  parsing; HTTP bodies, PTY output and index work are size- and time-bounded.
+- Bounded inputs: every network and loopback intake bounds JSON nesting (the
+  bridge additionally enforces its own, stricter post-parse limit); HTTP bodies,
+  PTY output and index work are size- and time-bounded.
 - Reporting: see [SECURITY.md](SECURITY.md); the design is in
   [docs/threat-model.md](docs/threat-model.md) and the audit record in
   [docs/security-audit.md](docs/security-audit.md).
@@ -255,7 +267,7 @@ CI. It builds, tests, signs and attests the release assets into a **draft**
 release (Docker and bridge run-provenance, real external MCP-client evidence,
 SBOMs, OIDC build provenance). The maintainer then runs
 `arvyx release-candidate --require-provenance` on the exact tagged commit with
-those signed assets and the two attested model-review receipts, and publishes
+those signed assets and the two recorded model-review receipts, and publishes
 the draft only when the verdict is `public_release_allowed: true`. No workflow
 publishes on the maintainer's behalf. See [docs/release-gate.md](docs/release-gate.md)
 and [PUBLISHING.md](PUBLISHING.md).
