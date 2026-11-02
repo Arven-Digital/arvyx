@@ -8,7 +8,7 @@ pip-licenses==5.5.0
 setuptools==84.2.1
 # Security pin for the cachecontrol transitive dependency; retain on regeneration.
 filelock==4.2.4
-pytest==9.1.1
+pytest==9.2.0
 # CVE-2026-114613: retain the reviewed msgpack security floor.
 msgpack==1.2.4
 # Keep the shared license inventory identical on every CI platform/interpreter.
