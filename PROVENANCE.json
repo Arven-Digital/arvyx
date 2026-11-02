@@ -40,8 +40,8 @@
       ]
     },
     ".github/workflows/release-provenance.yml": {
-      "exported_sha256": "6bf71f5aede712f633cfc4b306a4ec36a3ac3b1a5779fbcba8b421d7ae386265",
-      "source_sha256": "037a86bdd53d74bde68ea06bd964661f1c956bfcbc14ebbf3b475655dfe687d2",
+      "exported_sha256": "7dd2446e7f87fc09d7a55ea20fe3d2c7acf55e63aaf3888161f376cc539f390c",
+      "source_sha256": "68c5ad0a5973ddedcd471e62f290cdf514b3dea33cfba37e50288fa025b0d54d",
       "transforms": [
         "override:config/public-candidate/.github/workflows/release-provenance.yml",
         "strip-private-notice"
@@ -6203,6 +6203,6 @@
       "transforms": []
     }
   },
-  "source_tree": "4279fa0d7fa2a8f6879c3e8952dc6d3da0345179",
+  "source_tree": "370fad7ba3f35578f0a30ed1208a3d9b35ad1d8b",
   "version": 1
 }

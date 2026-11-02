@@ -333,6 +333,27 @@ jobs:
       - name: Prepare pinned frontend dependencies (requires Node >=24.11)
         run: make frontend-deps
 
+      - name: Provide a trusted private temporary directory
+        # Native artifact policy refuses group/world-writable ancestors (e.g. /tmp);
+        # the test suite that `make ci` runs below places synthetic native bytes under
+        # TMPDIR, so give it a private directory the product's own policy accepts
+        # (the same step as the CI workflow; the first real release run failed here).
+        shell: bash
+        env:
+          PYTHONPATH: packages/arvctl/src
+        run: |
+          set -Eeuo pipefail
+          for base in "$RUNNER_TEMP" "$HOME"; do
+            dir="$base/arvyx-private-tmp"
+            mkdir -p "$dir" && chmod 700 "$dir"
+            if python -c 'import os, sys; from arvyx_control.native_artifact_policy import open_native_directory; os.close(open_native_directory(sys.argv[1]))' "$dir"; then
+              echo "TMPDIR=$dir" >> "$GITHUB_ENV"
+              exit 0
+            fi
+          done
+          echo "::error::no private temporary directory accepted by the native policy on this runner"
+          exit 1
+
       - name: Gate the exact tagged source before building release bytes
         env:
           PYTHONPATH: packages/arvctl/src:packages/safe-mcp-bridge/src
