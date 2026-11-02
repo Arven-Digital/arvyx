@@ -97,11 +97,24 @@ class BrokerBoundsTests(unittest.TestCase):
             with self.assertRaises(brokers.BrokerError):
                 self.command(code, 0.15)
             self.assertLess(time.monotonic() - started, 1.5)
-            # A killed orphan may briefly remain a zombie, but cannot still run.
+            # The group is killed with SIGKILL, which the orphan cannot catch, but
+            # its exit is asynchronous: right after killpg it may still be scheduled
+            # to die, then briefly remain a zombie. Once that settles it cannot be
+            # running, so poll briefly before judging.
             if pidfile.exists():
                 pid = int(pidfile.read_text())
-                stat = Path(f'/proc/{pid}/stat')
-                self.assertTrue(not stat.exists() or stat.read_text().split()[2] == 'Z')
+                deadline = time.monotonic() + 2.0
+                while self.process_state(pid) not in (None, 'Z') and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                self.assertIn(self.process_state(pid), (None, 'Z'))
+
+    @staticmethod
+    def process_state(pid):
+        """/proc state letter of pid, or None once the process is gone."""
+        try:
+            return Path(f'/proc/{pid}/stat').read_text().rpartition(')')[2].split()[0]
+        except OSError:
+            return None
 
 
 if __name__ == '__main__':
