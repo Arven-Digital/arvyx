@@ -1,7 +1,7 @@
 {
   "counts": {
     "excluded": 261,
-    "exported": 1229,
+    "exported": 1233,
     "overrides": 9
   },
   "destination_repository": "Arven-Digital/arvyx",
@@ -32,8 +32,8 @@
       ]
     },
     ".github/workflows/ci.yml": {
-      "exported_sha256": "9467704ed382b6363a38fbeb70d85bedf5a3a14ccab06bdbac4ab9bb7164c85f",
-      "source_sha256": "a76770230763c4b6d12d0d26f5510fb5402f8351382db815c1316e5dbc6e3404",
+      "exported_sha256": "1c5092554a8c5d12c588a1a115ff5e7e270ba3725d07aa3b74397dc886a11ab5",
+      "source_sha256": "54b124124b03a740ae1602b79eb53ad2a74d703af9cf7bfdf157dd108039ac09",
       "transforms": [
         "override:config/public-candidate/.github/workflows/ci.yml",
         "strip-private-notice"
@@ -81,8 +81,8 @@
       "transforms": []
     },
     "Makefile": {
-      "exported_sha256": "2b0634f9f6d27ae2e0ad2f9eb824f6a024b36b408daed76b9ca75b43d2f31b40",
-      "source_sha256": "4eb90b5bbb048b08ae440f5edaa5387fc3bae1fac3ed883d982d3fbf062c8bc1",
+      "exported_sha256": "6eacfef8f47f4a445718492675e19faf65e8982de8e13ad8302c642691e5928f",
+      "source_sha256": "f03c9e3927d37123ff4ac8eaf27a8675672c3a5596e9c636f39388ec35be475a",
       "transforms": [
         "replace:rule-2"
       ]
@@ -109,8 +109,8 @@
       ]
     },
     "SECURITY.md": {
-      "exported_sha256": "30038f5a858343dae0f3bfc5f5a532f87866399da21e6cdb708e6799dd0352d2",
-      "source_sha256": "30038f5a858343dae0f3bfc5f5a532f87866399da21e6cdb708e6799dd0352d2",
+      "exported_sha256": "26ff647b4b49e459e611b7dfcd1e15fa3e7770bb0c72505ffcd59107a9bbc8d1",
+      "source_sha256": "26ff647b4b49e459e611b7dfcd1e15fa3e7770bb0c72505ffcd59107a9bbc8d1",
       "transforms": []
     },
     "apps/control-center-api/README.md": {
@@ -3213,8 +3213,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/audit.py": {
-      "exported_sha256": "af12d67b32fd58eabbb91d65db26bd5d82119dcd79c6345a521dde07ee5c4849",
-      "source_sha256": "af12d67b32fd58eabbb91d65db26bd5d82119dcd79c6345a521dde07ee5c4849",
+      "exported_sha256": "4529fce9400e4c7461701034dd1caf6dc759401983abc6ce18d91665febbab29",
+      "source_sha256": "4529fce9400e4c7461701034dd1caf6dc759401983abc6ce18d91665febbab29",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/audit_log.py": {
@@ -4060,8 +4060,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_canonical_runner_review.py": {
-      "exported_sha256": "87b6eb09fdb1819ff694ea853b09ee1e11a0d768ced3a04565a7772fcc4defbf",
-      "source_sha256": "87b6eb09fdb1819ff694ea853b09ee1e11a0d768ced3a04565a7772fcc4defbf",
+      "exported_sha256": "20d7ed6a6c7d6a5e7230c3f2a2645d29b4495ae98d79e0c0f2d10124654dd891",
+      "source_sha256": "20d7ed6a6c7d6a5e7230c3f2a2645d29b4495ae98d79e0c0f2d10124654dd891",
       "transforms": []
     },
     "packages/arvctl/tests/test_capture_retention_t9b.py": {
@@ -4072,6 +4072,11 @@
     "packages/arvctl/tests/test_checkpoint_jobs.py": {
       "exported_sha256": "f0b04908b162652bf83ac88b3469a2ad9de0da8ac88e9d59ef64e867476094c0",
       "source_sha256": "f0b04908b162652bf83ac88b3469a2ad9de0da8ac88e9d59ef64e867476094c0",
+      "transforms": []
+    },
+    "packages/arvctl/tests/test_ci_test_shard.py": {
+      "exported_sha256": "3ae11b6708fe975add2bc546fee25a13ef3c25514b8fef68e65640e3324240d9",
+      "source_sha256": "3ae11b6708fe975add2bc546fee25a13ef3c25514b8fef68e65640e3324240d9",
       "transforms": []
     },
     "packages/arvctl/tests/test_claude_code_history.py": {
@@ -5892,6 +5897,16 @@
       "source_sha256": "eaff169be1d90a9ec097a73da77d6205fa6a2ce390f6773feea12eead341284c",
       "transforms": []
     },
+    "requirements/coverage.in": {
+      "exported_sha256": "e0b86372c877e1c946fc3efe65a6c75254ebffc5fcd996e7d65ba811441d0274",
+      "source_sha256": "e0b86372c877e1c946fc3efe65a6c75254ebffc5fcd996e7d65ba811441d0274",
+      "transforms": []
+    },
+    "requirements/coverage.lock": {
+      "exported_sha256": "758b1e6028fdf337e2bf81b5aec31e00f35ad3ad2d042a06bf76009b1723bf75",
+      "source_sha256": "758b1e6028fdf337e2bf81b5aec31e00f35ad3ad2d042a06bf76009b1723bf75",
+      "transforms": []
+    },
     "requirements/dev.in": {
       "exported_sha256": "82d0fe17ad9d0d65da8b47a28ce128e64738153e58a17289f939260601c64285",
       "source_sha256": "82d0fe17ad9d0d65da8b47a28ce128e64738153e58a17289f939260601c64285",
@@ -5967,6 +5982,11 @@
     "scripts/build_arvyx_npm.py": {
       "exported_sha256": "7f8039105265cef6ee9902fc1be9ed2d8aa12e83863c908b8b342b48f08d324d",
       "source_sha256": "7f8039105265cef6ee9902fc1be9ed2d8aa12e83863c908b8b342b48f08d324d",
+      "transforms": []
+    },
+    "scripts/ci_test_shard.py": {
+      "exported_sha256": "e818233330effe1f7472a2e6e23adb26e24a4bb6f563af36a21d21bc9de6a3ff",
+      "source_sha256": "e818233330effe1f7472a2e6e23adb26e24a4bb6f563af36a21d21bc9de6a3ff",
       "transforms": []
     },
     "scripts/cockpit_arvyx_acceptance.py": {
@@ -6223,6 +6243,6 @@
       "transforms": []
     }
   },
-  "source_tree": "647716d5ae8d5e9174d94bd9bd72d8e4f5b63288",
+  "source_tree": "9f55e5c2c857559f4f68b8c48c8b4c9f959ebeba",
   "version": 1
 }

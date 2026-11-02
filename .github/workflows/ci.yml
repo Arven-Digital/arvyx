@@ -166,6 +166,36 @@ jobs:
           INTEGRATION_RESULT: ${{ needs.integration.result }}
         run: test "$SECURITY_RESULT" = success && test "$CORRECTNESS_RESULT" = success && test "$INTEGRATION_RESULT" = success
 
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+
+      - name: Install coverage from its hashed lock
+        run: python -m pip install --require-hashes -r requirements/coverage.lock
+
+      - name: Download the shards' coverage data
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: coverage-shard-*
+          path: ${{ runner.temp }}/coverage-shards
+
+      - name: Enforce branch coverage floor over the whole suite
+        # The shards each measured part of the suite; only their union is the
+        # suite's coverage, so the floor is enforced here and nowhere else.
+        env:
+          COVERAGE_FILE: ${{ runner.temp }}/arvyx.coverage
+        run: |
+          set -Eeuo pipefail
+          shards="$(find "${RUNNER_TEMP}/coverage-shards" -type f -name arvyx.coverage | sort)"
+          test "$(printf '%s\n' "$shards" | grep -c .)" -eq 2
+          # shellcheck disable=SC2086
+          coverage combine --keep $shards
+          coverage report --fail-under=75
+
   security:
     runs-on: ubuntu-latest
     steps:
@@ -227,10 +257,17 @@ jobs:
   # No dependency on security: failures there must not hide correctness evidence.
   correctness:
     # Dependency hygiene, the MCP evidence client, the preflight contracts and the
-    # Python suite with branch coverage. Frontend, npm, integration gates and the
-    # Docker smoke run in the `integration` job so neither job exceeds the runner
-    # budget; the `test` aggregate requires both.
+    # Python suite with branch coverage, split into two shards of test files
+    # (scripts/ci_test_shard.py, deterministic) so the coverage-instrumented run
+    # fits the runner budget. Each shard uploads its coverage data; the `test`
+    # aggregate combines the shards and enforces the floor over the whole suite.
+    # Frontend, npm, integration gates and the Docker smoke run in `integration`.
+    name: correctness (shard ${{ matrix.shard }} of 2)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -251,6 +288,13 @@ jobs:
           cp fixtures/private-denylist.example.txt "$target"
           chmod 600 "$target"
           echo "ARVYX_PRIVATE_DENYLIST=$target" >> "$GITHUB_ENV"
+
+      - name: Set up supported Node
+        # Python tests that shell out to node (the npm launcher) must see the pinned
+        # Node, not whatever the runner image ships.
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24.11.1"
 
       - name: Audit dependencies and generate source CycloneDX SBOM
         env:
@@ -332,24 +376,28 @@ jobs:
         timeout-minutes: 30
         env:
           COVERAGE_FILE: ${{ runner.temp }}/arvyx.coverage
-        run: make test-python PYTHON=python PYTEST_ARGS="--durations=30 --junitxml=${{ runner.temp }}/python-test-timings.xml"
+        run: |
+          set -Eeuo pipefail
+          targets="$(python scripts/ci_test_shard.py --count 2 --index ${{ matrix.shard }})"
+          make test-python PYTHON=python PYTEST_TARGETS="$targets" \
+            PYTEST_ARGS="--durations=30 --junitxml=${{ runner.temp }}/python-test-timings.xml"
 
       - name: Retain Python test timings even after test failures
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: python-test-timings
+          name: python-test-timings-${{ matrix.shard }}
           path: ${{ runner.temp }}/python-test-timings.xml
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Enforce branch coverage floor
-        env:
-          COVERAGE_FILE: ${{ runner.temp }}/arvyx.coverage
-          PYTHONPATH: packages/arvctl/src:packages/safe-mcp-bridge/src:apps/control-center-api/src
-        run: |
-          set -Eeuo pipefail
-          coverage report --fail-under=75
+      - name: Retain this shard's coverage data for the aggregate floor
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-shard-${{ matrix.shard }}
+          path: ${{ runner.temp }}/arvyx.coverage
+          if-no-files-found: error
+          retention-days: 7
 
   integration:
     # Frontend and npm tests, the local npm package smoke, the parallel integration

@@ -143,7 +143,12 @@ def _private_context_check(repo: Path) -> AuditCheck:
 
 AUDIT_MAX_BYTES=256*1024*1024
 AUDIT_MAX_FILES=50000
-AUDIT_MAX_SECONDS=60
+# Wall-clock bound on one repository scan. It guards against pathological inputs (the
+# file and byte budgets above bound the work itself); it is not a performance target.
+# Hosted CI runs four audit-based smokes concurrently on a four-core runner, where a
+# full private-tree scan with the real denylist can exceed a minute, so the bound is
+# generous rather than tight: a scan that stops here still reports "incomplete".
+AUDIT_MAX_SECONDS=300
 
 
 def scan_private_context(repo: Path) -> tuple[set[str], int | None, bool, int]:

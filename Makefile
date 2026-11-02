@@ -35,6 +35,7 @@ dependency-audit:
 	$(PYTHON) -m pip_audit -r $(DEV_LOCK) --strict --disable-pip --progress-spinner off
 	$(PYTHON) -m pip_audit -r $(EVIDENCE_CLIENT_LOCK) --strict --disable-pip --progress-spinner off
 	$(PYTHON) -m pip_audit -r $(SECRET_EDGE_LOCK) --strict --disable-pip --progress-spinner off
+	$(PYTHON) -m pip_audit -r requirements/coverage.lock --strict --disable-pip --progress-spinner off
 
 sbom:
 	mkdir -p $(dir $(SBOM_PATH))
@@ -57,9 +58,14 @@ test: test-python test-frontend test-npm
 # Parallel workers (pytest-xdist, one file per worker so module-level fixtures stay
 # together); pytest-cov merges the workers' data into COVERAGE_FILE.
 PYTEST_WORKERS ?= auto
+# Hosted CI shards the suite across machines (scripts/ci_test_shard.py); locally the
+# whole suite runs. Coverage data is combined and the floor enforced over all shards
+# by an explicit `coverage report --fail-under`, never by a single (partial) run, so
+# pytest-cov's own floor is disabled here.
+PYTEST_TARGETS ?= packages/arvctl/tests tests
 test-python:
 	PYTHONPATH="$(PYTHONPATH)" $(PYTHON) -m coverage erase
-	PYTHONPATH="$(PYTHONPATH)" $(PYTHON) -m pytest packages/arvctl/tests tests -q -n $(PYTEST_WORKERS) --dist loadfile --cov --cov-branch $(PYTEST_ARGS)
+	PYTHONPATH="$(PYTHONPATH)" $(PYTHON) -m pytest $(PYTEST_TARGETS) -q -n $(PYTEST_WORKERS) --dist loadfile --cov --cov-branch --cov-fail-under=0 $(PYTEST_ARGS)
 
 check-node:
 	node -e 'const [a,b]=process.versions.node.split(".").map(Number); if(a<24||(a===24&&b<11)){console.error("Node >=24.11 required for supported frontend/npm acceptance");process.exit(2)}'
