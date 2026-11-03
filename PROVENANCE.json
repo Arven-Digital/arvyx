@@ -6258,8 +6258,8 @@
       "transforms": []
     },
     "scripts/verified_private_bytes.py": {
-      "exported_sha256": "98c4490cd77cf5474d4d2a1a254a62524a5de0390bd9a425113937c27a7356af",
-      "source_sha256": "98c4490cd77cf5474d4d2a1a254a62524a5de0390bd9a425113937c27a7356af",
+      "exported_sha256": "8978548069972c4f7112e9d07f87af38d84677f37d5366683bd0c195e380c721",
+      "source_sha256": "8978548069972c4f7112e9d07f87af38d84677f37d5366683bd0c195e380c721",
       "transforms": []
     },
     "templates/demo-squad/README.md": {
@@ -6293,6 +6293,6 @@
       "transforms": []
     }
   },
-  "source_tree": "c41f97c2104aa32f008ab1b81436d693ecf534bf",
+  "source_tree": "5dd79c092cb34104b3985efe566e43bd83bbfcf8",
   "version": 1
 }
