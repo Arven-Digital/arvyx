@@ -5075,8 +5075,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_pass2_bounded_delegation.py": {
-      "exported_sha256": "0e0e22856c2b8bdfa254a3dff520998a679ab85d857e3af39a8781ccecdd02a2",
-      "source_sha256": "0e0e22856c2b8bdfa254a3dff520998a679ab85d857e3af39a8781ccecdd02a2",
+      "exported_sha256": "4e4bf0e2fa6b09b83b9689c0fe37e5ded9f425d7e764816d1d84aa494cf66b82",
+      "source_sha256": "4e4bf0e2fa6b09b83b9689c0fe37e5ded9f425d7e764816d1d84aa494cf66b82",
       "transforms": []
     },
     "packages/arvctl/tests/test_pass2_executor_modes.py": {
@@ -5420,8 +5420,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_session.py": {
-      "exported_sha256": "c7eac615dec4d99ee46a6e72c439d056376cf3be92c0e934f902a627a077a5a5",
-      "source_sha256": "c7eac615dec4d99ee46a6e72c439d056376cf3be92c0e934f902a627a077a5a5",
+      "exported_sha256": "71001c739c5da024aad76a9cf5f6f9bf3e647b22b802e279a880f2f67b452186",
+      "source_sha256": "71001c739c5da024aad76a9cf5f6f9bf3e647b22b802e279a880f2f67b452186",
       "transforms": []
     },
     "packages/arvctl/tests/test_session_return.py": {
@@ -6293,6 +6293,6 @@
       "transforms": []
     }
   },
-  "source_tree": "2f6f29df1fe56d625125e48297f970f73c11219b",
+  "source_tree": "bdc5c0fac7bb5eb7dd7d1c92e49b3519714ef8ae",
   "version": 1
 }
