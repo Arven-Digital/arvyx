@@ -223,7 +223,9 @@ class Reporter:
             db.execute('INSERT INTO groups VALUES (?, ?, 1, ?, ?) ON CONFLICT(fingerprint) DO UPDATE SET payload=CASE WHEN excluded.last>=last THEN excluded.payload ELSE payload END, count=count+1, first=min(first,excluded.first), last=max(last,excluded.last)', (fp, json.dumps(event, sort_keys=True), now, now))
             if kind:
                 db.execute('INSERT INTO feed(fingerprint,kind,time) VALUES (?,?,?)', (fp, kind, now))
-            db.execute('DELETE FROM groups WHERE fingerprint NOT IN (SELECT fingerprint FROM groups ORDER BY last DESC LIMIT ?)', (self.max_groups,))
+            # Ties on `last` are real where the clock is coarse (Windows before Python
+            # 3.13 reports time.time() in 15.6 ms steps): the newest group wins them.
+            db.execute('DELETE FROM groups WHERE fingerprint NOT IN (SELECT fingerprint FROM groups ORDER BY last DESC, rowid DESC LIMIT ?)', (self.max_groups,))
             prune = 'id NOT IN (SELECT id FROM feed ORDER BY id DESC LIMIT 1024) OR time < ?'
             # Record the highest lost cursor in the SAME transaction as pruning,
             # including non-prefix expiry from out-of-order observations.

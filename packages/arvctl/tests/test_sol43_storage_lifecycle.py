@@ -77,7 +77,7 @@ def test_ownership_failure_and_legacy_metadata_fail_closed(tmp_path, monkeypatch
     def denied(*args):
         raise PermissionError('ownership denied')
     monkeypatch.setattr(tx.os, 'fchown', denied, raising=False)
-    monkeypatch.setattr(tx.os, 'fchmod', lambda *args: pytest.fail('mode before ownership'))
+    monkeypatch.setattr(tx.os, 'fchmod', lambda *args: pytest.fail('mode before ownership'), raising=False)  # absent on Windows before 3.13
     with pytest.raises(PermissionError, match='ownership denied'):
         tx.apply_original_metadata(stage, {'uid': 10001, 'gid': 10001, 'mode': 0o600})
 

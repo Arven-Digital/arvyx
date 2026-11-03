@@ -328,6 +328,22 @@ console.log('browser metadata and rendering verified'); })();'''
         result = subprocess.run(['node', '-e', harness+script+check], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_retention_ties_keep_the_newest_group(self):
+        # A coarse clock (Windows time.time() before Python 3.13) stamps several
+        # observations with the same time; the bound must still drop the oldest.
+        from unittest import mock
+        from arvyx_control import diagnostics
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(diagnostics.time, 'time', lambda: 1_700_000_000.0):
+            reporter = diagnostics.Reporter(Path(tmp)/'errors.sqlite', max_groups=2)
+            for code in ('first', 'second', 'third'):
+                reporter.capture(RuntimeError(), component='api', code=code)
+            reporter.client({'kind': 'error'})
+            self.assertTrue(reporter.flush(timeout=10))
+            feed = reporter.feed(0)
+            self.assertEqual([e['component'] for e in feed['events'][-2:]], ['api', 'browser'])
+            self.assertEqual(feed['events'][-1]['trust'], 'untrusted-client')
+            self.assertEqual(len(reporter.read()['groups']), 2)
+
     def test_feed_carries_trust_and_retention_is_bounded(self):
         from arvyx_control.diagnostics import Reporter
         import sqlite3
