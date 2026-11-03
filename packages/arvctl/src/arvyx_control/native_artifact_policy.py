@@ -24,27 +24,40 @@ NATIVE_MOUSE_BINARY_SHA256='c8cd3a11b577a23dc37b34f64814e37242e4d2af27726149e3fe
 # zig 0.16.0, native shell tests executed). Admission is byte-exact; it is not
 # runtime acceptance on any machine other than the ones that ran the receipts.
 NATIVE_ONBOARDING_BINARY_SHA256='4c29b4d9f65f35c566acadc729d03334be5458520f747db82f8c795ba6d1a3ca'
+# Filled after the on-machine aarch64 build is signed. Empty means Darwin
+# stays unavailable. Not a memfd seal.
+DARWIN_ONBOARDING_BINARY_SHA256='4e27756cb8353506b1b0de35a313cddc4b94480f975a53cb1ece7c8b3f3fa3b3'
 MAX_NATIVE_BYTES = 128 * 1024 * 1024
 
 
 def admitted_native_artifacts():
-    """Exact admitted digests and the capabilities each carries, read at call time."""
-    return {
-        NATIVE_MOUSE_BINARY_SHA256: frozenset({'mouse-existing'}),
-        NATIVE_ONBOARDING_BINARY_SHA256: frozenset({'mouse-existing', 'onboarding-v1'}),
-    }
+    """Exact admitted digests for this platform. A Darwin digest is not a Linux artifact."""
+    if sys.platform=='darwin' and platform.machine().lower() in ('arm64','aarch64') and DARWIN_ONBOARDING_BINARY_SHA256:
+        return {DARWIN_ONBOARDING_BINARY_SHA256: frozenset({'mouse-existing', 'onboarding-v1'})}
+    if sys.platform=='linux' and platform.machine() in ('x86_64','AMD64'):
+        return {
+            NATIVE_MOUSE_BINARY_SHA256: frozenset({'mouse-existing'}),
+            NATIVE_ONBOARDING_BINARY_SHA256: frozenset({'mouse-existing', 'onboarding-v1'}),
+        }
+    return {}
 
 
 def native_platform_policy():
     """Source and installer share the admitted architecture/capability policy."""
     identifier=sys.platform+'-'+platform.machine().lower()
-    if sys.platform!='linux' or platform.machine() not in ('x86_64','AMD64'):
-        return dict(platform=identifier,available=False,capabilities=[],reason='No independently admitted artifact and sealed execution implementation for this platform.')
-    admitted=admitted_native_artifacts()
-    capabilities=sorted(set().union(*admitted.values()))
-    return dict(platform='linux-x86_64',available=True,capabilities=capabilities,binary_sha256=NATIVE_MOUSE_BINARY_SHA256,
-                onboarding_binary_sha256=NATIVE_ONBOARDING_BINARY_SHA256,
-                artifacts={digest:sorted(caps) for digest,caps in admitted.items()})
+    if sys.platform=='linux' and platform.machine() in ('x86_64','AMD64'):
+        admitted=admitted_native_artifacts()
+        capabilities=sorted(set().union(*admitted.values()))
+        return dict(platform='linux-x86_64',available=True,capabilities=capabilities,binary_sha256=NATIVE_MOUSE_BINARY_SHA256,
+                    onboarding_binary_sha256=NATIVE_ONBOARDING_BINARY_SHA256,
+                    artifacts={digest:sorted(caps) for digest,caps in admitted.items()})
+    if sys.platform=='darwin' and platform.machine().lower() in ('arm64','aarch64') and DARWIN_ONBOARDING_BINARY_SHA256:
+        return dict(platform='darwin-arm64',available=True,capabilities=['mouse-existing','onboarding-v1'],
+                    binary_sha256=DARWIN_ONBOARDING_BINARY_SHA256,
+                    onboarding_binary_sha256=DARWIN_ONBOARDING_BINARY_SHA256,
+                    artifacts={DARWIN_ONBOARDING_BINARY_SHA256:['mouse-existing','onboarding-v1']},
+                    seal='private-file')
+    return dict(platform=identifier,available=False,capabilities=[],reason='No independently admitted artifact and sealed execution implementation for this platform.')
 _SEALS = (fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F_SEAL_SEAL
           if all(hasattr(fcntl, name) for name in (
               'F_SEAL_WRITE', 'F_SEAL_GROW', 'F_SEAL_SHRINK', 'F_SEAL_SEAL',
@@ -119,6 +132,10 @@ class VerifiedNative:
     """Own one sealed object across server, CLI, attach and watcher subprocesses."""
     def __init__(self, binary=None, binding=None, *, required_capability=None, inherited_fd=None):
         self.fd = None
+        self.snapshot = None
+        if sys.platform=='darwin':
+            self._open_darwin(binary, binding, required_capability)
+            return
         if _SEALS is None or not all(hasattr(os, name) for name in ('memfd_create', 'MFD_ALLOW_SEALING', 'MFD_CLOEXEC')):
             raise RoutingError('native artifact sealing unavailable on this platform')
         fd = None
@@ -150,10 +167,47 @@ class VerifiedNative:
                 os.close(fd)
             raise
 
+    def _open_darwin(self, binary, binding, required_capability):
+        """Copy admitted bytes into a private file and exec that path.
+
+        macOS rejects exec of /dev/fd and has no memfd seal. The copy is
+        mode 0700 in a 0700 directory, re-read before use, and removed on
+        close. It is not a seal. The admitted bytes must already be signed.
+        """
+        import tempfile
+        data = read_native_bytes(binary)
+        digest = verify_native_bytes(data, binding, required_capability=required_capability)
+        directory = tempfile.mkdtemp(prefix='arvyx-native-')
+        os.chmod(directory, 0o700)
+        path = os.path.join(directory, 'arvyx')
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_RDWR | os.O_NOFOLLOW | os.O_CLOEXEC, 0o700)
+        try:
+            view = memoryview(data)
+            while view:
+                count = os.write(fd, view)
+                if count <= 0:
+                    raise OSError('short native snapshot write')
+                view = view[count:]
+            os.fsync(fd)
+            os.lseek(fd, 0, os.SEEK_SET)
+            copied = os.read(fd, len(data) + 1)
+            if copied != data:
+                raise RoutingError('native snapshot changed while writing')
+            self.digest = digest
+            self.fd = fd
+            self.snapshot = path
+        except BaseException:
+            os.close(fd)
+            os.unlink(path)
+            os.rmdir(directory)
+            raise
+
     @property
     def path(self):
         if self.fd is None:
             raise RoutingError('native snapshot already closed')
+        if self.snapshot:
+            return self.snapshot
         return f'/proc/self/fd/{self.fd}'
 
     def invoke(self, operation, args, **kwargs):
@@ -163,6 +217,17 @@ class VerifiedNative:
         if self.fd is not None:
             os.close(self.fd)
             self.fd = None
+        if self.snapshot:
+            directory = os.path.dirname(self.snapshot)
+            try:
+                os.unlink(self.snapshot)
+            except OSError:
+                pass
+            try:
+                os.rmdir(directory)
+            except OSError:
+                pass
+            self.snapshot = None
 
     def __enter__(self):
         return self

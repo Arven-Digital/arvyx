@@ -183,8 +183,15 @@ Check: `packages/arvctl/src/arvyx_control/static/index.html`,
   `posix_support`: a CLOEXEC pipe, a kqueue exit watch that does not reap, a
   no-follow walk that accepts only the root-owned `/var`, `/tmp` and `/etc`
   firmlinks, and process-group cleanup where pidfd is absent. Native sealed
-  execution (memfd) remains Linux-only. A macOS binary is not admitted in this
-  change. Hosted macOS CI stays conditional: it runs only when
+  execution (memfd) remains Linux-only. A macOS onboarding binary is admitted
+  for `darwin-arm64` only: digest
+  `4e27756cb8353506b1b0de35a313cddc4b94480f975a53cb1ece7c8b3f3fa3b3`, herdr
+  `5bd900d8` plus the tracked overlay, ad-hoc signed, built on this Apple
+  Silicon host with rustc 1.96.1 and zig 0.16.0. Execution copies those exact
+  bytes into a private `0700` file and runs that path. It is not a memfd seal.
+  The binary is not in this repository. On this machine it is installed at
+  `~/.local/share/arvyx/native/darwin-arm64/arvyx`. Hosted macOS CI stays
+  conditional: it runs only when
   `HOSTED_ACTIONS_ENABLED` and `HOSTED_EXPERIMENTAL_PLATFORMS` are both `true`,
   and the release workflow does not require it.
 - The Makefile assumes a POSIX shell. On Windows, run `python -m arvyx_control.cli ...`

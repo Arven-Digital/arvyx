@@ -1,0 +1,20 @@
+{
+  "admission": "Efe authorized Kitty on 2026-11-03 to make Arvyx functional on this Mac, including admitting the on-machine Darwin build. This receipt is provenance, not a memfd seal.",
+  "admitted_on": "2026-11-03",
+  "artifact": "arvyx-darwin-arm64",
+  "binary_sha256": "4e27756cb8353506b1b0de35a313cddc4b94480f975a53cb1ece7c8b3f3fa3b3",
+  "capability": "onboarding-v1",
+  "installed_at": "~/.local/share/arvyx/native/darwin-arm64/arvyx",
+  "platform": "darwin-arm64",
+  "seal": "private-file",
+  "signature": "codesign ad-hoc",
+  "toolchain": {
+    "rustc": "1.96.1",
+    "zig": "0.16.0"
+  },
+  "upstream": {
+    "commit": "5bd900d88c80d95f5b145397e45bbeea398b8165",
+    "repository": "https://github.com/herdrdev/herdr"
+  },
+  "verified": "VerifiedNative invoke --version returned herdr 0.9.5 on this host"
+}
