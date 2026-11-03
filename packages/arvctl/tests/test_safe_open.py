@@ -156,6 +156,15 @@ class ResolveUnderTests(unittest.TestCase):
         self.assertEqual(resolve_under(self.root, "projects", "new", "file.md"), (self.root / "projects" / "new" / "file.md").resolve())
         self.assertEqual(resolve_under(self.root), self.root.resolve())
 
+    def test_windows_extended_prefix_stays_inside(self):
+        from arvyx_control.paths import _stays_inside
+        root = 'D:\\a\\_temp\\arvyx-private-tmp\\vault'
+        inside = '\\\\?\\D:\\a\\_temp\\arvyx-private-tmp\\vault\\agents\\demobot\\SESSION-STATE.md'
+        sibling = '\\\\?\\D:\\a\\_temp\\arvyx-private-tmp\\vault-sibling\\x'
+        self.assertTrue(_stays_inside(root, inside))
+        self.assertFalse(_stays_inside(root, sibling))
+        self.assertTrue(_stays_inside('\\\\?\\D:\\a\\_temp\\arvyx-private-tmp\\vault', root + '\\agents'))
+
     def test_traversal_and_siblings_are_refused(self):
         from arvyx_control.paths import resolve_under
         (pathlib.Path(self.tmp.name) / "vault-sibling").mkdir()
