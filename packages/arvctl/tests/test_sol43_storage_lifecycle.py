@@ -60,7 +60,15 @@ def test_ownership_precedes_mode_and_file_barrier(tmp_path, monkeypatch):
     events = []
     infos = iter([SimpleNamespace(st_uid=0, st_gid=0),
                   SimpleNamespace(st_uid=10001, st_gid=10001)])
-    monkeypatch.setattr(tx.os, 'fstat', lambda fd: next(infos))
+    real_fstat = tx.os.fstat
+
+    def fstat(fd):
+        try:
+            return next(infos)
+        except StopIteration:
+            return real_fstat(fd)
+
+    monkeypatch.setattr(tx.os, 'fstat', fstat)
     monkeypatch.setattr(tx.os, 'fchown', lambda fd, uid, gid: events.append(('owner', uid, gid)), raising=False)
     monkeypatch.setattr(tx.os, 'fchmod', lambda fd, mode: events.append(('mode', mode)))
     monkeypatch.setattr(tx.os, 'fsync', lambda fd: events.append('sync'))
@@ -73,7 +81,16 @@ def test_ownership_failure_and_legacy_metadata_fail_closed(tmp_path, monkeypatch
     stage.write_bytes(b'original')
     with pytest.raises(OSError, match='ownership missing'):
         tx.apply_original_metadata(stage, {'mode': 0o600})
-    monkeypatch.setattr(tx.os, 'fstat', lambda fd: SimpleNamespace(st_uid=0, st_gid=0))
+    real_fstat = tx.os.fstat
+    scripted = iter([SimpleNamespace(st_uid=0, st_gid=0)])
+
+    def fstat(fd):
+        try:
+            return next(scripted)
+        except StopIteration:
+            return real_fstat(fd)
+
+    monkeypatch.setattr(tx.os, 'fstat', fstat)
     def denied(*args):
         raise PermissionError('ownership denied')
     monkeypatch.setattr(tx.os, 'fchown', denied, raising=False)

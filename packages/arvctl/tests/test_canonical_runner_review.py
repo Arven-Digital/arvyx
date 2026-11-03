@@ -8,7 +8,7 @@ class CanonicalRunnerTests(unittest.TestCase):
     def test_hashed_pytest_and_reviewed_runner_licenses_are_committed(self):
         inputs=(ROOT/'requirements/dev.in').read_text();lock=(ROOT/'requirements/dev.lock').read_text()
         records={r['name'].lower():r for r in json.loads((ROOT/'requirements/THIRD_PARTY_LICENSES.json').read_text())}
-        self.assertRegex(inputs,r'(?m)^pytest==9\.1\.1$')
+        self.assertRegex(inputs,r'(?m)^pytest==9\.2\.0$')
         for name in ('pytest','iniconfig','pluggy','colorama'):
             with self.subTest(name=name):
                 self.assertRegex(lock,rf'(?m)^{name}==[^\n]+ \\\n    --hash=sha256:[a-f0-9]{{64}}')
