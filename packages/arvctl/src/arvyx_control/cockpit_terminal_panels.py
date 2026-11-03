@@ -5,7 +5,10 @@ src/layout.rs at 5bd900d88c80d95f5b145397e45bbeea398b8165 (Apache-2.0).
 No Rust or vendored VT code is copied. Native full-screen tools use attach.
 """
 from __future__ import annotations
-import curses
+try:
+    import curses
+except ImportError:  # Windows: the standard library has no curses
+    curses = None
 import re
 
 from .cockpit_client import request
@@ -46,6 +49,8 @@ def read_panels(root, model):
 
 
 def draw_panels(screen, panes, *, top, left, height, width):
+    if curses is None:
+        raise RuntimeError("terminal panels need curses, which this platform's Python does not provide; use 'arvyx web' instead")
     """Arvyx-style pane chrome with a distinct focus border and inset content.
 
     Adaptation of ui/panes.rs pane_border_title / pane_inner_rect and one-cell

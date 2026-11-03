@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+import os
 import unittest
 
 
@@ -232,6 +233,7 @@ class McpClientEvidenceProducerTests(unittest.TestCase):
         self.assertIs(result["private_paths_leaked"], True)
         self.assertIn("/home/", result["leaked_markers"])
 
+    @unittest.skipUnless(os.name == 'posix', 'POSIX mode bits and path forms')
     def test_run_client_fails_the_scan_on_an_absolute_repository_path(self) -> None:
         result, _ = self._run_with_fake_sdk(init_payload={"repo": str(ROOT)})
         self.assertIs(result["private_paths_leaked"], True)
@@ -257,6 +259,7 @@ class McpClientEvidenceProducerTests(unittest.TestCase):
             setattr(self.producer, "_run_client", original)
         return code, json.loads(out.read_text(encoding="utf-8")), out, capture, tmp
 
+    @unittest.skipUnless(os.name == 'posix', 'POSIX mode bits and path forms')
     def test_produce_records_the_measurement_and_keeps_a_private_capture(self) -> None:
         code, payload, out, capture, tmp = self._produce_with_capture()
         try:
@@ -387,6 +390,7 @@ class McpClientEvidenceProducerTests(unittest.TestCase):
         finally:
             tmp.cleanup()
 
+    @unittest.skipUnless(os.name == 'posix', 'POSIX mode bits and path forms')
     def test_the_capture_is_private_before_any_bytes_are_visible(self) -> None:
         # `write_text` + `chmod` leaves a world-readable window on a 022 umask. The
         # mode must be 0600 on the file that becomes the capture, not after.

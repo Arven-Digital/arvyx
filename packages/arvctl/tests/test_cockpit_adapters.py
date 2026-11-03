@@ -2,11 +2,13 @@ from arvyx_control.local_executor import ExecutionPolicy
 """Native conversation bindings: directory reopening is never resume."""
 import sys
 import time
+import os
 import unittest
 from pathlib import Path
 import test_cockpit_surface as fixtures
 
 
+@unittest.skipUnless(os.name == 'posix', 'the PTY owner fixture (host-environment natives) is POSIX-only')
 class AdapterTests(unittest.TestCase):
     setUp = fixtures.SurfaceTests.setUp
     session = fixtures.SurfaceTests.session

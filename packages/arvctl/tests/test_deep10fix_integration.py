@@ -8,6 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
+import os
 import pytest
 from arvyx_control import api, audit_log, dispatcher, terminal_sessions, watchdog
 from arvyx_control.auth import OPERATOR_IDENTITY
@@ -17,6 +18,8 @@ from arvyx_control.replica_authority import authority_context
 from arvyx_control.retirement import retire_thread
 from arvyx_control.operator_archive import archive_record, history_digest, related_records
 from arvyx_control.agent_delivery import AgentRoute, AgentDeliveryResult
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='fork and flock based snapshot fixtures are POSIX-only')
 
 ROOT = Path(__file__).resolve().parents[3]
 

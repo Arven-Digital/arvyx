@@ -210,7 +210,7 @@ def export_evidence(
         _operation.validate(repo)
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(bundle.to_json() + "\n", encoding="utf-8")
+        output.write_text(bundle.to_json() + "\n", encoding="utf-8", newline="\n")
     return bundle
 
 

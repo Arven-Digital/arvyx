@@ -343,6 +343,7 @@ class PrivateDenylistTests(unittest.TestCase):
 
 
 class PackagedDefaultTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'posix', 'POSIX mode bits and umask')
     def test_default_vault_survives_index_build_under_group_writable_umask(self):
         # Regression: the index writer created the vault metadata directory with the
         # ambient umask, so the next packaged-default resolution refused its own cache.
@@ -377,6 +378,7 @@ class PackagedDefaultTests(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
+    @unittest.skipUnless(os.name == 'posix', 'POSIX mode bits and umask')
     def test_default_vault_materializes_under_group_writable_umask(self) -> None:
         previous = os.umask(0o002)
         try:
@@ -392,6 +394,7 @@ class PackagedDefaultTests(unittest.TestCase):
         finally:
             os.umask(previous)
 
+    @unittest.skipUnless(os.name == 'posix', 'POSIX mode bits and umask')
     def test_preexisting_writable_cache_entry_is_still_refused(self) -> None:
         # Negative control: tightening applies only to the tree just created.
         for kind in ("file", "vault-dir"):

@@ -68,6 +68,7 @@ import ast
 import socket
 import time
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from arvyx_control import cockpit_web, cockpit_archive, hermes_history
 from arvyx_control.public_onboarding_api import BoundedWorkers
@@ -80,7 +81,7 @@ def test_legacy_dashboard_has_bounded_worker_admission(tmp_path):
         server.server_close()
 
 def test_metadata_aggregates_activity_once(tmp_path):
-    with sqlite3.connect(tmp_path/'state.db') as db:
+    with closing(sqlite3.connect(tmp_path/'state.db')) as db, db:
         db.execute('CREATE TABLE sessions(id TEXT,title TEXT,started_at REAL)')
         db.execute('CREATE TABLE messages(session_id TEXT,timestamp REAL)')
         db.executemany('INSERT INTO sessions VALUES (?,?,?)',[(str(i),'title',1) for i in range(400)])

@@ -13,6 +13,7 @@ from pathlib import Path
 import shutil
 import stat
 import uuid
+from . import private_paths, safe_open
 from .locks import vault_lock, check_deadline
 from .filesystem import durable_mkdir, fsync_directory
 from .paths import resolve_under
@@ -58,7 +59,7 @@ def sync(directory):
 
 def stage(path,data,mode=0o600):
     with path.open('xb') as stream:
-        os.fchmod(stream.fileno(),mode)
+        private_paths.apply_mode(fd=stream.fileno(),mode=mode)
         view=memoryview(data)
         while view:
             written=stream.write(view)
@@ -87,8 +88,8 @@ def apply_original_metadata(path, row):
         info = os.fstat(fd)
         if (info.st_uid, info.st_gid) != (uid, gid):
             raise OSError('promotion ownership restoration failed')
-        os.fchmod(fd, row['mode'])
-        os.fsync(fd)
+        private_paths.apply_mode(fd=fd, mode=row['mode'])
+        safe_open.fsync_file(fd)
 
 
 def clean(journal,document):

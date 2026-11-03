@@ -9,6 +9,8 @@ from unittest.mock import patch
 import pytest
 from arvyx_control import cockpit_client as rpc
 
+pytestmark = pytest.mark.skipif(not hasattr(socket, 'AF_UNIX'), reason='raw Unix-socket owner transport; Windows uses the loopback endpoint (test_owner_endpoint)')
+
 
 def trickle(peer, payload, delay=.02):
     try:

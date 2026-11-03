@@ -216,7 +216,7 @@ def _cli_contract(source: Path, program: str, *, include_root: bool = False) -> 
             if keyword.arg in {"required", "default", "choices", "action", "dest", "help", "type", "nargs"}:
                 item[keyword.arg] = _literal(keyword.value)
         commands[tuple(command_path)]["arguments"].append(item)
-    result = {"source": str(source.relative_to(ROOT)),
+    result = {"source": source.relative_to(ROOT).as_posix(),
               "commands": [commands[key] for key in sorted(commands) if key or include_root]}
     if not include_root and () in commands and commands[()]["arguments"]:
         result["root_arguments"] = commands[()]["arguments"]

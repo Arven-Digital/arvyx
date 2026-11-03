@@ -12,6 +12,9 @@ import pytest
 from arvyx_control.secret_delivery import COOKIE, SecretDelivery, Session
 from arvyx_control.secret_delivery_protocol import Principal, Receipts
 from arvyx_control.vault import init_vault
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='secret delivery destinations are defined by POSIX uid and mode semantics')
 
 
 class Intake(io.BytesIO):

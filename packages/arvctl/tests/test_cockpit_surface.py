@@ -1,6 +1,7 @@
 from arvyx_control.local_executor import ExecutionPolicy
 from arvyx_control.replica_authority import authority_context
 import tempfile
+import os
 import unittest
 from unittest.mock import MagicMock, patch
 from pathlib import Path
@@ -10,6 +11,7 @@ from arvyx_control.cockpit import LocalCockpit
 from arvyx_control import cockpit_surface
 
 
+@unittest.skipUnless(os.name == 'posix', 'PTY owner, curses surface, fork or pidfd semantics are POSIX-only')
 class SurfaceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

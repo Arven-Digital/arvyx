@@ -38,6 +38,7 @@ restore_drill = load(DRILL, "arvyx_v2_snapshot_restore_drill")
 runtime_doctor = load(DOCTOR, "systemd_effective_exec_doctor")
 
 
+@unittest.skipUnless(os.name == 'posix', 'deployment kit tests use pwd and POSIX ownership')
 class SnapshotRestoreDrillTests(unittest.TestCase):
     def make_snapshot(self, root: Path) -> Path:
         data = root / "data"

@@ -74,6 +74,7 @@ class Deep10Fix04Tests(unittest.TestCase):
             actor="fixture-target", message="fixture observed", idempotency_key="test-test-test-04",
         ), "execution.steer.acknowledged"
 
+    @unittest.skipUnless(os.name == 'posix', 'directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
     def test_01_uncertain_stop_and_steer_retries_repeat_both_barriers(self):
         for name in ("cancel", "hold", "close", "steer", "ack"):
             for barrier in ("file", "directory"):

@@ -30,6 +30,13 @@ try:  # POSIX
     def _unlock(handle: IO[str]) -> None:
         fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
+    def _try_exclusive(fd: int) -> bool:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return False
+        return True
+
 except ImportError:  # Windows
     import msvcrt
 
@@ -56,6 +63,27 @@ except ImportError:  # Windows
     def _unlock(handle: IO[str]) -> None:
         handle.seek(0)
         msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+
+    def _try_exclusive(fd: int) -> bool:
+        # Same one-byte range at offset 0 as _lock, so both lockers contend.
+        os.lseek(fd, 0, os.SEEK_SET)
+        try:
+            msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        except OSError as exc:
+            if exc.errno in (errno.EACCES, errno.EAGAIN, errno.EDEADLK):
+                return False
+            raise
+        return True
+
+
+def try_exclusive_lock(handle: IO | int) -> bool:
+    """Take a non-blocking exclusive lock on an open file; False when another holder has it.
+
+    POSIX uses flock on the descriptor; Windows locks one byte at offset 0, which
+    every locker of the same file contends for. The lock lives until the file is
+    closed, exactly like the previous direct flock callers relied on.
+    """
+    return _try_exclusive(handle if isinstance(handle, int) else handle.fileno())
 
 
 def check_deadline(deadline: float | None) -> float | None:
@@ -107,7 +135,7 @@ def exclusive_lock(lock_path: Path, *, deadline: float | None = None) -> Iterato
     lock_path.parent.mkdir(parents=True, exist_ok=True, mode=0o755)
     # Same semantics as open("a+"), but the lock file is created 0644, not 0666 minus umask.
     descriptor = os.open(lock_path, os.O_RDWR | os.O_CREAT | os.O_APPEND, 0o644)
-    with os.fdopen(descriptor, "a+", encoding="utf-8") as handle:
+    with os.fdopen(descriptor, "a+", encoding="utf-8", newline="\n") as handle:
         _lock(handle, deadline)
         try:
             check_deadline(deadline)

@@ -1,11 +1,15 @@
 """Persistence regressions using real SQLite stores and explicit owner facts."""
 import json
 import sqlite3
+from contextlib import closing
 from types import SimpleNamespace
 from unittest.mock import patch
 import pytest
 from arvyx_control.cockpit_primary import PrimaryAgentRegistry, NativePrimaryAuthority
 from arvyx_control.cockpit_human_binding import HumanBindings
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='PTY owner, curses surface, fork or pidfd semantics are POSIX-only')
 
 @pytest.fixture
 def binding(tmp_path):
@@ -15,7 +19,7 @@ def binding(tmp_path):
         (home/'vault/registry'/kind).mkdir(parents=True)
     for agent in ('alpha', 'beta'):
         (home/'vault/registry/agents'/(agent+'.json')).write_text(json.dumps(dict(id=agent)))
-    with sqlite3.connect(home/'runtime/sessions.sqlite') as db:
+    with closing(sqlite3.connect(home/'runtime/sessions.sqlite')) as db, db:
         db.execute('CREATE TABLE native_organizers(agent TEXT, session TEXT)')
     owner = SimpleNamespace(vault=home/'vault', state=home/'events.jsonl', _human=lambda _: None)
     registry = PrimaryAgentRegistry(owner, home/'primary.sqlite', shared_secret='test-secret')
@@ -46,7 +50,7 @@ def test_election_error_rolls_back_both_stores(binding):
     registry.db.execute("CREATE TRIGGER fail_election BEFORE UPDATE ON primary_agent BEGIN SELECT RAISE(ABORT, 'injected disk failure'); END")
     with pytest.raises(sqlite3.Error):
         bindings.bind(dict(sessions[0], agent_id='alpha', revision=0))
-    with sqlite3.connect(bindings.path) as db:
+    with closing(sqlite3.connect(bindings.path)) as db, db:
         assert db.execute('SELECT COUNT(*) FROM bindings').fetchone()[0] == 0
         assert db.execute('SELECT COUNT(*) FROM audit').fetchone()[0] == 0
     registry.db.execute('DROP TRIGGER fail_election')
@@ -78,7 +82,7 @@ def test_process_crash_inside_cross_store_commit_recovers_both(binding):
     _,status=os.waitpid(child,0)
     assert os.waitstatus_to_exitcode(status)==69
     assert registry.snapshot()['agent_id'] is None
-    with sqlite3.connect(bindings.path) as db:
+    with closing(sqlite3.connect(bindings.path)) as db, db:
         assert db.execute('SELECT COUNT(*) FROM bindings').fetchone()[0]==0
     bindings.bind(dict(sessions[0],agent_id='alpha',revision=0))
     assert registry.snapshot()['agent_id']=='alpha'

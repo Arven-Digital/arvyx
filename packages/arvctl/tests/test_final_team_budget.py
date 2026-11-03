@@ -4,6 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import os
 import pytest
 
 from arvyx_control import cockpit, cockpit_client as client
@@ -51,6 +52,7 @@ def test_old_client_without_metadata_keeps_owner_default():
     assert observed == [cockpit.OWNER_TIMEOUT]
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='uses a POSIX absolute endpoint path')
 def test_real_exchange_writes_shrinking_budget_after_connect():
     clock = [100.0]
     sock = MagicMock()

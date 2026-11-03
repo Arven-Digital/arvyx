@@ -1,4 +1,5 @@
 """Synthetic lane01 regression source. NOT EXECUTED: explicit no-test contract."""
+from arvyx_control import safe_open
 import hashlib
 import json
 import os
@@ -110,6 +111,7 @@ def transcript():
                 project='', task='', host='host', kind='organizer', agent='operator')
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 def test_existing_only_transcript_replay_repairs_every_barrier(tmp_path, monkeypatch):
     agents = tmp_path / 'registry/agents'
     agents.mkdir(parents=True)
@@ -138,6 +140,7 @@ def test_existing_only_transcript_replay_repairs_every_barrier(tmp_path, monkeyp
             authority.append_transcript(tmp_path, state, dict(payload, event_id='absent'), actor='operator', replay_only=True)
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 @pytest.mark.parametrize('failed_target', ['log', 'parent'])
 def test_uncertain_initial_transcript_append_requires_successful_repair(tmp_path, monkeypatch, failed_target):
     agents = tmp_path / 'registry/agents'
@@ -150,7 +153,7 @@ def test_uncertain_initial_transcript_append_requires_successful_repair(tmp_path
     def fail_selected(fd):
         nonlocal failed
         if (not failed and state.exists() and state.stat().st_size > 0
-                and os.readlink(f'/proc/self/fd/{fd}') == target):
+                and safe_open.descriptor_path(fd) == target):
             failed = True
             raise OSError('synthetic uncertain append')
         return real_fsync(fd)

@@ -1,9 +1,11 @@
 """Consent binds exact bytes; reconnect never sends a draft."""
+import os
 import unittest
 from unittest.mock import patch
 import test_cockpit_surface as fixtures
 
 
+@unittest.skipUnless(os.name == 'posix', 'the PTY owner fixture (host-environment natives) is POSIX-only')
 class ConsentTests(unittest.TestCase):
     setUp = fixtures.SurfaceTests.setUp
     session = fixtures.SurfaceTests.session

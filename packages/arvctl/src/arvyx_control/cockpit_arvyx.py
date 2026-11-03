@@ -218,7 +218,7 @@ def _open_frontend(home: Path, frontend_home: Path, native):
     frontend_home.mkdir(mode=0o700, parents=False, exist_ok=False)
     config = frontend_home / '.config/herdr/config.toml'
     config.parent.mkdir(mode=0o700, parents=True)
-    config.write_text('onboarding = false\n[update]\nversion_check = false\nmanifest_check = false\n[terminal]\nshell_mode = "non_login"\n')
+    config.write_text('onboarding = false\n[update]\nversion_check = false\nmanifest_check = false\n[terminal]\nshell_mode = "non_login"\n', newline="\n")
     environment = frontend_environment(frontend_home)
     environment['PYTHONPATH'] = str(Path(__file__).resolve().parents[1])
     log = (frontend_home / 'frontend.log').open('wb')
@@ -268,7 +268,7 @@ def _open_frontend(home: Path, frontend_home: Path, native):
         binding_file = frontend_home / 'bindings.json'
         binding_file.write_text(json.dumps({'authority_home': str(home), 'binary_sha256': digest, 'bindings': bindings}, indent=2) + '\n')
         watcher = subprocess.Popen([sys.executable, '-m', 'arvyx_control.cockpit_arvyx', '--home', str(home), '--watch-bindings', str(binding_file), '--native-fd', str(native.fd)], pass_fds=(native.fd,), env=environment, stdout=log, stderr=log, start_new_session=True)
-        (frontend_home / 'focus-watcher.pid').write_text(str(watcher.pid) + '\n')
+        (frontend_home / 'focus-watcher.pid').write_text(str(watcher.pid) + '\n', newline="\n")
         attach_status = native.invoke(subprocess.call, ['session', 'attach', 'amc'], env=environment)
         return attach_status
     finally:

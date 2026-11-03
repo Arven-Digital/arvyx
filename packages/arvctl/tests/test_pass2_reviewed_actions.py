@@ -1,5 +1,6 @@
 """Durable consent is checked at the production API boundary, no native effects."""
 import sqlite3
+from contextlib import closing
 import pytest
 from test_local_onboarding_services import services as original_services
 from unittest.mock import patch
@@ -35,7 +36,7 @@ def test_reviewed_connection_survives_reopen_readback_and_cannot_replay(services
     status,result=call('actions/commit',commit)
     assert status==200 and result['target']['agent_id']=='agent-a'
     assert call('actions/commit',commit)[0]==400
-    with sqlite3.connect(root/'agents.sqlite') as db:
+    with closing(sqlite3.connect(root/'agents.sqlite')) as db, db:
         row=db.execute('SELECT actor,action,status,result FROM reviewed_actions').fetchone()
         assert row[:3]==('local-owner','manual/connect','completed')
         assert 'agent-a' in row[3]
@@ -56,7 +57,7 @@ def test_replaced_profile_expiry_and_ambiguous_effect_fail_closed(services):
     body=dict(family='hermes',path=str(profile),agent_id='agent-a',confirmed=True)
     commit=prepare(call,'manual/connect',body)
     (profile/'state.db').rename(profile/'old.db')
-    with sqlite3.connect(profile/'state.db') as db:db.executescript('CREATE TABLE sessions(id TEXT,title TEXT,started_at REAL);')
+    with closing(sqlite3.connect(profile/'state.db')) as db, db:db.executescript('CREATE TABLE sessions(id TEXT,title TEXT,started_at REAL);')
     assert call('actions/commit',commit)[0]==400
     commit=prepare(call,'manual/connect',body)
     with api.owners['local-owner'].creation.db as db:db.execute('UPDATE reviewed_actions SET expires=0')

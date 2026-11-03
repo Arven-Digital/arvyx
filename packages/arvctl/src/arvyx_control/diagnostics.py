@@ -22,6 +22,7 @@ import threading
 import time
 import uuid
 
+from . import private_paths
 from . import __version__
 
 TRACE: ContextVar[str | None] = ContextVar('diagnostic_trace', default=None)
@@ -160,7 +161,7 @@ class Reporter:
     def _check_path(self):
         assert self.path is not None
         mode = self.path.lstat().st_mode
-        if not stat.S_ISREG(mode) or mode & 0o077:
+        if not stat.S_ISREG(mode) or not private_paths.is_private_mode(mode, path=self.path):
             raise PermissionError('unsafe diagnostic store')
         # Inspect identity without opening SQLite: foreign files (including WAL)
         # must never acquire SQLite sidecars or trigger journal recovery.
@@ -291,7 +292,9 @@ class Reporter:
                 self.queue.put_nowait(None)
             except queue.Full:
                 pass
-            self.thread.join(timeout=.1)
+            # Bounded, but long enough for an in-flight store to finish and release
+            # its connection: Windows cannot delete the store while it is open.
+            self.thread.join(timeout=5)
 
     @_serialized_read
     def read(self, fingerprint=None):

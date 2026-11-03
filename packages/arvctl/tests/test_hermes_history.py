@@ -1,7 +1,11 @@
 import sqlite3
+from contextlib import ExitStack, closing
 import pytest
 from arvyx_control.agent_sessions import AgentSessions, RoutingError
 from arvyx_control.hermes_history import HermesHistory
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 
 # Synthetic, never-executed provider path: launch plans must not depend on an
 # installed Hermes binary on the test host, and no test here dispatches it.
@@ -11,7 +15,7 @@ SYNTHETIC_HERMES = '/synthetic/not-executed-hermes'
 def history(tmp_path):
     home = tmp_path/'isolated'
     home.mkdir(mode=0o700)
-    with sqlite3.connect(home/'state.db') as db:
+    with closing(sqlite3.connect(home/'state.db')) as db, db:
         db.executescript('CREATE TABLE sessions(id TEXT PRIMARY KEY,title TEXT,started_at REAL,ended_at REAL,end_reason TEXT,cwd TEXT); CREATE TABLE messages(id INTEGER PRIMARY KEY,session_id TEXT,timestamp REAL,content TEXT);')
         db.executemany('INSERT INTO sessions VALUES(?,?,?,?,?,?)',[(f'id-{i}',f'Title {i}',i,None,None,str(tmp_path)) for i in range(8)])
         db.execute("INSERT INTO messages VALUES(1,'id-0',99,'SECRET TRANSCRIPT')")
@@ -31,7 +35,7 @@ def test_full_history_recent_search_and_readonly(history):
 
 
 def test_corrupt_timestamp_is_not_exposed_or_used(history):
-    with sqlite3.connect(history.home/'state.db') as db:
+    with closing(sqlite3.connect(history.home/'state.db')) as db, db:
         db.execute("UPDATE messages SET timestamp='SECRET NONNUMERIC' WHERE id=1")
     items = AgentSessions({history.target:history}).recent(history.target)
     assert items[0].route.session_id == 'id-7'
@@ -54,15 +58,23 @@ def test_exact_launch_plan_requires_authorization_and_isolation(history,tmp_path
 
 
 def test_replaced_database_and_compression_never_fallback(history,tmp_path):
-    with sqlite3.connect(history.home/'state.db') as db:
+    with closing(sqlite3.connect(history.home/'state.db')) as db, db:
         db.execute("UPDATE sessions SET end_reason='compression' WHERE id='id-2'")
     with pytest.raises(RoutingError,match='compression'):
         history.launch_plan(tmp_path,session_id='id-2',authorized=True)
-    (history.home/'state.db').unlink()
-    with sqlite3.connect(history.home/'state.db') as db:
-        db.execute('CREATE TABLE replacement(id)')
-    with pytest.raises(RoutingError,match='replaced'):
-        history.metadata(history.target)
+    with ExitStack() as holder:
+        if os.name == 'posix':
+            # The reviewed database stays open elsewhere (a running Hermes), so its
+            # inode stays allocated and the replacement gets a different identity.
+            # With nothing holding it the kernel may recycle the inode and the pinned
+            # (device, inode) identity cannot see the swap (REV-0623). NTFS file ids
+            # carry a sequence number, and Windows cannot unlink an open file.
+            holder.enter_context((history.home/'state.db').open('rb'))
+        (history.home/'state.db').unlink()
+        with closing(sqlite3.connect(history.home/'state.db')) as db, db:
+            db.execute('CREATE TABLE replacement(id)')
+        with pytest.raises(RoutingError,match='replaced'):
+            history.metadata(history.target)
 
 
 def test_new_clean_isolated_home_has_no_history_and_does_not_create_database(tmp_path):
@@ -152,7 +164,7 @@ def test_default_live_profile_guard_never_starts_second_writer(history,tmp_path,
 
 def test_default_profile_launch_refused(tmp_path):
     profile = tmp_path/'.hermes'; profile.mkdir()
-    with sqlite3.connect(profile/'state.db') as db:
+    with closing(sqlite3.connect(profile/'state.db')) as db, db:
         db.execute('CREATE TABLE sessions(id,title,started_at)')
     adapter = HermesHistory(profile,default_home=profile)
     with pytest.raises(RoutingError,match='isolated'):

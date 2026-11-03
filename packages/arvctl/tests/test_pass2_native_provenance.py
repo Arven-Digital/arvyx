@@ -1,4 +1,5 @@
 """Exercise native builder provenance without a compiler, install or native start."""
+import os
 import runpy
 from pathlib import Path
 import pytest
@@ -12,7 +13,7 @@ def test_source_hash_binds_names_modes_and_bytes(tmp_path):
     digest=BUILDER['source_digest'];before=digest(tmp_path)
     file.write_text('changed');assert digest(tmp_path)!=before
     file.write_text('source');assert digest(tmp_path)==before
-    file.chmod(0o700);assert digest(tmp_path)!=before
+    if os.name=='posix': file.chmod(0o700);assert digest(tmp_path)!=before  # mode bits are POSIX metadata
     file.chmod(0o600);file.rename(tmp_path/'other.rs');assert digest(tmp_path)!=before
 
 

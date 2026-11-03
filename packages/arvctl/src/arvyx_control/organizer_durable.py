@@ -8,17 +8,19 @@ on every authorization. No endpoint or OS/root privilege is provisioned here.
 from dataclasses import asdict
 from contextlib import contextmanager
 import hashlib,json,math,os,secrets,sqlite3,threading,time
+from . import safe_open
+from . import private_paths
 from pathlib import Path
 
 
 def private_database(path):
     from .machine_pairing_transport import private_directory
     path=Path(path);private_directory(path.parent)
-    fd=os.open(path,os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
+    fd=safe_open.open_file(path,write=True,create=True,mode=0o600)
     try:
         info=os.fstat(fd)
         import stat
-        if info.st_uid!=os.getuid() or info.st_mode&0o077 or not stat.S_ISREG(info.st_mode):raise ValueError('private owned regular database required')
+        if not private_paths.owner_private(info,fd=fd) or not stat.S_ISREG(info.st_mode):raise ValueError('private owned regular database required')
     finally:os.close(fd)
     db=sqlite3.connect(path,check_same_thread=False)
     db.execute('PRAGMA journal_mode=DELETE');db.execute('PRAGMA synchronous=FULL')

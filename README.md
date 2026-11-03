@@ -99,7 +99,7 @@ Details: [Architecture](docs/architecture.md), [Threat model](docs/threat-model.
 ## Install
 
 Python 3.11 or newer is required for every path. Node 24.11 or newer is required
-for the npm package and the web control room. Linux is the supported platform
+for the npm package and the web control room. Linux and Windows are the supported platforms
 (see [Platform support](#platform-support)).
 
 ### npm
@@ -111,6 +111,15 @@ prerelease is published, install from source (below).
 npm install -g arvyx@alpha
 arvyx setup --prefix ~/.arvyx-venv          # installs the bundled wheel offline into a new venv
 arvyx doctor --prefix ~/.arvyx-venv         # verifies installed imports and web assets
+```
+
+On Windows (PowerShell), the prefix belongs under your profile, where NTFS keeps
+it private; `setup` restricts it to you, `SYSTEM` and `Administrators`:
+
+```powershell
+npm install -g arvyx@alpha
+arvyx setup --prefix "$env:LOCALAPPDATA\arvyx\venv" --python python
+arvyx doctor --prefix "$env:LOCALAPPDATA\arvyx\venv"
 ```
 
 The control room works against an owner home on this machine. Enroll once and
@@ -275,13 +284,21 @@ and [PUBLISHING.md](PUBLISHING.md).
 
 ## Platform support
 
-Linux is the supported platform: the required CI checks run the full suite on
-Linux for every push and pull request (Python 3.11, 3.12 and 3.13), and the
-release workflow requires those jobs on the tagged commit. macOS and Windows
-jobs exist as an experimental matrix that runs only when the repository variables
-`HOSTED_ACTIONS_ENABLED` and `HOSTED_EXPERIMENTAL_PLATFORMS` are both `true`;
-until their receipts exist they are not supported. The Makefile assumes a POSIX
-shell; on Windows run `python -m arvyx_control.cli ...` directly or use Git Bash.
+Linux and Windows are the supported platforms: the required CI checks run the
+full suite on Linux and on Windows for every push and pull request (Python 3.11,
+3.12 and 3.13), and the release workflow requires both sets of jobs on the tagged
+commit. On Windows the launcher, the memory CLI, the MCP server, the importers,
+harness discovery and the web control room are native; the PTY owner, native
+terminal attach, host and sandbox executors, secret delivery destinations and the
+Docker deployment kit are POSIX-only and refuse explicitly. Privacy on Windows is
+the NTFS owner and DACL (you, `SYSTEM`, `Administrators`) where POSIX uses `uid`
+and mode `0700`; the owner's local endpoint is a loopback port with a private
+token where POSIX uses a Unix socket. The details are in
+[docs/limitations.md](docs/limitations.md). macOS jobs exist as an experimental
+matrix that runs only when the repository variables `HOSTED_ACTIONS_ENABLED` and
+`HOSTED_EXPERIMENTAL_PLATFORMS` are both `true`; until their receipts exist macOS
+is not supported. The Makefile assumes a POSIX shell; on Windows use the npm
+launcher or `python -m arvyx_control.cli ...` from PowerShell or Git Bash.
 
 ## Status and limitations
 

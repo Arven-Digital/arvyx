@@ -48,9 +48,11 @@ def test_postgres_prefix_scaling(operation, suffix):
         text = 'postgres://u:' * count + suffix
         samples = []
         for _ in range(3):
-            start = time.process_time()
+            # perf_counter: process_time has ~16 ms granularity on Windows, which
+            # reads a 1000-item run as 0.0 and defeats the ratio.
+            start = time.perf_counter()
             operation(text)
-            samples.append(time.process_time() - start)
+            samples.append(time.perf_counter() - start)
         durations.append(min(samples))
     print(operation.__name__, durations)
     assert durations[1] < durations[0] * 7 + 0.01

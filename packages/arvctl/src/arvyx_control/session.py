@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 import re
 
+from . import safe_open
 from .locks import vault_lock
 from .paths import resolve_under
 from .security import contains_literal_secret, redact_secrets
@@ -83,10 +84,10 @@ def set_session(vault: Path, agent: str, content: str) -> SessionResult:
                 handle.write(payload)
                 handle.flush()
                 os.fsync(handle.fileno())
-            os.replace(temporary, target)
-            directory = os.open(target.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+            safe_open.replace_path(temporary, target)
+            directory = safe_open.open_directory(target.parent)
             try:
-                os.fsync(directory)
+                safe_open.fsync_directory(directory)
             finally:
                 os.close(directory)
         finally:
@@ -107,7 +108,7 @@ def get_session(vault: Path, agent: str) -> SessionResult:
     target = resolve_under(vault_root, "agents", agent, SESSION_FILENAME)
     if not target.is_file():
         raise FileNotFoundError(f"no session state for agent: {agent}")
-    raw = target.read_text(encoding="utf-8")
+    raw = safe_open.read_text_shared(target)
     updated_at = _frontmatter_value(raw, "updated_at")
     body = _strip_frontmatter(raw).lstrip("\n")
     body = re.sub(r"\A#\s.*\n+", "", body, count=1)  # drop the generated heading

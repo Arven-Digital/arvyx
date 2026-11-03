@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -83,7 +84,7 @@ class CacheDecoderTests(unittest.TestCase):
                     payload["files"][relative] = damaged
                     artifact.write_text(json.dumps(payload), encoding="utf-8")
                     if corrupt_checkpoint:
-                        with sqlite3.connect(_journal_path(root)) as connection:
+                        with closing(sqlite3.connect(_journal_path(root))) as connection, connection:
                             connection.execute("UPDATE checkpoints SET entry_json=? WHERE relative_path=?", (json.dumps(damaged), relative))
                     with patch("arvyx_control.checkpoint_jobs._index_file", wraps=_index_file) as tokenize:
                         with authority_context(root):

@@ -23,6 +23,7 @@ def worker(directory, key, queue, version=None):
         queue.put(str(exc))
 
 
+@unittest.skipUnless(os.name == 'posix', 'secret delivery destinations are defined by POSIX uid and mode semantics')
 class WriterTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

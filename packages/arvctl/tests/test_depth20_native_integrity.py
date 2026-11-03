@@ -127,6 +127,7 @@ def test_all_launch_sites_use_snapshot_and_watcher_passes_descriptor():
 
 
 @pytest.mark.parametrize('failure', ['venv', 'pip', 'native', 'none'])
+@pytest.mark.skipif(os.name != 'posix', reason='the node harness mocks a POSIX-path filesystem around the launcher')
 def test_package_intent_retains_failure_and_python_only_completion(failure):
     """Execute only a mocked JS wrapper: no pip/venv/native execution occurs."""
     repo = ROOT

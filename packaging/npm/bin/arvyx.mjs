@@ -28,6 +28,16 @@ if pathlib.Path(sys.prefix).resolve() != expected or sys.prefix == sys.base_pref
 purelib = pathlib.Path(sysconfig.get_path('purelib')).resolve()
 if not purelib.is_relative_to(expected):
     raise SystemExit('site-packages is outside requested prefix')
+import os
+if os.name == 'nt':
+    from arvyx_control.windows_acl import private_path_problem
+    problem = private_path_problem(expected)
+    if problem:
+        raise SystemExit('requested prefix is not private: ' + problem)
+else:
+    info = os.stat(expected)
+    if info.st_uid != os.getuid() or info.st_mode & 0o077:
+        raise SystemExit('requested prefix is not private')
 for name in ('arvyx_control', 'safe_mcp_bridge', 'arvyx_control_center_api'):
     spec = importlib.util.find_spec(name)
     if spec is None or not spec.origin or not pathlib.Path(spec.origin).resolve().is_relative_to(purelib):
@@ -45,7 +55,23 @@ function requireComplete(){
  return intent;
 }
 const intentName='setup-intent.json';
-function syncDirectory(path){const fd=openSync(path,'r');try{fsyncSync(fd)}finally{closeSync(fd)}}
+function syncDirectory(path){
+ // Windows cannot open a directory handle for fsync (EPERM). Conditional Windows
+ // support guarantees file fsync only, as arvyx_control.filesystem documents.
+ if(process.platform==='win32')return;
+ const fd=openSync(path,'r');try{fsyncSync(fd)}finally{closeSync(fd)}}
+function restrictPrefixWindows(path){
+ // mode 0o700 means nothing on NTFS: replace the inherited DACL with full control for
+ // this user, SYSTEM and Administrators only, the owner-plus-root set that
+ // arvyx_control.windows_acl verifies again at every later command.
+ // System32 by path: a POSIX toolchain on PATH (Git for Windows) shadows whoami.
+ const system32=join(process.env.SystemRoot||'C:/Windows','System32');
+ const who=spawnSync(join(system32,'whoami.exe'),['/user','/fo','csv','/nh'],{encoding:'utf8'});
+ const sid=((who.stdout||'').trim().split(',').pop()||'').replace(/"/g,'');
+ if(who.status!==0||!/^S-1-/.test(sid))fail('Could not determine the current user SID.');
+ const acl=spawnSync(join(system32,'icacls.exe'),[path,'/inheritance:r','/grant:r',`*${sid}:(OI)(CI)F`,'*S-1-5-18:(OI)(CI)F','*S-1-5-32-544:(OI)(CI)F'],{stdio:['ignore','ignore','inherit']});
+ if(acl.status!==0)fail('Could not make the setup destination private.');
+}
 function writeIntent(record,complete=false){
  const target=join(prefix,intentName), pending=join(prefix,'setup-intent.complete.tmp');
  const fd=openSync(complete?pending:target,'wx',0o600);
@@ -68,7 +94,8 @@ const at=args.indexOf('--prefix');if(at<0||!args[at+1])fail('An explicit --prefi
 const prefix=resolve(args[at+1]);args.splice(at,2);
 const py=join(prefix,process.platform==='win32'?'Scripts/python.exe':'bin/python');
 if(command==='setup'){
- let python='python3';const i=args.indexOf('--python');if(i>=0){
+ // Windows installs Python as `python` (`python3` is often only a Store alias).
+ let python=process.platform==='win32'?'python':'python3';const i=args.indexOf('--python');if(i>=0){
   python=args[i+1];args.splice(i,2);
   if(!python||python.startsWith('--'))fail('Missing --python value.');
   // Preserve PATH lookup for bare commands; anchor explicit paths to the caller.
@@ -90,6 +117,7 @@ if(command==='setup'){
  // Reserve a NEW private prefix before venv inherits the caller's umask.
  mkdirSync(dirname(prefix),{recursive:true,mode:0o700});
  try{mkdirSync(prefix,{mode:0o700})}catch{fail('Setup destination must be new and private.')}
+ if(process.platform==='win32')restrictPrefixWindows(prefix);
  syncDirectory(dirname(prefix));
  const intent={version:2,...packageIdentity(),native_requested:Boolean(native),native_capability:native?nativeCapability:null,state:'incomplete'};
  writeIntent(intent);

@@ -6,6 +6,8 @@ A restored record or pilot name alone can never satisfy this provenance check.
 """
 import argparse,hashlib,json,os,re,secrets,time
 from pathlib import Path
+from . import private_paths
+from . import safe_open
 from .native_install import write,sync
 from .external_workspace import _read
 
@@ -15,16 +17,16 @@ def enroll(root,machine,*,confirmed=False):
     if root.exists() or root.is_symlink():raise ValueError('new empty enrollment home required; pilot adoption is separate')
     from .external_workspace import _open_root
     with _open_root(root.parent) as parent:
-        os.mkdir(root.name,mode=0o700,dir_fd=parent);os.fsync(parent)
-    vault=root/'vault';vault.mkdir(mode=0o700)
+        safe_open.mkdir_at(parent,root.name,0o700);safe_open.fsync_directory(parent)
+    vault=root/'vault';private_paths.ensure_private_directory(vault,mode=0o700)
     machine_dir=vault/'registry'/'machines';machine_dir.mkdir(mode=0o700,parents=True)
     record=dict(id=machine,enrollment_kind='explicit-local-human',enrollment_id=secrets.token_hex(16))
     data=json.dumps(record,sort_keys=True).encode()
     write(machine_dir/(machine+'.json'),data,0o600)
     write(vault/'.arvyx-vault',b'arvyx-vault-format: 1\n',0o600)
     write(root/'events.jsonl',b'',0o600)
-    runtime=root/'runtime';runtime.mkdir(mode=0o700)
-    provenance=dict(schema=1,machine=machine,record_sha256=hashlib.sha256(data).hexdigest(),uid=os.getuid(),enrollment_id=record['enrollment_id'],kind='explicit-local-human',confirmed_at=time.time(),organizer=None)
+    runtime=root/'runtime';private_paths.ensure_private_directory(runtime,mode=0o700)
+    provenance=dict(schema=1,machine=machine,record_sha256=hashlib.sha256(data).hexdigest(),uid=private_paths.current_user(),enrollment_id=record['enrollment_id'],kind='explicit-local-human',confirmed_at=time.time(),organizer=None)
     write(runtime/'operator.secret',(secrets.token_urlsafe(48)+'\n').encode(),0o600)
     write(runtime/'machine-enrollment.json',json.dumps(provenance,sort_keys=True).encode(),0o600)
     sync(machine_dir);sync(vault);sync(runtime);sync(root)
@@ -38,7 +40,7 @@ def verify(home,machine):
     record,_,_=_read(home,('vault','registry','machines',machine+'.json'),65536)
     provenance=json.loads(raw);identity=json.loads(record)
     if (provenance.get('schema')!=1 or provenance.get('kind')!='explicit-local-human' or provenance.get('machine')!=machine
-            or provenance.get('uid')!=os.getuid() or provenance.get('record_sha256')!=hashlib.sha256(record).hexdigest()
+            or provenance.get('uid')!=private_paths.current_user() or provenance.get('record_sha256')!=hashlib.sha256(record).hexdigest()
             or provenance.get('enrollment_id')!=identity.get('enrollment_id')):raise PermissionError('explicit local machine provenance mismatch')
     return provenance
 

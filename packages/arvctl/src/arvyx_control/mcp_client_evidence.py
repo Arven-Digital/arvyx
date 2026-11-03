@@ -155,7 +155,7 @@ def generate_mcp_client_evidence(
     # `arvyx evidence sign` binds the completed evidence to a configured identity.
     if output:
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+        output.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return payload
 
 
@@ -176,7 +176,7 @@ def attest_evidence_file(path: Path, *, key_path: Path, principal: str) -> dict[
         principal=principal,
         namespace=NS_MCP_CLIENT,
     )
-    path.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     return payload
 
 

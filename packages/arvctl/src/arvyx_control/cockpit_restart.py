@@ -7,9 +7,26 @@ remain authoritative. Runtime starts only when this explicit consumer is invoked
 """
 import hashlib,json,re,time,uuid,os
 from pathlib import Path
+from . import private_paths
 from .cockpit_terminal_runner import JsonOperator
 
+_WINDOWS_BOOT_ID=None
+
+def _windows_boot_id():
+    global _WINDOWS_BOOT_ID
+    if _WINDOWS_BOOT_ID is None:
+        import ctypes
+        kernel32=ctypes.WinDLL("kernel32")
+        kernel32.GetTickCount64.restype=ctypes.c_ulonglong
+        _WINDOWS_BOOT_ID="windows-boot-%d"%int(time.time()-kernel32.GetTickCount64()/1000.0)
+    return _WINDOWS_BOOT_ID
+
 def boot_id():
+    if os.name=='nt':
+        # Windows has no boot id file; the boot instant (now minus GetTickCount64 uptime,
+        # whole seconds) identifies the boot. GetTickCount64 has about 16 ms granularity,
+        # so the value is formed once per process and reused.
+        return _windows_boot_id()
     value=Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     if not re.fullmatch('[a-f0-9-]{36}',value):raise ValueError('kernel reboot proof unavailable')
     return value
@@ -22,7 +39,7 @@ def schema(owner):
     owner.db.execute('CREATE TABLE IF NOT EXISTS delegation_expiries(session TEXT PRIMARY KEY,expires REAL NOT NULL,incarnation TEXT NOT NULL)')
 
 def snapshot(owner,sid):
-    if os.geteuid()==0:raise PermissionError('Hermes reboot continuation currently requires the same unprivileged host account')
+    if private_paths.is_root():raise PermissionError('Hermes reboot continuation currently requires the same unprivileged host account')
     binding=owner.native(sid,actor='operator');row=owner._get(sid)
     delegation=owner.delegation(sid,actor='operator')
     if not binding or binding['tool']!='hermes' or not delegation or delegation['pending'] is not None:
@@ -34,7 +51,7 @@ def snapshot(owner,sid):
     return dict(session=sid,binding=binding,workspace=row['workspace'],profile=str(runtime.home),profile_identity=list(runtime.profile.identity),profile_home_identity=list(runtime.profile.home_identity),
         native_executable_sha256=hashlib.sha256(runtime.executable.read_bytes()).hexdigest(),
         driver_argv=driver.argv,driver_cwd=str(driver.cwd),driver_sha256=hashlib.sha256(Path(driver.argv[0]).read_bytes()).hexdigest(),
-        effective_uid=os.geteuid(),operator=delegation['operator'],goal=delegation['goal'],limits=delegation['limits'],generation=delegation['generation'],
+        effective_uid=private_paths.effective_user(),operator=delegation['operator'],goal=delegation['goal'],limits=delegation['limits'],generation=delegation['generation'],
         epoch=owner.db.execute('SELECT epoch FROM lifecycle_policy WHERE singleton=1').fetchone()[0],grammar='json-operator-v1')
 
 def grant(owner,sid,*,actor,confirmed=False,allow_provider_restart=False,ttl=300):

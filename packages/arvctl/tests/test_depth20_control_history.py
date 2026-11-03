@@ -1,6 +1,7 @@
 """Control/history lane regression sources. Not executed in the static fix round."""
 from copy import deepcopy
 import sqlite3
+from contextlib import closing
 
 import pytest
 
@@ -29,13 +30,13 @@ def test_accepting_actor_survives_real_producers_and_sqlite(tmp_path, review):
         for result in results:
             assert result.handoff.accepted_by == result.event.payload['accepted_by'] == 'owner'
         sync_sqlite(state, db)
-        with sqlite3.connect(db) as connection:
+        with closing(sqlite3.connect(db)) as connection, connection:
             assert connection.execute('SELECT accepted_by FROM handoffs WHERE id=?', (created.handoff.id,)).fetchone() == ('owner',)
         completed = control.complete_handoff(state, created.handoff.id, actor='owner', actor_identity_bound=True)
         assert completed.handoff.accepted_by == completed.event.payload['accepted_by'] == 'owner'
         assert control.list_handoffs(state).handoffs[0].accepted_by == 'owner'
         sync_sqlite(state, db)
-        with sqlite3.connect(db) as connection:
+        with closing(sqlite3.connect(db)) as connection, connection:
             assert connection.execute('SELECT accepted_by FROM handoffs WHERE id=?', (created.handoff.id,)).fetchone() == ('owner',)
 
 

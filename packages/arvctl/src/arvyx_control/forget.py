@@ -41,6 +41,7 @@ import re
 import stat as stat_module
 import uuid
 
+from . import safe_open
 from .promotion_transaction import memory_mutation
 from .forget_guard import assert_copyable_forget_operations, _read_regular_nofollow
 from .filesystem import fsync_directory
@@ -505,7 +506,7 @@ def _atomic_write_bytes_via(temporary: Path, final: Path, payload: bytes) -> Non
         handle.write(payload)
         handle.flush()
         os.fsync(handle.fileno())
-    os.replace(temporary, final)
+    safe_open.replace_path(temporary, final)
     _fsync_dir(final.parent)
 
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 import threading
+import os
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -127,6 +128,7 @@ class _BrokenVectorTests(unittest.TestCase):
             self.assertEqual(payload["format"], INDEX_FORMAT)
             self.assertTrue(load_index(vault))
 
+    @unittest.skipUnless(os.name == 'posix', 'directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
     def test_cache_write_fsyncs_file_and_directory(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             vault = self._seed(tmp)

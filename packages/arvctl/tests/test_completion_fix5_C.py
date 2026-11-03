@@ -2,6 +2,7 @@
 import json
 import os
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -58,7 +59,7 @@ def test_unicode_workcapture_split_and_reopen_never_delivers_body(tmp_path, endi
 @pytest.mark.parametrize('ending', BAD_ENDINGS)
 def test_unicode_native_import_actual_sql_page_reopen_delivery(tmp_path, ending):
     store = tmp_path / 'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE messages(id INTEGER PRIMARY KEY,session_id TEXT,role TEXT,content TEXT)')
         db.executemany('INSERT INTO messages VALUES(?,?,?,?)',
             [(i,'conversation','assistant','safe') for i in range(1,99)] +
@@ -214,6 +215,8 @@ def test_reviewed_consent_expiring_during_snapshot_does_not_publish(services):
     assert reviewed.db.execute('SELECT status FROM reviewed_actions WHERE id=?',(review['consent_id'],)).fetchone()[0]=='prepared'
 
 from test_session_workspace_journey import journey, plan, commit
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 
 
 @pytest.fixture

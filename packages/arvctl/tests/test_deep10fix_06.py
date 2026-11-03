@@ -22,6 +22,7 @@ SPEC.loader.exec_module(BACKUP)
 GUIDE = ROOT / "docs/vps-deployment.md"
 
 
+@unittest.skipUnless(os.name == 'posix', 'the deployment scripts take POSIX locks and fail closed elsewhere')
 class DeploymentRunbookTests(unittest.TestCase):
     def test_restore_documents_networkless_staging(self):
         drill = GUIDE.read_text().split("### Restore drill", 1)[1].split("## Upgrade", 1)[0]
@@ -103,6 +104,7 @@ class DeploymentRunbookTests(unittest.TestCase):
             BACKUP._expected_data_volume(environment, "arvyx")
 
 
+@unittest.skipUnless(os.name == 'posix', 'the deployment scripts take POSIX locks and fail closed elsewhere')
 class RestoreBoundaryTests(unittest.TestCase):
     def _failure_case(self, phase, fence="stopped"):
         with tempfile.TemporaryDirectory(prefix="deep10fix-06-restore-") as temporary, ExitStack() as stack:

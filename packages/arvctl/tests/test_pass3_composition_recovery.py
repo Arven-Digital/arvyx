@@ -1,5 +1,6 @@
 """Offline whole-composition drill on disposable state, including WAL and fences."""
-import json,sqlite3,fcntl
+from contextlib import closing
+import json,sqlite3
 from pathlib import Path
 import pytest
 
@@ -10,11 +11,11 @@ def topology(tmp_path):
     roles={k:[] for k in ROLES}
     for role in ROLES:
         file=root/(role+'.sqlite')
-        with sqlite3.connect(file) as db:
+        with closing(sqlite3.connect(file)) as db, db:
             db.execute('CREATE TABLE proof(id TEXT PRIMARY KEY,status TEXT,result TEXT)')
             db.execute('INSERT INTO proof VALUES(?,?,?)',('original-'+role,'ambiguous','{"preserved":true}'))
         roles[role]=[file.name]
-    with sqlite3.connect(root/'owner.sqlite') as db:
+    with closing(sqlite3.connect(root/'owner.sqlite')) as db, db:
         db.execute('CREATE TABLE identity(host TEXT,state TEXT,vault TEXT)')
         db.execute('INSERT INTO identity VALUES(?,?,?)',('machine-a',str(root/'events.jsonl'),str(root/'vault')))
     (root/'events.jsonl').write_text('')
@@ -34,7 +35,7 @@ def test_full_capture_restore_quarantine_and_preserving_reopen(tmp_path):
     assert result['quarantined'] and not result['bearer_authority_restored']
     info=inspect_candidate(tmp_path/'candidate')
     assert info['checked_databases']>=10 and info['mutable'] is False
-    with sqlite3.connect(tmp_path/'candidate'/'owner.sqlite') as db:
+    with closing(sqlite3.connect(tmp_path/'candidate'/'owner.sqlite')) as db, db:
         assert db.execute('SELECT * FROM proof').fetchone()==('original-owner','ambiguous','{"preserved":true}')
     with pytest.raises(ReplicaAuthorityUnavailable):assert_mutation_authority(tmp_path/'candidate'/'vault')
 
@@ -42,8 +43,9 @@ def test_full_capture_restore_quarantine_and_preserving_reopen(tmp_path):
 def test_lock_crash_and_hash_failures_never_publish_candidate(tmp_path):
     from arvyx_control.composition_recovery import capture,restore
     t=topology(tmp_path)
+    from arvyx_control.locks import try_exclusive_lock
     with (t.root/'events.jsonl.cockpit-owner.lock').open('a+') as held:
-        fcntl.flock(held,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        assert try_exclusive_lock(held)
         with pytest.raises(ValueError,match='quiescent'):capture(t,tmp_path/'busy')
     assert not (tmp_path/'busy').exists()
     def crash(stage):
@@ -81,7 +83,7 @@ def test_actual_current_owner_onboarding_and_attempts_restore_inert(tmp_path):
     restored=tmp_path/'restored'
     assert inspect_candidate(restored)['mutable'] is False
     assert (restored/'runtime/onboarding/profiles').is_dir()
-    with sqlite3.connect(restored/'runtime/onboarding/agents.sqlite') as db:
+    with closing(sqlite3.connect(restored/'runtime/onboarding/agents.sqlite')) as db, db:
         assert db.execute('SELECT id,status FROM onboarding_consents').fetchone()==(prepared['consent_id'],'ambiguous')
         assert db.execute('SELECT count(*) FROM created_agents').fetchone()[0]==0
     with pytest.raises(ReplicaAuthorityUnavailable):LocalCockpit(restored/'runtime',restored/'vault',restored/'events.jsonl','machine-a')

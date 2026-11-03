@@ -12,6 +12,7 @@ import re
 import tempfile
 from typing import Any, Iterable, Iterator, cast
 
+from . import safe_open
 from .embeddings import EmbeddingConfig, EmbeddingError, embed_texts
 from .filesystem import durable_mkdir, fsync_directory
 from .locks import exclusive_lock
@@ -354,8 +355,8 @@ def _source_snapshot(vault: Path, relative: str) -> tuple[tuple[int, int, str], 
         return None
     # Platform capability is not an ineligible document. Surface it before the
     # per-file race/eligibility handler so rebuild cannot commit an empty index.
-    import os
-    if not hasattr(os, "O_NOFOLLOW") or os.open not in os.supports_dir_fd:
+    from .safe_open import available as _secure_opens_available
+    if not _secure_opens_available():
         raise RuntimeError("secure indexed source reads unavailable on this platform")
     vault_root = vault.resolve()
     path = vault_root / relative
@@ -533,11 +534,11 @@ def _write_cache(vault: Path, files: dict[str, dict[str, object]]) -> None:
     durable_mkdir(path.parent, mode=0o755)
     fd, tmp_name = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
     try:
-        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(payload)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(tmp_name, path)
+        safe_open.replace_path(tmp_name, path)
         fsync_directory(path.parent)
     except BaseException:
         try:

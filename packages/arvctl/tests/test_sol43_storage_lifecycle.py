@@ -53,6 +53,7 @@ def test_interrupted_forget_fences_parent_promotion_and_all_mutations(tmp_path, 
         pass
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='POSIX ownership and mode metadata and os.fsync barriers')
 def test_ownership_precedes_mode_and_file_barrier(tmp_path, monkeypatch):
     stage = tmp_path / 'stage'
     stage.write_bytes(b'original')

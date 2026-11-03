@@ -19,6 +19,7 @@ quarantines the legacy context, retains all prior history and continues safely.
 from contextlib import contextmanager
 import json
 import sqlite3
+from contextlib import closing
 
 import pytest
 
@@ -159,7 +160,7 @@ def _hermes(tmp_path, rows):
     from arvyx_control.cockpit_native_runtime import NativeRuntime
     from arvyx_control.hermes_profile import HermesProfile
     store = tmp_path / 'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY,session_id TEXT,role TEXT,content TEXT)')
         db.executemany('INSERT INTO messages VALUES(?,?,?,?)', [(i, 'conversation', 'assistant', c) for i, c in rows])
     runtime = NativeRuntime.__new__(NativeRuntime)

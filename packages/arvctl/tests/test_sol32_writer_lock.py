@@ -1,11 +1,12 @@
 """synthetic real-flock regression; no external delivery or guard mocks."""
-import fcntl
 import os
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+
+from arvyx_control.locks import try_exclusive_lock
 
 
 CHILD = r'''
@@ -41,6 +42,7 @@ assert not list(root.glob('*.tmp'))
 '''
 
 
+@unittest.skipUnless(os.name == 'posix', 'secret delivery destinations are defined by POSIX uid and mode semantics')
 class WriterLockTests(unittest.TestCase):
     def test_expired_tls_request_releases_worker_while_destination_stays_locked(self):
         import http.client
@@ -69,7 +71,7 @@ class WriterLockTests(unittest.TestCase):
             connection = None
             slots = 0
             try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                self.assertTrue(try_exclusive_lock(lock))
                 thread.start()
                 client = ssl.create_default_context(cafile=str(root / 'ca.pem'))
                 client.load_cert_chain(root / 'sender.pem', root / 'sender.key')
@@ -110,7 +112,7 @@ class WriterLockTests(unittest.TestCase):
                 root = Path(directory)
                 lock = os.open(root / '..env.secret-delivery.lock', os.O_CREAT | os.O_RDWR, 0o600)
                 try:
-                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    self.assertTrue(try_exclusive_lock(lock))
                     child = subprocess.Popen([sys.executable, '-c', CHILD, directory, mode], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                     try:
                         out, err = child.communicate(timeout=3)

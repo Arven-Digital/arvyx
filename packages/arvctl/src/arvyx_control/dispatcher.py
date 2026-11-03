@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from . import private_paths
+from . import safe_open
 from .diagnostics import boundary, capture
 
 from dataclasses import dataclass
@@ -656,14 +658,16 @@ def _copy_file_metadata(source: Path, source_stat: os.stat_result, destination: 
     Ownership is copied only when the sealer is privileged enough to change it;
     mode and ACLs always travel with the file.
     """
-    os.chmod(destination, stat.S_IMODE(source_stat.st_mode))
+    private_paths.apply_mode(path=destination, mode=stat.S_IMODE(source_stat.st_mode))
     try:
-        os.chown(destination, source_stat.st_uid, source_stat.st_gid)
+        if hasattr(os, 'chown'):
+            os.chown(destination, source_stat.st_uid, source_stat.st_gid)
     except PermissionError:
         # A non-root sealer keeps its own owner; mode and ACLs carry the access
         # the running consumer actually depends on.
         pass
-    for name in os.listxattr(source):
+    # Extended attributes exist on POSIX only; Windows has nothing to carry over.
+    for name in (os.listxattr(source) if hasattr(os, 'listxattr') else ()):
         try:
             os.setxattr(destination, name, os.getxattr(source, name))
         except OSError as exc:
@@ -795,7 +799,7 @@ def seal_route_document(
         _copy_file_metadata(source, source_stat, temporary_path)
 
         if destination is None:
-            os.replace(temporary_path, target)
+            safe_open.replace_path(temporary_path, target)
         else:
             # `--out` promised not to overwrite: link refuses an existing path
             # that appeared after the precheck instead of clobbering it.
@@ -804,9 +808,9 @@ def seal_route_document(
             except FileExistsError as exc:
                 raise ValueError(f"refusing to overwrite existing route document: {target}") from exc
             temporary_path.unlink()
-        directory = os.open(str(target.parent), os.O_DIRECTORY)
+        directory = safe_open.open_directory(str(target.parent))
         try:
-            os.fsync(directory)
+            safe_open.fsync_directory(directory)
         finally:
             os.close(directory)
     finally:

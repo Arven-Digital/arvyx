@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from unittest.mock import patch
 
@@ -200,7 +201,7 @@ def test_cached_timestamp_damage_does_not_change_recency(tmp_path, damage, route
         else:
             chunk['timestamp'] = damage
     if route == 'checkpoint':
-        with sqlite3.connect(jobs._journal_path(tmp_path)) as db:
+        with closing(sqlite3.connect(jobs._journal_path(tmp_path))) as db, db:
             db.execute('UPDATE checkpoints SET entry_json=? WHERE relative_path=?', (json.dumps(entry), relative))
         (tmp_path / index.INDEX_RELATIVE).unlink()
     else:

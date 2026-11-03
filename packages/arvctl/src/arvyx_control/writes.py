@@ -13,6 +13,7 @@ import stat
 import uuid
 from typing import cast
 
+from . import safe_open
 from .memory_frontmatter import (
     collapse_metadata_lines, frontmatter_values, metadata_json,
     render_frontmatter, scalar_value, split_frontmatter,
@@ -926,13 +927,10 @@ def _read_memory_bytes(path: Path) -> bytes:
     if '..' in absolute.parts:
         raise ValueError('memory path traversal refused')
     with ExitStack() as stack:
-        fd = os.open(absolute.anchor, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        fd = safe_open.open_root(absolute.parent)
         stack.callback(os.close, fd)
-        for part in absolute.parts[1:-1]:
-            fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
-            stack.callback(os.close, fd)
         try:
-            leaf = os.open(absolute.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=fd)
+            leaf = safe_open.open_file_at(fd, absolute.name)
         except OSError:
             raise ValueError('memory listing/source must be a regular non-aliased file') from None
         with os.fdopen(leaf, 'rb') as stream:

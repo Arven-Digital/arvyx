@@ -11,7 +11,7 @@ Reads detect replacement and mutation but cannot promise atomic multi-file views
 against a hostile writer or recall previously disclosed bytes. No filesystem writes,
 archives, network calls, execution, or grant creation are performed here.
 """
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from dataclasses import dataclass
 import hashlib
 import os
@@ -19,6 +19,7 @@ from pathlib import Path
 import stat
 import time
 
+from . import safe_open
 from .security import contains_literal_secret
 
 
@@ -84,7 +85,8 @@ def manifest_fingerprint(snapshot):
 
 
 def _path(value: str, limit: int) -> tuple[str, ...]:
-    if not isinstance(value, str) or not value or "\\" in value or "\x00" in value:
+    if (not isinstance(value, str) or not value or "\\" in value or "\x00" in value
+            or (os.name == "nt" and ":" in value)):
         raise WorkspaceError("invalid relative path")
     parts = tuple(value.split("/"))
     if any(p in ("", ".", "..") for p in parts):
@@ -145,25 +147,19 @@ def _identity(st):
 
 @contextmanager
 def _open_root(root):
-    if not hasattr(os, "O_NOFOLLOW") or os.open not in os.supports_dir_fd:
+    if not safe_open.available():
         raise WorkspaceError("secure descriptor-relative opens unavailable")
     path = Path(root)
-    if not path.is_absolute() or any(p in (".", "..") for p in os.fspath(root).split("/")):
+    if not path.is_absolute() or any(p in (".", "..") for p in os.fspath(root).replace("\\", "/").split("/")):
         raise WorkspaceError("root must be an absolute canonical directory")
-    fd = None
     try:
-        try:
-            fd = os.open("/", os.O_RDONLY | os.O_DIRECTORY)
-            for part in path.parts[1:]:
-                next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
-                os.close(fd)
-                fd = next_fd
-        except OSError as exc:
-            raise WorkspaceError("workspace root unavailable or unsafe") from exc
+        fd = safe_open.open_root(path)
+    except OSError as exc:
+        raise WorkspaceError("workspace root unavailable or unsafe") from exc
+    try:
         yield fd
     finally:
-        if fd is not None:
-            os.close(fd)
+        os.close(fd)
 
 
 @contextmanager
@@ -172,10 +168,10 @@ def _open_file(root_fd, parts):
     fd = None
     try:
         for part in parts[:-1]:
-            next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
+            next_fd = safe_open.open_directory_at(parent, part)
             os.close(parent)
             parent = next_fd
-        fd = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
+        fd = safe_open.open_file_at(parent, parts[-1])
         st = os.fstat(fd)
         if not stat.S_ISREG(st.st_mode) or st.st_nlink != 1:
             raise WorkspaceError("only singly-linked regular files may be exported")
@@ -191,8 +187,8 @@ def _open_file(root_fd, parts):
 def _read(root, parts, limit, expected_root=None, expected_file=None):
     with _open_root(root) as root_fd:
         root_st = os.fstat(root_fd)
-        root_id = (root_st.st_dev, root_st.st_ino)
-        if expected_root is not None and root_id != expected_root:
+        root_id = (safe_open.stable_identity(root_st.st_dev), safe_open.stable_identity(root_st.st_ino))
+        if expected_root is not None and root_id != tuple(safe_open.stable_identity(v) for v in expected_root):
             raise WorkspaceError("workspace root replaced")
         with _open_file(root_fd, parts) as fd:
             before = _identity(os.fstat(fd))
@@ -215,7 +211,7 @@ def _read(root, parts, limit, expected_root=None, expected_file=None):
         # Rewalk from the absolute root, not a possibly detached directory fd.
         with _open_root(root) as check_root:
             st = os.fstat(check_root)
-            if (st.st_dev, st.st_ino) != root_id:
+            if (safe_open.stable_identity(st.st_dev), safe_open.stable_identity(st.st_ino)) != root_id:
                 raise WorkspaceError("workspace root replaced during read")
             with _open_file(check_root, parts) as check_fd:
                 if _identity(os.fstat(check_fd)) != before:
@@ -246,14 +242,14 @@ def _discover(root, limits, exclusions):
         nonlocal count
         before = _identity(os.fstat(fd))
         inventory.append(("/".join(prefix), before))
-        with os.scandir(fd) as entries:
-            for entry in entries:
+        with closing(safe_open.scandir_names(fd)) as names_iter:
+            for name in names_iter:
                 count += 1
                 if count > limits.max_entries:
                     raise WorkspaceError("traversal entry budget exceeded")
-                parts = _path("/".join((*prefix, entry.name)), limits.max_path_bytes)
+                parts = _path("/".join((*prefix, name)), limits.max_path_bytes)
                 value = "/".join(parts)
-                st = os.stat(entry.name, dir_fd=fd, follow_symlinks=False)
+                st = safe_open.stat_at(fd, name)
                 identity = _identity(st)
                 directory = stat.S_ISDIR(st.st_mode)
                 if not directory and (not stat.S_ISREG(st.st_mode) or st.st_nlink != 1):
@@ -267,7 +263,7 @@ def _discover(root, limits, exclusions):
                 elif directory:
                     if depth >= limits.max_depth:
                         raise WorkspaceError("traversal depth budget exceeded")
-                    child = os.open(entry.name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+                    child = safe_open.open_directory_at(fd, name)
                     try:
                         if _identity(os.fstat(child)) != identity:
                             raise WorkspaceError("directory replaced during discovery")
@@ -279,7 +275,7 @@ def _discover(root, limits, exclusions):
                     files.append(value)
                 if len(files) + len(omitted) > limits.max_files:
                     raise WorkspaceError("manifest budget exceeded")
-                if _identity(os.stat(entry.name, dir_fd=fd, follow_symlinks=False)) != identity:
+                if _identity(safe_open.stat_at(fd, name)) != identity:
                     raise WorkspaceError("entry changed during discovery")
         if _identity(os.fstat(fd)) != before:
             raise WorkspaceError("directory changed during discovery")

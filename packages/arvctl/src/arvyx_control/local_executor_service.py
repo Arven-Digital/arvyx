@@ -5,7 +5,9 @@ It does not interpret natural-language goals or shell command text. Each executo
 lease binds one target/workspace, mode allowlist, owner incarnation and revocation
 snapshot. A new owner requires explicit provisioning of a new leaf lease.
 """
+from contextlib import closing
 import hashlib,json,re,threading
+from . import private_paths
 from .organizer_durable import private_database
 from .session_workspaces import encoded
 from .native_lifecycle import OwnerProducer,SocketOwnerProducer
@@ -70,7 +72,7 @@ class LocalExecutorService:
         if not p.is_absolute() or p.is_symlink():raise PermissionError('exact trusted identity store required')
         with _open_root(p.parent):pass
         try:
-            with sqlite3.connect(p.as_uri()+'?mode=ro',uri=True) as db:
+            with closing(sqlite3.connect(p.as_uri()+'?mode=ro',uri=True)) as db, db:
                 row=db.execute('SELECT target,identity FROM onboarding_connections WHERE agent_id=?',(self.target['agent_id'],)).fetchone()
                 pin=None if row is None else db.execute(
                     'SELECT snapshot FROM onboarding_connection_pins WHERE agent_id=? AND target=?',
@@ -196,7 +198,7 @@ def main(argv=None):
     from .public_onboarding_api import make_server
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--config',type=Path,required=True);parser.add_argument('--port',type=int,default=0)
     args=parser.parse_args(argv);p=args.config
-    if p.is_symlink() or p.stat().st_mode&0o077 or p.stat().st_uid!=os.getuid() or p.stat().st_size>16384:raise ValueError('private bounded leaf configuration required')
+    if p.is_symlink() or not private_paths.owner_private(p.stat(),path=p) or p.stat().st_size>16384:raise ValueError('private bounded leaf configuration required')
     fields=json.loads(p.read_text())
     required={'database','credential','owner','vault','state','target','session','workspace','environments','identity_store','authority_database'}
     if set(fields) not in (required,required|{'remote_fence_config'}):raise ValueError('closed leaf configuration with explicit organizer fence required')

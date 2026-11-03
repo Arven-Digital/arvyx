@@ -327,7 +327,7 @@ def init_vault(path: Path, force: bool = False) -> InitResult:
     for relative, content in TEMPLATE_FILES.items():
         target = path / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
+        target.write_text(content, encoding="utf-8", newline="\n")
         created.append(relative)
     return InitResult(path=str(path), files_created=created)
 
@@ -549,7 +549,7 @@ def run_demo(vault: Path) -> DemoResult:
 
                 from .health_ops import DEFAULT_DAILY_ROLES
                 roles_config = Path(tmp) / "demo-roles.json"
-                roles_config.write_text(json.dumps({"roles": DEFAULT_DAILY_ROLES}), encoding="utf-8")
+                roles_config.write_text(json.dumps({"roles": DEFAULT_DAILY_ROLES}), encoding="utf-8", newline="\n")
                 first_handoff = daily_handoff(state=state, date="2026-01-01", config=roles_config)
                 second_handoff = daily_handoff(state=state, date="2026-01-01", config=roles_config)
                 checks.append(

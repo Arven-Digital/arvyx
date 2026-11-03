@@ -56,7 +56,7 @@ def test_guard_requires_matching_confirmed_thread():
 
 
 def canonical_program():
-    text = (ROOT/'.github/workflows/release-provenance.yml').read_text()
+    text = (ROOT/'.github/workflows/release-provenance.yml').read_text(encoding='utf-8')
     block = text.split('- name: Require successful canonical CI on exact tag SHA', 1)[1]
     block = block.split("python - <<'PY'\n", 1)[1].split('\n          PY', 1)[0]
     return '\n'.join(line[10:] for line in block.splitlines())
@@ -106,7 +106,7 @@ def test_canonical_ci_refuses_unbound_or_nonlatest_success(tmp_path, mutation):
 
 
 def test_capture_source_binds_ephemeral_child_and_served_identity():
-    text = (ROOT/'apps/control-center-web/scripts/capture.mjs').read_text()
+    text = (ROOT/'apps/control-center-web/scripts/capture.mjs').read_text(encoding='utf-8')
     assert "(('127.0.0.1', 0)" in text
     assert 'const port = 4177' not in text
     assert 'JSON.stringify(await response.json()) === JSON.stringify(BUILD)' in text
@@ -114,9 +114,9 @@ def test_capture_source_binds_ephemeral_child_and_served_identity():
 
 
 def test_negative_terminal_claims_are_unmeasured():
-    installed = (ROOT/'scripts/terminal_installed_acceptance.py').read_text()
+    installed = (ROOT/'scripts/terminal_installed_acceptance.py').read_text(encoding='utf-8')
     assert 'provider_input_sent=None, fresh_startup_invoked=None, auth_resolver_invoked=None' in installed
-    mouse = (ROOT/'scripts/terminal_native_mouse_acceptance.py').read_text()
+    mouse = (ROOT/'scripts/terminal_native_mouse_acceptance.py').read_text(encoding='utf-8')
     assert "'typed_provider_input':None" in mouse
     assert "'search_consumed_by_client':None" in mouse
     assert "receipt['unmeasured']" in mouse

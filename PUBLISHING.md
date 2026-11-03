@@ -5,9 +5,10 @@ explicit human action on the exact candidate commit.
 
 ## Repository settings (once)
 
-1. Repository variable `HOSTED_ACTIONS_ENABLED=true` so the Linux platform matrix
-   runs (the release workflow requires it). `HOSTED_EXPERIMENTAL_PLATFORMS=true`
-   additionally runs the macOS and Windows jobs, which are not required.
+1. Repository variable `HOSTED_ACTIONS_ENABLED=true` so the Linux and Windows
+   platform matrices run (the release workflow requires both).
+   `HOSTED_EXPERIMENTAL_PLATFORMS=true` additionally runs the macOS jobs, which
+   are not required.
 2. Secret `ARVEN_PRIVATE_DENYLIST_B64`: base64 of the private-name denylist used by
    the strict private-context scan (one term per line). It is read by the
    `release-provenance` workflow and by the `security` job of `ci.yml`; fork and

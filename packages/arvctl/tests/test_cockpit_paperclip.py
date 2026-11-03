@@ -164,8 +164,11 @@ class PaperclipServerTests(unittest.TestCase):
             if calls["n"] % 2 == 0:  # the post-read fstat sees a newer access time
                 values = list(info)
                 values[7] = info.st_atime + 1  # st_atime (integer field)
-                return os.stat_result(values, {"st_atime_ns": info.st_atime_ns + 10**9,
-                                               "st_mtime_ns": info.st_mtime_ns, "st_ctime_ns": info.st_ctime_ns})
+                extra = {"st_atime_ns": info.st_atime_ns + 10**9,
+                         "st_mtime_ns": info.st_mtime_ns, "st_ctime_ns": info.st_ctime_ns}
+                if hasattr(info, "st_file_attributes"):  # Windows readers check the reparse bit
+                    extra["st_file_attributes"] = info.st_file_attributes
+                return os.stat_result(values, extra)
             return info
 
         (self.dist / 'index.html').write_bytes(b'<div>fresh build</div>')
@@ -183,8 +186,10 @@ class PaperclipServerTests(unittest.TestCase):
             if calls["n"] % 2 == 0:
                 values = list(info)
                 values[6] = info.st_size + 1  # st_size
-                return os.stat_result(values, {"st_atime_ns": info.st_atime_ns,
-                                               "st_mtime_ns": info.st_mtime_ns, "st_ctime_ns": info.st_ctime_ns})
+                extra = {"st_atime_ns": info.st_atime_ns, "st_mtime_ns": info.st_mtime_ns, "st_ctime_ns": info.st_ctime_ns}
+                if hasattr(info, "st_file_attributes"):  # Windows readers check the reparse bit
+                    extra["st_file_attributes"] = info.st_file_attributes
+                return os.stat_result(values, extra)
             return info
 
         original = self.get('/')[2]

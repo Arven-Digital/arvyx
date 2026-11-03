@@ -49,11 +49,11 @@ class Log:
             "timestamp": _ts(at),
             "payload": payload,
         }
-        with self.path.open("a", encoding="utf-8") as handle:
+        with self.path.open("a", encoding="utf-8", newline="\n") as handle:
             handle.write(json.dumps(record, sort_keys=True) + "\n")
 
     def raw(self, text: str) -> None:
-        with self.path.open("a", encoding="utf-8") as handle:
+        with self.path.open("a", encoding="utf-8", newline="\n") as handle:
             handle.write(text)
 
     def item(
@@ -346,8 +346,7 @@ class ProjectionCacheHarness(unittest.TestCase):
 
     def write_checkpoint(self, payload: dict[str, object]) -> None:
         projection_cache.checkpoint_path(self.state).write_text(
-            json.dumps(payload, sort_keys=True), encoding="utf-8"
-        )
+            json.dumps(payload, sort_keys=True), encoding="utf-8", newline="\n")
 
     def read_checkpoint(self) -> dict[str, object]:
         return json.loads(projection_cache.checkpoint_path(self.state).read_text(encoding="utf-8"))
@@ -366,7 +365,7 @@ class CheckpointEquivalenceTests(ProjectionCacheHarness):
         for force in (False, True):
             with self.subTest(force=force):
                 projection_cache.checkpoint_path(self.state).write_text(
-                    '[' * 2000 + '0' + ']' * 2000, encoding='utf-8')
+                    '[' * 2000 + '0' + ']' * 2000, encoding='utf-8', newline="\n")
                 status = projection_cache.projection_status(self.state)
                 self.assertFalse(status['valid'])
                 self.assertEqual(status['reason'], 'unreadable')
@@ -520,10 +519,10 @@ class RandomizedEquivalenceTests(ProjectionCacheHarness):
         chunk = len(lines) // 4
         self.assertTrue(chunk > 0)
         for covered, keep in ((chunk, chunk * 2), (chunk * 2, chunk * 3), (chunk * 3, len(lines))):
-            self.state.write_text("".join(lines[:covered]), encoding="utf-8")
+            self.state.write_text("".join(lines[:covered]), encoding="utf-8", newline="\n")
             report = projection_cache.build_projection_checkpoint(self.state, force=True)
             self.assertTrue(report["built"], report)
-            self.state.write_text("".join(lines[:keep]), encoding="utf-8")
+            self.state.write_text("".join(lines[:keep]), encoding="utf-8", newline="\n")
             with mock.patch.dict(os.environ, {projection_cache.CACHE_MODE_ENV: "off"}):
                 expected = self.snapshot()
             # Without this the comparison silently degrades to comparing two
@@ -542,10 +541,10 @@ class RandomizedEquivalenceTests(ProjectionCacheHarness):
         covered = 60
         tails = 0
         for target in range(67, len(lines) + 1, 7):
-            self.state.write_text("".join(lines[:covered]), encoding="utf-8")
+            self.state.write_text("".join(lines[:covered]), encoding="utf-8", newline="\n")
             report = projection_cache.build_projection_checkpoint(self.state, force=True)
             self.assertTrue(report["built"], report)
-            self.state.write_text("".join(lines[:target]), encoding="utf-8")
+            self.state.write_text("".join(lines[:target]), encoding="utf-8", newline="\n")
             self.assertEqual(
                 projection_cache.projection_status(self.state)["tail_bytes"],
                 sum(len(line.encode("utf-8")) for line in lines[covered:target]),
@@ -621,7 +620,7 @@ class CheckpointInvalidationTests(ProjectionCacheHarness):
     def test_corrupt_checkpoint_json_falls_back(self) -> None:
         self.populate()
         baseline = self.full_parse_snapshot()
-        projection_cache.checkpoint_path(self.state).write_text("{ not json", encoding="utf-8")
+        projection_cache.checkpoint_path(self.state).write_text("{ not json", encoding="utf-8", newline="\n")
         self.assertEqual(self.snapshot(), baseline)
         self.assertFalse(projection_cache.projection_status(self.state)["valid"])
 
@@ -631,7 +630,7 @@ class CheckpointInvalidationTests(ProjectionCacheHarness):
         lines = self.state.read_text(encoding="utf-8").splitlines(keepends=True)
         # Truncate at a record boundary, so the log itself stays readable and
         # only the checkpoint is stale beyond recovery.
-        self.state.write_text("".join(lines[: len(lines) // 3]), encoding="utf-8")
+        self.state.write_text("".join(lines[: len(lines) // 3]), encoding="utf-8", newline="\n")
         status = projection_cache.projection_status(self.state)
         self.assertFalse(status["valid"], status)
         with mock.patch.dict(os.environ, {projection_cache.CACHE_MODE_ENV: "off"}):
@@ -664,7 +663,7 @@ class CheckpointInvalidationTests(ProjectionCacheHarness):
         lines[target] = lines[target].replace('"status": "completed"', '"status": "cancelled"')
         mutated = "".join(lines)
         self.assertNotEqual(mutated, "".join(lines[:target] + lines[target + 1 :]))
-        self.state.write_text(mutated, encoding="utf-8")
+        self.state.write_text(mutated, encoding="utf-8", newline="\n")
         # The change is far from the boundary, so the cheap status still looks
         # valid...
         self.assertTrue(projection_cache.projection_status(self.state)["valid"])
@@ -802,7 +801,7 @@ class CheckpointWritePathTests(ProjectionCacheHarness):
         self.assertEqual(report["reason"], "no_log")
 
         self.state.parent.mkdir(parents=True, exist_ok=True)
-        self.state.write_text("", encoding="utf-8")
+        self.state.write_text("", encoding="utf-8", newline="\n")
         report = projection_cache.build_projection_checkpoint(self.state, force=True)
         self.assertFalse(report["built"])
         self.assertEqual(report["reason"], "empty_log")
@@ -964,7 +963,7 @@ class ProjectionCacheSurfaceTests(ProjectionCacheHarness):
         self.assertEqual(code, 1, out.getvalue())
 
         # A corrupt checkpoint is rejected by the read path and is not an incident.
-        projection_cache.checkpoint_path(self.state).write_text("{ not json", encoding="utf-8")
+        projection_cache.checkpoint_path(self.state).write_text("{ not json", encoding="utf-8", newline="\n")
         benign = projection_cache.verify_projection_checkpoint(self.state)
         self.assertFalse(benign["ok"], benign)
         self.assertFalse(benign["disagrees_with_log"])

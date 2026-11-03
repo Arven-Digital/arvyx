@@ -6,18 +6,23 @@ and fail doctor; no existing destination is overwritten or automatically reused.
 """
 import argparse,hashlib,json,os,platform,stat,sys
 from pathlib import Path
+from . import private_paths
+from . import safe_open
 from .native_artifact_policy import (verify_native_bytes, read_native_bytes, open_native_directory, native_platform_policy,
                                      admitted_capabilities)
 
 
 def sync(path):
-    fd=os.open(path,os.O_RDONLY|os.O_DIRECTORY)
-    try:os.fsync(fd)
+    fd=safe_open.open_directory(path)
+    try:safe_open.fsync_directory(fd)
     finally:os.close(fd)
 
 
 def write(path,data,mode,*,dir_fd=None):
-    fd=os.open(path,os.O_CREAT|os.O_EXCL|os.O_WRONLY|os.O_NOFOLLOW,mode,dir_fd=dir_fd)
+    if dir_fd is not None:
+        fd=safe_open.open_file_at(dir_fd,os.fspath(path),write=True,create=True,exclusive=True,mode=mode)
+    else:
+        fd=os.open(path,os.O_CREAT|os.O_EXCL|os.O_WRONLY|getattr(os,'O_NOFOLLOW',0),mode)
     with os.fdopen(fd,'wb') as stream:
         view=memoryview(data)
         while view:
@@ -41,7 +46,7 @@ def install(binary,receipt,destination,*,required_capability='mouse-existing'):
     parent_fd=open_native_directory(destination.parent)
     try:
         info=os.fstat(parent_fd)
-        if info.st_uid!=os.getuid():raise ValueError('owned installation prefix required')
+        if not private_paths.owned_by_current_user(info,fd=parent_fd):raise ValueError('owned installation prefix required')
         os.mkdir(destination.name,mode=0o700,dir_fd=parent_fd);os.fsync(parent_fd)
         installed=os.open(destination.name,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=parent_fd)
         try:

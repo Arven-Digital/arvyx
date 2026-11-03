@@ -2,6 +2,7 @@
 import base64
 from concurrent.futures import ThreadPoolExecutor
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from pathlib import Path
@@ -76,7 +77,7 @@ class MachinePairingTests(unittest.TestCase):
         audit = self.store.audit()
         self.assertEqual([a['action'] for a in audit], ['request', 'confirm', 'check', 'revoke'])
         self.assertNotIn(ticket.code, str(audit))
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             self.assertNotIn(ticket.code, str(list(db.iterdump())))
 
     def test_single_use_across_connections(self):

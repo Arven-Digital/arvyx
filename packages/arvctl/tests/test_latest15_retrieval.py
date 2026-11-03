@@ -4,6 +4,7 @@ from email.message import Message
 import importlib
 import json
 import sqlite3
+from contextlib import closing
 import sys
 import time
 
@@ -103,7 +104,7 @@ def test_decoder_failure_repairs_from_source(tmp_path, kind, surface):
     cache = tmp_path / index.INDEX_RELATIVE
     bad = corrupt_json(kind)
     if surface == "checkpoint":
-        with sqlite3.connect(jobs._journal_path(tmp_path)) as connection:
+        with closing(sqlite3.connect(jobs._journal_path(tmp_path))) as connection, connection:
             connection.execute("UPDATE checkpoints SET entry_json=?", (bad,))
         cache.unlink()
     else:
@@ -157,7 +158,7 @@ def test_old_cache_and_same_partition_old_checkpoint_terms_are_invalidated(tmp_p
     entry["chunks"][0]["length"] += 1
     payload["format"] = 5
     cache.write_text(json.dumps(payload))
-    with sqlite3.connect(jobs._journal_path(tmp_path)) as connection:
+    with closing(sqlite3.connect(jobs._journal_path(tmp_path))) as connection, connection:
         connection.execute("UPDATE checkpoints SET entry_json=?", (json.dumps(entry),))
     owned_rebuild(tmp_path, owner="repair", now=NOW + timedelta(seconds=1))
     assert all("quuxneedle" not in c.terms for c in index.load_index(tmp_path))

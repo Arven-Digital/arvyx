@@ -5,6 +5,7 @@ reviewed grant issue/readback, scoped audit metadata and revocation are proxied.
 stays on the separately authenticated external API. No authorities are minted.
 """
 import hashlib,json
+from . import private_paths
 from .security import bounded_json_loads
 from .external_api import Principal
 
@@ -69,7 +70,7 @@ def load_presentation(config,*,vault,state):
     from .external_workspace import snapshot_workspace,_read
     from .replica_authority import authority_context
     p=Path(config)
-    if p.is_symlink() or p.stat().st_mode&0o077 or p.stat().st_uid!=os.getuid() or p.stat().st_size>1024*1024:raise ValueError('private bounded export configuration required')
+    if p.is_symlink() or not private_paths.owner_private(p.stat(),path=p) or p.stat().st_size>1024*1024:raise ValueError('private bounded export configuration required')
     value=json.loads(p.read_text())
     required={'grants','work','credentials','issuer_credential','workspaces','documents','memory_selections','tasks','recipients'}
     if not required<=set(value) or set(value)-required-{'observers'}:raise ValueError('closed production export configuration required')

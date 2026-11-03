@@ -1,10 +1,12 @@
 """No model calls: deterministic driver operates a real native fixture PTY."""
 import time
+import os
 import unittest
 from unittest.mock import patch
 import test_cockpit_surface as fixtures
 
 
+@unittest.skipUnless(os.name == 'posix', 'PTY owner, curses surface, fork or pidfd semantics are POSIX-only')
 class JsonOperatorBoundsTests(unittest.TestCase):
     def test_output_limit_stops_stream_before_decode_or_json_materialization(self):
         import sys
@@ -21,6 +23,7 @@ class JsonOperatorBoundsTests(unittest.TestCase):
             decode.assert_not_called()
 
 
+@unittest.skipUnless(os.name == 'posix', 'PTY owner, curses surface, fork or pidfd semantics are POSIX-only')
 class RunnerTests(unittest.TestCase):
     setUp = fixtures.SurfaceTests.setUp
     session = fixtures.SurfaceTests.session

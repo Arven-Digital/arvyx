@@ -121,16 +121,67 @@ Check: `packages/arvctl/src/arvyx_control/static/index.html`,
 
 ## Platform support
 
-- Linux is the supported platform: the required hosted CI job runs the full suite
-  on Linux for every push and pull request. The maintainers keep the clean-machine
-  journey receipt in their private records.
-- macOS and Windows are conditional. Their hosted CI jobs run only when the
-  repository variables `HOSTED_ACTIONS_ENABLED` and `HOSTED_EXPERIMENTAL_PLATFORMS`
-  are both `true`, and the release workflow does not require them; until candidate-SHA
-  matrix receipts exist, they are not verified.
-- The Makefile and documented commands assume a POSIX shell. On Windows, run
-  `python -m arvyx_control.cli ...` directly or use Git Bash; that path is
-  also conditional.
+- Linux and Windows are the supported platforms. The hosted platform jobs run the
+  full suite on Linux and on Windows (Python 3.11, 3.12 and 3.13) for pushes to
+  `main`, pull requests targeting `main` and manual dispatch, when the repository
+  variable `HOSTED_ACTIONS_ENABLED` is `true`; the release workflow requires both
+  sets on the tagged commit. A job definition is not a receipt: the maintainers
+  keep the candidate-SHA runs and the clean-machine journey receipts in their
+  private records.
+- Windows scope. The npm launcher (`setup`, `doctor`, `amc`, `web`), the memory
+  CLI, the MCP server, the importers, harness discovery (Claude Code, Codex,
+  Cursor and the other marker families) and the web control room work natively on
+  Windows 10/11. The launcher requires Node 24.11 or newer and Python 3.11 or
+  newer with `venv` and pip; privacy provisioning uses the system `whoami.exe` and
+  `icacls.exe` and needs an NTFS volume (owner and DACL checks). The Windows job
+  builds, installs and smokes the npm package (`setup`, `doctor`, `amc`, `web`);
+  building the tarball needs the repository-pinned setuptools and the cached
+  frontend dependencies, which the job prepares before the offline build. The
+  Windows smoke checks the platform's native-install refusal (no admitted native
+  artifact for Windows); planted native metadata is verified by the POSIX-only
+  verifier. The following are POSIX-only and refuse explicitly on Windows
+  rather than degrade: the PTY owner and native terminal attach, host and sandbox
+  executors (`--execution-policy`), secret delivery destinations, the Docker
+  deployment kit, the Hermes restart continuation and the fork-based snapshot
+  guard. The terminal surface (`curses`) is not available; use `arvyx web`.
+- Windows privacy model. Where POSIX code requires `uid` ownership and mode
+  `0700`/`0600`, Windows requires the NTFS owner and DACL to name only the current
+  user, `SYSTEM` and `Administrators` (`arvyx_control.windows_acl`); directories
+  and files the product creates owner-only get that DACL, so a prefix or home
+  under `%LOCALAPPDATA%` qualifies, while `%TEMP%` trees that grant other accounts
+  access are refused like a world-writable `/tmp`. Modes are not applied on
+  Windows (`chmod` there only sets the READONLY attribute, which would break
+  rename and delete).
+- Windows durability. File contents are fsynced; directory names are not
+  (`FlushFileBuffers` on a directory handle flushes the whole NTFS volume), so
+  crash-durable namespaces rely on NTFS journaling. Descriptor-relative no-follow
+  opens use `NtCreateFile` relative to a directory handle with
+  `FILE_OPEN_REPARSE_POINT` (`arvyx_control.safe_open`); junctions and symbolic
+  links are refused like POSIX symlinks. `st_ctime` on Windows is the creation
+  time. SQLite stores file identities as signed 64-bit integers.
+  Atomic replacement of a file that another handle holds open uses the NTFS
+  POSIX-semantics rename, which succeeds for readers that share delete access (the
+  product's own readers do); a program holding the file without delete sharing
+  (an editor, an indexer) delays the replacement up to two seconds, after which the
+  write fails rather than corrupt the file.
+- Windows bytes. The C run-time opens raw descriptors (`os.open` without
+  `O_BINARY`) in text mode, dropping carriage returns on read and inserting them
+  on write; importing `arvyx_control` sets the process default to binary
+  (`_set_fmode(_O_BINARY)`), so descriptor reads and writes carry bytes
+  unchanged (Python's own `open()` is not affected). Product text writes pass an
+  explicit LF newline; a file the operator edits with CRLF is read byte for byte,
+  so its digest is the digest of those bytes.
+- Windows owner endpoint. Python on Windows has no `AF_UNIX`; the cockpit owner
+  listens on `127.0.0.1` at an ephemeral port and writes the port and a random
+  token into the private `runtime/cockpit.sock` file; clients present the token
+  with every request. The reachable set is the same as the POSIX socket's: processes
+  that can read the owner's private runtime directory.
+- macOS is conditional. Its hosted CI jobs run only when the repository variables
+  `HOSTED_ACTIONS_ENABLED` and `HOSTED_EXPERIMENTAL_PLATFORMS` are both `true`,
+  and the release workflow does not require them; until candidate-SHA matrix
+  receipts exist, macOS is not verified.
+- The Makefile assumes a POSIX shell. On Windows, run `python -m arvyx_control.cli ...`
+  (or the npm launcher) from PowerShell or Git Bash.
 - Python 3.11 or newer is required. The suite runs on 3.11, 3.12 and 3.13 in CI.
   Python 3.13 verifies TLS peers with `VERIFY_X509_STRICT`: a CA used for the
   secret-delivery or pairing endpoints must carry `basicConstraints CA:TRUE` and

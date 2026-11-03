@@ -1,5 +1,6 @@
 """Isolated contract tests: no router, grant-core or provider dependencies."""
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from dataclasses import replace
@@ -43,7 +44,7 @@ class ExternalWorkTests(unittest.TestCase):
         other = ExternalWork(self.path, authorize=self.authorize, clock=lambda: self.now)
         self.addCleanup(other.close)
         self.assertEqual(other.get('a', row['id'], actor='squad-reader'), row)
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             events = db.execute('SELECT action, decision FROM external_work_audit').fetchall()
         self.assertIn(('submit', 'allow'), events)
         self.assertIn(('get', 'allow'), events)
@@ -93,7 +94,7 @@ class ExternalWorkTests(unittest.TestCase):
     def test_audit_denials_do_not_store_payload_or_foreign_id(self):
         with self.assertRaises(PermissionError):
             self.work.submit('a', actor='grok-local', kind='result', text='private payload', source='s')
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             events = db.execute('SELECT * FROM external_work_audit').fetchall()
         self.assertTrue(events)
         self.assertNotIn('private payload', repr(events))
@@ -102,12 +103,12 @@ class ExternalWorkTests(unittest.TestCase):
     def test_invalid_submission_is_audited_and_audit_failure_rolls_back(self):
         with self.assertRaises(ValueError):
             self.work.submit('a', actor='grok-cloud', kind='reasoning', text='private', source='s')
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             self.assertEqual(db.execute("SELECT decision FROM external_work_audit WHERE action='submit'").fetchall(), [('reject',)])
             db.execute("CREATE TRIGGER reject_audit BEFORE INSERT ON external_work_audit BEGIN SELECT RAISE(ABORT, 'audit unavailable'); END")
         with self.assertRaises(sqlite3.IntegrityError):
             self.submit()
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             self.assertEqual(db.execute('SELECT count(*) FROM external_work').fetchone()[0], 0)
 
     def test_invalid_auth_and_unbounded_reads_fail_closed(self):

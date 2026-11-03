@@ -6,6 +6,7 @@ here installs a launcher, starts sudo, or probes a provider.
 """
 from dataclasses import dataclass
 import hashlib,os,stat
+from . import private_paths
 from pathlib import Path
 
 @dataclass(frozen=True)
@@ -36,9 +37,9 @@ class ExecutionPolicy:
     def plan(self,mode,workspace,*,root_acknowledged=False):
         workspace=Path(workspace)
         if not workspace.is_absolute() or not workspace.is_dir() or workspace.is_symlink():raise ValueError('exact workspace required')
-        uid=os.geteuid();argv=('/bin/sh','-i');digest=''
+        uid=private_paths.effective_user();argv=('/bin/sh','-i');digest=''
         if mode=='host':
-            if not self.allow_host or uid!=self.host_uid or uid==0:raise PermissionError('host executor effective UID mismatch or denied')
+            if not self.allow_host or uid!=self.host_uid or private_paths.is_root():raise PermissionError('host executor effective UID mismatch or denied')
         elif mode=='root':
             if not self.allow_root or uid!=0 or root_acknowledged is not True:raise PermissionError('independent root policy, effective root and fresh risk acknowledgement required')
         elif mode=='sandbox':

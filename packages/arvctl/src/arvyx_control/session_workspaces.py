@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from dataclasses import asdict
 import hashlib,json,os,secrets,time
 from pathlib import Path
+from . import safe_open
 from .external_workspace import _open_root
 
 
@@ -63,10 +64,10 @@ class SessionWorkspaces:
             parent=os.dup(base)
             try:
                 for part in parts[:-1]:
-                    child=os.open(part,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=parent)
+                    child=safe_open.open_directory_at(parent,part)
                     os.close(parent);parent=child
                 try:
-                    fd=os.open(parts[-1],os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=parent)
+                    fd=safe_open.open_directory_at(parent,parts[-1])
                 except FileNotFoundError:
                     existing=None
                 else:
@@ -113,10 +114,10 @@ class SessionWorkspaces:
                     assert_request_active()
                     assert_consent_active()
                     if request['workspace']['mode']=='create':
-                        os.mkdir(leaf,mode=0o700,dir_fd=parent);os.fsync(parent)
+                        safe_open.mkdir_at(parent,leaf,0o700);safe_open.fsync_directory(parent)
                         # Verify the directory remains at the reviewed root/path.
-                        fd=os.open(leaf,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=parent)
-                        try:created=inode(fd);os.fsync(fd)
+                        fd=safe_open.open_directory_at(parent,leaf)
+                        try:created=inode(fd);safe_open.fsync_directory(fd)
                         finally:os.close(fd)
                         verification=dict(request);verification['workspace']=dict(request['workspace'],mode='existing')
                         with self.selection(verification) as (_,__,observed):

@@ -116,6 +116,7 @@ class ProviderResolutionTests(unittest.TestCase):
             with self.assertRaises(BrokerError):
                 resolve_ref("secret://files/../../etc/passwd", repo=repo)
 
+    @unittest.skipUnless(os.name == 'posix', 'the owned-command broker supervises with POSIX process groups and is POSIX-only')
     def test_command_provider_no_shell_injection(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)

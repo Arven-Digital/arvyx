@@ -1,6 +1,7 @@
 """Ledger memory/index regressions; authored, not executed in this round."""
 from datetime import datetime, timezone
 import sqlite3
+from contextlib import closing
 
 import pytest
 
@@ -59,7 +60,7 @@ def test_single_file_drift_releases_worker_lease(tmp_path, monkeypatch, boundary
     moment = datetime(2026, 1, 1, tzinfo=timezone.utc)
     with authority_context(tmp_path), pytest.raises(jobs.SourceDriftError):
         jobs.rebuild_index_checkpointed(tmp_path, owner="drift-worker", now=moment)
-    with sqlite3.connect(tmp_path / ".arvyx/jobs.sqlite3") as connection:
+    with closing(sqlite3.connect(tmp_path / ".arvyx/jobs.sqlite3")) as connection, connection:
         status, lease, updated = connection.execute(
             "SELECT status, lease_expires_at, updated_at FROM jobs WHERE name='index-rebuild'"
         ).fetchone()

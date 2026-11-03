@@ -19,9 +19,9 @@ def test_jwt_nonmatch_cpu(operation):
     durations = []
     for count in (4000, 8000, 16000):
         text = 'eyJ-' * count
-        start = time.process_time()
+        start = time.perf_counter()
         operation(text)
-        durations.append(time.process_time() - start)
+        durations.append(time.perf_counter() - start)
     print(operation.__name__, durations)
     assert durations[-1] < 0.5
     assert durations[-1] < durations[0] * 7 + 0.01

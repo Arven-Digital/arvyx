@@ -11,6 +11,11 @@ from unittest.mock import patch
 from subprocess import CompletedProcess
 
 ROOT=Path(__file__).resolve().parents[3]
+
+def _program(call):
+    # The builder calls plain `npm` on POSIX and the resolved `npm.cmd` shim on Windows.
+    name=Path(str(call.args[0][0])).name.lower()
+    return [name[:-4] if name.endswith('.cmd') else name, *call.args[0][1:]]
 VERIFIED={
     'filelock':('4.2.4',{'301241438c57936ef93f4243a94f2559022268bfcf9b375a9a72eb0f8db8358e','c6d8663535e1650ee430507b4ffbac7b464dd64b7647ea0112a9f406499d163d'}),
     'setuptools':('84.2.1',{'3ff8b3b5492a0aa66960f4419365a86b84e013070d4313e4d4a6894f5d64d6bc','ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2'}),
@@ -57,9 +62,9 @@ class DependencySecurityMetadataTests(unittest.TestCase):
             wheel=next(c.args[0] for c in calls.call_args_list if 'wheel' in c.args[0])
             self.assertIn('--no-build-isolation',wheel)
             self.assertIn('--no-deps',wheel)
-            build_call=next(c for c in calls.call_args_list if c.args[0][:3]==['npm','run','build'])
+            build_call=next(c for c in calls.call_args_list if _program(c)[:3]==['npm','run','build'])
             self.assertEqual(build_call.kwargs['env']['VITE_AMC_FIXTURE_ONLY'],'false')
-            ci=next(c for c in calls.call_args_list if c.args[0][:2]==['npm','ci'])
+            ci=next(c for c in calls.call_args_list if _program(c)[:2]==['npm','ci'])
             self.assertIn('--include=dev',ci.args[0])
 
     def test_builder_rejects_vulnerable_backend_before_writing_output(self):

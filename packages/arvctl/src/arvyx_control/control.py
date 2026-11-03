@@ -12,6 +12,7 @@ from secrets import token_hex
 import threading
 from typing import Iterable, Mapping
 
+from . import safe_open
 from .thread_history import completion_supersedes
 from .locks import exclusive_lock, admission_lock, inherited_deadline, check_inherited_deadline
 from .filesystem import durable_mkdir, fsync_directory
@@ -1960,7 +1961,7 @@ def recover_torn_final_event(state: Path) -> dict[str, object]:
                 with os.fdopen(qfd, 'rb', closefd=False) as saved:
                     if saved.read(len(final) + 1) != final:
                         raise ValueError("conflicting or partial torn-record quarantine; refusing recovery")
-                os.fsync(qfd)
+                safe_open.fsync_file(qfd)
             finally:
                 os.close(qfd)
         else:

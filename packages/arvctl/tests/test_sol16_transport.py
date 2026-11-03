@@ -12,7 +12,8 @@ from safe_mcp_bridge import http_bounds as bridge_bounds
 
 
 @pytest.mark.parametrize('module_name', ['arvyx_control.stdio_bounds', 'safe_mcp_bridge.stdio_bounds'])
-@pytest.mark.parametrize('payload', [b'x' * (1024 * 1024 + 1), ('é' * (600000)).encode(), b'\xff\n'])
+@pytest.mark.parametrize('payload', [b'x' * (1024 * 1024 + 1), ('é' * (600000)).encode(), b'\xff\n'],
+                         ids=['over-cap', 'utf8-600k', 'invalid-utf8'])  # short ids: the test id lands in an environment variable
 def test_bounded_intake_eof_and_unicode(module_name, payload):
     import importlib
     module = importlib.import_module(module_name)

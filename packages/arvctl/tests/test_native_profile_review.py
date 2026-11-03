@@ -2,12 +2,16 @@ from arvyx_control.local_executor import ExecutionPolicy
 from arvyx_control.replica_authority import authority_context
 """Actual start_native dispatch, with process creation replaced by a recorder."""
 import sqlite3
+from contextlib import closing
 from unittest.mock import Mock
 import pytest
 from arvyx_control.cockpit import LocalCockpit
 from arvyx_control.cockpit_native_runtime import NativeRuntime
 from arvyx_control.cockpit_client import initialize
 from arvyx_control.control import create_task
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
 
 @pytest.fixture
 def configured(tmp_path):
@@ -15,7 +19,7 @@ def configured(tmp_path):
     home=tmp_path/'profile';home.mkdir(mode=0o700)
     workspace=tmp_path/'workspace';workspace.mkdir()
     store=home/'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE sessions(id TEXT,cwd TEXT,end_reason TEXT)')
         db.execute('INSERT INTO sessions VALUES(?,?,?)',('exact-id',str(workspace),None))
     runtime=NativeRuntime(tool='hermes',executable='/usr/bin/python3',home=home,store=store)
@@ -34,19 +38,19 @@ def configured(tmp_path):
 def test_invalid_exact_profile_refuses_before_process_creation(configured,change,tmp_path):
     owner,sid,runtime,store,workspace=configured
     if change in ('compression','workspace','absent','ambiguous'):
-        with sqlite3.connect(store) as db:
+        with closing(sqlite3.connect(store)) as db, db:
             if change=='compression':db.execute("UPDATE sessions SET end_reason='compression'")
             if change=='workspace':db.execute('UPDATE sessions SET cwd=?',(str(tmp_path),))
             if change=='absent':db.execute('DELETE FROM sessions')
             if change=='ambiguous':db.execute('INSERT INTO sessions SELECT * FROM sessions')
     elif change=='database_replaced':
         replacement=store.with_name('replacement.db')
-        with sqlite3.connect(replacement) as db:
+        with closing(sqlite3.connect(replacement)) as db, db:
             db.execute('CREATE TABLE sessions(id,cwd,end_reason)');db.execute('INSERT INTO sessions VALUES(?,?,NULL)',('exact-id',str(workspace)))
         replacement.replace(store)
     else:
         runtime.home.rename(runtime.home.with_name('old-profile'));runtime.home.mkdir(mode=0o700)
-        with sqlite3.connect(store) as db:
+        with closing(sqlite3.connect(store)) as db, db:
             db.execute('CREATE TABLE sessions(id,cwd,end_reason)');db.execute('INSERT INTO sessions VALUES(?,?,NULL)',('exact-id',str(workspace)))
     try:
         with pytest.raises(ValueError):owner.start_native(sid,actor='operator',allow_provider=True, environment='host')
@@ -65,5 +69,5 @@ def test_valid_start_sets_exact_home_and_profile_without_provider_execution(conf
 def test_noncanonical_hermes_store_cannot_describe_another_profile(configured):
     owner,sid,runtime,store,workspace=configured
     alias=runtime.home/'other.db'
-    with sqlite3.connect(alias) as db:db.execute('CREATE TABLE sessions(id)')
+    with closing(sqlite3.connect(alias)) as db, db:db.execute('CREATE TABLE sessions(id)')
     with pytest.raises(ValueError):NativeRuntime(tool='hermes',executable='/usr/bin/python3',home=runtime.home,store=alias)

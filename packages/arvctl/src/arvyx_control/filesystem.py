@@ -17,10 +17,12 @@ def memory_document_bytes(text: str) -> bytes:
 
 
 def fsync_directory(path: Path) -> None:
-    # Windows Python cannot open directory handles through os.open. Conditional
-    # Windows support guarantees file fsync only, not crash-durable namespaces.
     # Never suppress a POSIX failure (including unsupported filesystem barriers).
     if os.name == "nt":
+        # Windows: no directory flush. FlushFileBuffers on a directory handle flushes
+        # the whole NTFS volume (seconds per call under load); NTFS journals the
+        # directory metadata itself. Conditional Windows support guarantees file
+        # fsync only, not fsynced namespaces (see safe_open.fsync_directory).
         return
     descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
     try:

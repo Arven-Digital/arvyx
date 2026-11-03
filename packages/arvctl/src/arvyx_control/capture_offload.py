@@ -9,6 +9,7 @@ network, archive deletion or authority provisioning occurs.
 """
 import hashlib,json,re,os
 from pathlib import Path
+from . import safe_open
 from .cockpit_archive import _capture_schema
 from .external_workspace import _read,_open_root,_open_file,_identity
 from .native_install import write
@@ -41,7 +42,7 @@ def storage_identity(directory):
     if not directory.is_absolute():raise ValueError('absolute offload storage directory required')
     with _open_root(directory) as fd:
         info=os.fstat(fd)
-        return dict(directory=str(directory),device=info.st_dev,inode=info.st_ino)
+        return dict(directory=str(directory),device=safe_open.stable_identity(info.st_dev),inode=safe_open.stable_identity(info.st_ino))
 
 def require_storage(owner,storage):
     row=owner.db.execute('SELECT directory,device,inode FROM capture_offload_storage WHERE singleton=1').fetchone()
@@ -89,12 +90,12 @@ def durable_bundle(directory,digest,*,expected_root=None):
     if hashlib.sha256(data).hexdigest()!=digest:raise ValueError('offload hash mismatch')
     with _open_root(directory) as root_fd:
         st=os.fstat(root_fd)
-        if (st.st_dev,st.st_ino)!=root_identity:raise ValueError('offload directory changed')
+        if (safe_open.stable_identity(st.st_dev),safe_open.stable_identity(st.st_ino))!=root_identity:raise ValueError('offload directory changed')
         with _open_file(root_fd,parts) as fd:
             if _identity(os.fstat(fd))!=identity:raise ValueError('offload bundle changed')
-            os.fsync(fd)
+            safe_open.fsync_file(fd)
             if _identity(os.fstat(fd))!=identity:raise ValueError('offload bundle changed during sync')
-        os.fsync(root_fd)
+        safe_open.fsync_directory(root_fd)
     # Reject replacement of either path during the barriers, even with equal bytes.
     verified,_,_=_read(directory,parts,MAX_BUNDLE,expected_root=root_identity,expected_file=identity)
     if verified!=data:raise ValueError('offload readback mismatch')
@@ -118,7 +119,7 @@ def prepare_offload(owner,directory,*,actor,acknowledgement='delivery',verificat
         if not rows:raise ValueError('bounded offload bundle required')
         digest=hashlib.sha256(data).hexdigest()
         with _open_root(directory) as fd:
-            if (os.fstat(fd).st_dev,os.fstat(fd).st_ino)!=(storage['device'],storage['inode']):raise ValueError('offload storage changed')
+            if (safe_open.stable_identity(os.fstat(fd).st_dev),safe_open.stable_identity(os.fstat(fd).st_ino))!=(storage['device'],storage['inode']):raise ValueError('offload storage changed')
             try:write(digest+'.json',data,0o600,dir_fd=fd)
             except FileExistsError:pass
         verified=durable_bundle(directory,digest,expected_root=(storage['device'],storage['inode']))
@@ -179,7 +180,7 @@ def _transfer_bound_chain(owner,directory,latest,through,storage,verification_li
         data=durable_bundle(source['directory'],item,expected_root=(source['device'],source['inode']))
         with _open_root(Path(directory)) as fd:
             info=os.fstat(fd)
-            if (info.st_dev,info.st_ino)!=(storage['device'],storage['inode']):raise ValueError('offload destination changed')
+            if (safe_open.stable_identity(info.st_dev),safe_open.stable_identity(info.st_ino))!=(storage['device'],storage['inode']):raise ValueError('offload destination changed')
             try:write(item+'.json',data,0o600,dir_fd=fd)
             except FileExistsError:pass
         if durable_bundle(directory,item,expected_root=(storage['device'],storage['inode']))!=data:

@@ -22,6 +22,7 @@ import sqlite3
 import unicodedata
 import uuid
 
+from . import safe_open
 from .external_workspace import WorkspaceError, _open_root, _read
 from .security import contains_literal_secret
 
@@ -182,20 +183,18 @@ class AgentCreation:
                         raise AgentCreationError('agent name already exists in workspace')
                     from .public_onboarding_api import assert_request_active
                     assert_request_active()
-                    os.mkdir(agent.agent_id, mode=0o700, dir_fd=root)
+                    safe_open.mkdir_at(root, agent.agent_id, 0o700)
                     made = True
-                    profile = os.open(agent.agent_id, os.O_RDONLY | os.O_DIRECTORY |
-                                      os.O_NOFOLLOW, dir_fd=root)
+                    profile = safe_open.open_directory_at(root, agent.agent_id)
                     for name, data in contents.items():
-                        fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL |
-                                     os.O_NOFOLLOW, 0o600, dir_fd=profile)
+                        fd = safe_open.open_file_at(profile, name, write=True, create=True, exclusive=True, mode=0o600)
                         written.append(name)
                         with os.fdopen(fd, 'wb') as stream:
                             stream.write(data)
                             stream.flush()
                             os.fsync(stream.fileno())
-                    os.fsync(profile)
-                    os.fsync(root)
+                    safe_open.fsync_directory(profile)
+                    safe_open.fsync_directory(root)
                     assert_request_active()
                     self.db.execute('INSERT INTO created_agents VALUES(?,?,?,?)',
                                     (agent.agent_id, self.workspace_id, key,
@@ -206,9 +205,9 @@ class AgentCreation:
                     self.db.rollback()
                     if profile is not None:
                         for name in written:
-                            os.unlink(name, dir_fd=profile)
+                            safe_open.unlink_at(profile, name)
                     if made:
-                        os.rmdir(agent.agent_id, dir_fd=root)
+                        safe_open.rmdir_at(root, agent.agent_id)
                     raise
                 finally:
                     if profile is not None:

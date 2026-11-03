@@ -50,8 +50,8 @@ def exchange(instance, raw):
         while True:
             try:
                 part = peer.recv(65536)
-            except ConnectionResetError:
-                return b''.join(chunks)
+            except (ConnectionResetError, ConnectionAbortedError):
+                return b''.join(chunks)  # Windows reports the peer's close on an unread request as an abort
             if not part: return b''.join(chunks)
             chunks.append(part)
 
@@ -86,7 +86,11 @@ def test_preheader_trickle_expires_and_other_client_progresses():
                 except OSError: break
                 time.sleep(.04)
             slow.settimeout(.3)
-            assert slow.recv(4096) == b''
+            try:
+                closed = slow.recv(4096)
+            except (ConnectionAbortedError, ConnectionResetError):
+                closed = b''  # Windows reports the peer's close on a half-written request as an abort
+            assert closed == b''
 
 
 def test_worker_capacity_is_bounded():

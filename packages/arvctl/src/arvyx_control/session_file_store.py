@@ -13,7 +13,7 @@ that exceeds its budget is refused as incomplete, never presented as All.
 """
 from __future__ import annotations
 
-from contextlib import ExitStack, contextmanager
+from contextlib import closing, ExitStack, contextmanager
 import errno
 import hashlib
 import json
@@ -22,6 +22,7 @@ from pathlib import Path
 import stat
 import time
 
+from . import safe_open
 from .agent_sessions import (MAX_METADATA_BYTES, MAX_METADATA_FIELD_BYTES, RoutingError,
                              SessionMetadata, SessionRoute, SessionTarget, metadata_bytes)
 
@@ -108,61 +109,50 @@ class _Budget:
 class _Walker:
     """Descend from the pinned store root without following links.
 
-    POSIX uses descriptor-relative opens with O_NOFOLLOW and scandir(fd). Windows
-    lacks dir_fd/O_NOFOLLOW, so it uses lstat-based checks and rejects reparse
-    points, as harness discovery does.
+    Both platforms use descriptor-relative opens that never follow links
+    (``safe_open``): dir_fd/O_NOFOLLOW on POSIX, NtCreateFile relative to a
+    directory handle with FILE_OPEN_REPARSE_POINT on Windows.
     """
-    posix = os.name == 'posix' and hasattr(os, 'O_NOFOLLOW') and os.open in os.supports_dir_fd
 
     def __init__(self, root, budget):
         self.root, self.budget = root, budget
 
     @contextmanager
     def open_root(self):
-        if self.posix:
-            fd = os.open(self.root.anchor, os.O_RDONLY | os.O_DIRECTORY)
-            try:
-                for part in self.root.parts[1:]:
-                    self.budget.tick()
-                    child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
-                    os.close(fd)
-                    fd = child
-                yield fd
-            finally:
-                os.close(fd)
-            return
-        path = Path(self.root.anchor)
-        for part in self.root.parts[1:]:
-            path /= part
+        for _part in self.root.parts[1:]:
             self.budget.tick()
-            info = path.lstat()
-            if _reparse(info) or not stat.S_ISDIR(info.st_mode):
-                raise RoutingError('session store path is not a plain directory')
-        yield path
+        try:
+            fd = safe_open.open_root(self.root)
+        except OSError:
+            if os.name == 'nt':
+                raise RoutingError('session store path is not a plain directory') from None
+            raise
+        try:
+            yield fd
+        finally:
+            os.close(fd)
 
     @contextmanager
     def child_dir(self, parent, name):
         self.budget.tick()
-        if self.posix:
-            fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
-            try:
-                yield fd
-            finally:
-                os.close(fd)
-            return
-        path = parent / name
-        info = path.lstat()
-        if _reparse(info) or not stat.S_ISDIR(info.st_mode):
-            raise RoutingError('session store path is not a plain directory')
-        yield path
+        try:
+            fd = safe_open.open_directory_at(parent, name)
+        except OSError:
+            if os.name == 'nt':
+                raise RoutingError('session store path is not a plain directory') from None
+            raise
+        try:
+            yield fd
+        finally:
+            os.close(fd)
 
     def entries(self, handle):
         """Yield (name, kind, mtime, size) for plain files and directories only."""
-        with os.scandir(handle) as iterator:
-            for entry in iterator:
+        with closing(safe_open.scandir_names(handle)) as names_iter:
+            for name in names_iter:
                 self.budget.tick()
                 try:
-                    info = entry.stat(follow_symlinks=False)
+                    info = safe_open.stat_at(handle, name)
                 except OSError as exc:
                     if exc.errno == errno.ENOENT:
                         continue
@@ -170,21 +160,19 @@ class _Walker:
                 if _reparse(info):
                     continue
                 if stat.S_ISDIR(info.st_mode):
-                    yield entry.name, 'dir', info.st_mtime, 0
+                    yield name, 'dir', info.st_mtime, 0
                 elif stat.S_ISREG(info.st_mode):
-                    yield entry.name, 'file', info.st_mtime, info.st_size
+                    yield name, 'file', info.st_mtime, info.st_size
 
     @contextmanager
     def open_file(self, parent, name):
         self.budget.tick()
-        if self.posix:
-            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, dir_fd=parent)
-        else:
-            path = parent / name
-            info = path.lstat()
-            if _reparse(info) or not stat.S_ISREG(info.st_mode):
-                raise RoutingError('exact session file unavailable')
-            fd = os.open(path, os.O_RDONLY | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NOINHERIT', 0))
+        try:
+            fd = safe_open.open_file_at(parent, name)
+        except OSError:
+            if os.name == 'nt':
+                raise RoutingError('exact session file unavailable') from None
+            raise
         try:
             info = os.fstat(fd)
             if not stat.S_ISREG(info.st_mode):

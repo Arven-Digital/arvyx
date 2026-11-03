@@ -21,6 +21,9 @@ from arvyx_control.organizer_delegation import DelegationService
 from arvyx_control.replica_authority import authority_context
 from test_durable_organizer_journey import seed, body, consent
 from delegation_fixture_helpers import capabilities, issue, admitted
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 
 KEY = ('machine-a', 'worker', 'session-exact')
 

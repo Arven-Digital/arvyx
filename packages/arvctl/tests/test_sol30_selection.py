@@ -4,6 +4,7 @@ from dataclasses import asdict
 import hashlib
 import json
 import sqlite3
+from contextlib import closing
 from types import SimpleNamespace
 
 import pytest
@@ -16,7 +17,7 @@ from arvyx_control.public_onboarding_api import PublicOnboardingAPI, PREFIX
 @pytest.fixture
 def selection(tmp_path):
     home = tmp_path / 'synthetic'; home.mkdir(mode=0o700)
-    with sqlite3.connect(home / 'state.db') as db:
+    with closing(sqlite3.connect(home / 'state.db')) as db, db:
         db.execute('CREATE TABLE sessions(id TEXT PRIMARY KEY,title TEXT,started_at REAL,cwd,end_reason,prompt)')
         db.execute('INSERT INTO sessions VALUES(?,?,?,?,?,?)', ('exact', 'title', 1, '/safe', None, 'NOT RETURNED'))
     history = HermesHistory(home)
@@ -25,7 +26,7 @@ def selection(tmp_path):
                             vault=tmp_path/'vault', state=tmp_path/'events.jsonl')
     api = PublicOnboardingAPI(credentials={hashlib.sha256(b'synthetic').hexdigest(): 'owner'}, owners={'owner': owner})
     def update(cwd='/safe', end_reason=None, session_id='exact'):
-        with sqlite3.connect(home / 'state.db') as db:
+        with closing(sqlite3.connect(home / 'state.db')) as db, db:
             db.execute('UPDATE sessions SET cwd=?,end_reason=?,id=?', (cwd, end_reason, session_id))
     def dispatch(session_id='exact', confirmed=True, auth_value='synthetic'):
         return api.dispatch('POST', PREFIX+'sessions/select', 'Bearer '+auth_value,
@@ -98,7 +99,7 @@ def test_rejected_strings_never_reach_python(selection, monkeypatch, aggregate):
 
 def test_selection_query_budget_and_cleanup(selection):
     history, _, _ = selection
-    with sqlite3.connect(history.home/'state.db') as db:
+    with closing(sqlite3.connect(history.home/'state.db')) as db, db:
         db.execute('ALTER TABLE sessions RENAME TO original')
         db.execute('CREATE TABLE sessions AS SELECT * FROM original')
         db.executemany('INSERT INTO sessions(id,title,started_at) VALUES(?,?,?)',
@@ -112,7 +113,7 @@ def test_selection_query_budget_and_cleanup(selection):
 
 def test_optional_columns_remain_optional(tmp_path):
     home = tmp_path/'minimal'; home.mkdir(mode=0o700)
-    with sqlite3.connect(home/'state.db') as db:
+    with closing(sqlite3.connect(home/'state.db')) as db, db:
         db.execute('CREATE TABLE sessions(id TEXT PRIMARY KEY,title TEXT,started_at REAL)')
         db.execute("INSERT INTO sessions VALUES('exact','title',1)")
     history = HermesHistory(home)

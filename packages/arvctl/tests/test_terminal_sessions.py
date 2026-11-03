@@ -1,8 +1,11 @@
 import hashlib
 from pathlib import Path
+import os
 import pytest
 from arvyx_control.agent_sessions import AgentSessions, RoutingError
 from arvyx_control.terminal_sessions import ExistingArvyxAdapter
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact) is POSIX-only')
 
 
 def test_existing_native_routes_and_revalidates(tmp_path):

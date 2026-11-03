@@ -1,4 +1,5 @@
 """Depth20 retrieval regressions. Authored only; execution requires approval."""
+from contextlib import closing
 import importlib
 import json
 import math
@@ -40,7 +41,7 @@ def test_corrupt_counts_repair_to_retrievable_source(tmp_path, damage, repair):
     cache.write_text(json.dumps(payload))
     if repair == "checkpoint":
         import sqlite3
-        with sqlite3.connect(tmp_path / ".arvyx/jobs.sqlite3") as connection:
+        with closing(sqlite3.connect(tmp_path / ".arvyx/jobs.sqlite3")) as connection, connection:
             connection.execute("UPDATE checkpoints SET entry_json=? WHERE relative_path=?",
                                (json.dumps(entry), "projects/a/note.md"))
         cache.unlink()

@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import subprocess
 import sys
 from types import SimpleNamespace
@@ -108,7 +109,7 @@ def test_oversized_adapter_metadata_is_not_retained():
 def test_sqlite_oversized_title_fails_before_metadata(tmp_path):
     from arvyx_control.hermes_history import HermesHistory
     home = tmp_path/'isolated'; home.mkdir(mode=0o700)
-    with sqlite3.connect(home/'state.db') as db:
+    with closing(sqlite3.connect(home/'state.db')) as db, db:
         db.execute('CREATE TABLE sessions(id TEXT PRIMARY KEY,title TEXT,started_at REAL)')
         db.execute('INSERT INTO sessions VALUES(?,?,?)', ('s','x'*(2*1024*1024),1))
     history = HermesHistory(home)
@@ -264,7 +265,7 @@ def test_native_transcript_rejects_oversized_source_before_return(tmp_path):
     from arvyx_control.cockpit_native_runtime import NativeRuntime
     from arvyx_control.hermes_profile import HermesProfile
     store=tmp_path/'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE messages(id INTEGER,role TEXT,content TEXT,session_id TEXT)')
         db.execute('INSERT INTO messages VALUES(1,?,?,?)',('assistant','x'*(2*1024*1024),'s'))
     runtime=object.__new__(NativeRuntime);runtime.tool='hermes';runtime.store=store

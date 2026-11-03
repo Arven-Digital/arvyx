@@ -13,6 +13,8 @@ from test_local_onboarding_services import services
 from test_session_workspace_journey import journey
 from arvyx_control.replica_authority import authority_context
 
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
+
 
 @pytest.fixture
 def lane(journey, tmp_path, request, monkeypatch):

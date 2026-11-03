@@ -26,6 +26,12 @@ HEX = re.compile(r"[a-f0-9]{64}\Z")
 STATUSES = frozenset({"saved", "ambiguous", "rejected", "version-conflict", "overwrite-required"})
 
 
+def _require_posix_ownership() -> None:
+    """The delivery protocol is defined on POSIX uid, sticky-bit and mode semantics."""
+    if os.name != "posix":
+        raise Rejected()  # secret delivery requires POSIX ownership semantics
+
+
 class Rejected(Exception):
     """Fixed message only; never chain an input-bearing exception."""
     def __init__(self):
@@ -73,6 +79,7 @@ def validate_response(action, result):
 def safe_parents(path: Path):
     for parent in path.absolute().parents:
         info = parent.lstat()
+        _require_posix_ownership()
         sticky_root = info.st_uid == 0 and info.st_mode & stat.S_ISVTX
         if (not stat.S_ISDIR(info.st_mode) or info.st_uid not in (0, os.geteuid())
                 or (info.st_mode & 0o022 and not sticky_root)):
@@ -168,6 +175,7 @@ class Receipts:
         path = Path(path)
         safe_parents(path)
         info = path.parent.lstat()
+        _require_posix_ownership()
         if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.geteuid() or info.st_mode & 0o077:
             raise Rejected()
         fd = os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)

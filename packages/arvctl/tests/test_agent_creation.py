@@ -24,7 +24,7 @@ def request(name='Ada', **kwargs):
 
 
 def approved(source, name='SOUL.md', content='A deliberately clean identity.\n'):
-    (source / name).write_text(content)
+    (source / name).write_text(content, newline='\n')
     return IdentityFile(name, hashlib.sha256(content.encode()).hexdigest())
 
 

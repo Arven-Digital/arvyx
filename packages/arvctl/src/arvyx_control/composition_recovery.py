@@ -7,9 +7,13 @@ observed changes but do not claim an atomic snapshot of hostile external writers
 Restoration is an inert candidate. Bearers are never copied or recreated, and no
 native incarnation or pending consent can authorize effects after restoration.
 """
+from contextlib import closing
 from contextlib import ExitStack
 from dataclasses import dataclass
-import argparse,fcntl,hashlib,json,os,sqlite3,stat
+import argparse,hashlib,json,os,sqlite3,stat
+from . import private_paths
+from . import safe_open
+from .locks import try_exclusive_lock
 from pathlib import Path
 
 ROLES=frozenset(('vault','journal','owner','primary','human_signatures','enrollment','profile_mappings','profile_tree','consents','pairing_identity','pairing_challenges','pairing_enrollment','organizer_policy','organizer_requests','remote_links','external_grants','external_work','bearer_authority'))
@@ -24,15 +28,18 @@ def relative(value):
         raise ValueError('canonical relative topology path required')
     return value
 
+from .external_workspace import _open_root
+
 def write(path,data):
     mkdir_durable(path.parent)
-    fd=os.open(path,os.O_CREAT|os.O_EXCL|os.O_WRONLY|os.O_NOFOLLOW,0o600)
+    with _open_root(Path(path).absolute().parent) as parent:
+        fd=safe_open.open_file_at(parent,Path(path).name,write=True,create=True,exclusive=True,mode=0o600)
     with os.fdopen(fd,'wb') as f:f.write(data);f.flush();os.fsync(f.fileno())
     sync(path.parent)
 
 def sync(path):
     from .external_workspace import _open_root
-    with _open_root(Path(path).absolute()) as fd:os.fsync(fd)
+    with _open_root(Path(path).absolute()) as fd:safe_open.fsync_directory(fd,tolerate_unwritable=True)
 
 def mkdir_durable(path,*,exist_ok=True):
     """Publish each new ancestor name before publishing files below it."""
@@ -76,7 +83,7 @@ class Topology:
                 raise ValueError('bearer authority must be separately classified outside captured trees')
         mandatory={self.vault+'/.arvyx/vault.lock'}
         for owner_path in self.roles['owner']:
-            with sqlite3.connect((self.root/owner_path).as_uri()+'?mode=ro',uri=True) as db:
+            with closing(sqlite3.connect((self.root/owner_path).as_uri()+'?mode=ro',uri=True)) as db, db:
                 try:identity=db.execute('SELECT state,vault FROM identity').fetchall()
                 except sqlite3.Error:raise ValueError('exact native owner identity schema required') from None
             if len(identity)!=1:raise ValueError('one exact owner authority binding required')
@@ -131,7 +138,7 @@ def composition_read(t,name,proofs):
     # Pending intents and unrelated extra links remain uncopyable.
     path=t.root/name
     with _open_root(path.parent) as parent:
-        fd=os.open(path.name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=parent)
+        fd=safe_open.open_file_at(parent,path.name)
         try:
             info=os.fstat(fd);identity=_identity(info)
             if not stat.S_ISREG(info.st_mode) or info.st_nlink!=2 or (info.st_dev,info.st_ino)!=proof[:2] or info.st_size>MAX_FILE:
@@ -144,7 +151,7 @@ def composition_read(t,name,proofs):
                 if size>MAX_FILE:raise ValueError('forget witness byte budget exceeded')
             data=b''.join(chunks)
             if (digest(data)!=proof[2] or size!=info.st_size or _identity(os.fstat(fd))!=identity
-                    or _identity(os.stat(path.name,dir_fd=parent,follow_symlinks=False))!=identity):
+                    or _identity(safe_open.stat_at(parent,path.name))!=identity):
                 raise ValueError('completed forget witness changed')
         finally:os.close(fd)
     return data,identity,None
@@ -196,7 +203,7 @@ def verify_offload_inventory(topology,files):
     """
     from .capture_offload import chain,storage_identity
     for owner_path in topology.roles['owner']:
-        with sqlite3.connect((topology.root/owner_path).as_uri()+'?mode=ro',uri=True) as db:
+        with closing(sqlite3.connect((topology.root/owner_path).as_uri()+'?mode=ro',uri=True)) as db, db:
             tables={row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
             if 'capture_offload_head' not in tables:continue
             heads=db.execute('SELECT sha256,through FROM capture_offload_head WHERE singleton=1').fetchall()
@@ -235,18 +242,17 @@ def capture(topology,destination,*,checkpoint=lambda stage:None):
                 parent_fd=os.dup(root_fd)
                 try:
                     for part in Path(name).parts[:-1]:
-                        try:os.mkdir(part,0o700,dir_fd=parent_fd)
+                        try:safe_open.mkdir_at(parent_fd,part,0o700)
                         except FileExistsError:pass
-                        child=os.open(part,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=parent_fd)
+                        child=safe_open.open_directory_at(parent_fd,part)
                         os.close(parent_fd);parent_fd=child
                 finally:os.close(parent_fd)
             with _open_root(p.parent) as parent:
-                fd=os.open(p.name,os.O_RDWR|os.O_CREAT|os.O_NOFOLLOW,0o600,dir_fd=parent)
+                fd=safe_open.open_file_at(parent,p.name,write=True,create=True,mode=0o600)
             stack.callback(os.close,fd)
             info=os.fstat(fd)
             if not stat.S_ISREG(info.st_mode) or info.st_nlink!=1:raise ValueError('unsafe quiescence lock')
-            try:fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
-            except BlockingIOError:raise ValueError('offline quiescent owner/state locks required') from None
+            if not try_exclusive_lock(fd):raise ValueError('offline quiescent owner/state locks required')
         # These lock-free recovery internals run only after all declared
         # canonical owner/state/vault quiescence locks have been acquired.
         from .promotion_transaction import recover as recover_promotions
@@ -278,11 +284,11 @@ def capture(topology,destination,*,checkpoint=lambda stage:None):
                 mkdir_durable(target.parent)
                 # Read through SQLite while the independent writer fence is held;
                 # captures committed WAL state without copying a live WAL prefix.
-                with sqlite3.connect((t.root/name).as_uri()+'?mode=ro',uri=True) as source,sqlite3.connect(target) as output:
+                with closing(sqlite3.connect((t.root/name).as_uri()+'?mode=ro',uri=True)) as source, source,sqlite3.connect(target) as output:
                     source.backup(output)
                     if output.execute('PRAGMA quick_check').fetchall()!=[('ok',)]:raise ValueError('invalid captured database')
-                os.chmod(target,0o600)
-                with target.open('rb') as f:os.fsync(f.fileno())
+                private_paths.apply_mode(path=target,mode=0o600)
+                with target.open('rb') as f:safe_open.fsync_file(f.fileno())
                 data=target.read_bytes()
             else:
                 from .external_workspace import _read
@@ -340,7 +346,7 @@ def inspect_candidate(directory):
         data,_,_=_read(root,tuple(relative(name).split('/')),MAX_FILE)
         if digest(data)!=entry['sha256']:raise ValueError('candidate hash changed')
         if entry['sqlite']:
-            with sqlite3.connect((root/name).as_uri()+'?mode=ro',uri=True) as db:
+            with closing(sqlite3.connect((root/name).as_uri()+'?mode=ro',uri=True)) as db, db:
                 if db.execute('PRAGMA quick_check').fetchall()!=[('ok',)]:raise ValueError('candidate database invalid')
             checked+=1
     raw,_,_=_read(root,(*relative(receipt['vault']).split('/'),FENCE),65536)

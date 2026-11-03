@@ -14,14 +14,16 @@ import time
 from contextlib import contextmanager
 from contextvars import ContextVar
 
+from . import private_paths
 from .control import create_task
 from .vault import init_vault
 
 
 def initialize(root: Path):
     root = root.resolve()
-    root.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if root.stat().st_mode & 0o077:
+    root.parent.mkdir(parents=True, exist_ok=True)
+    private_paths.ensure_private_directory(root, mode=0o700)
+    if not private_paths.is_private(root.stat(), path=root):
         raise ValueError("pilot home must be owner-private")
     marker = root / "pilot.json"
     expected = {"schema": 1, "project": "demo-agent", "host": "laptop-a", "scope": "isolated-local-pilot"}
@@ -32,7 +34,7 @@ def initialize(root: Path):
         if (root / "vault").exists() or (root / "events.jsonl").exists():
             raise ValueError("refusing to adopt existing non-pilot state")
         init_vault(root / "vault")
-        marker.write_text(json.dumps(expected) + "\n")
+        marker.write_text(json.dumps(expected) + "\n", newline="\n")
     return expected
 
 
@@ -149,11 +151,13 @@ def exchange(endpoint, payload, *, owner_budget=True):
         raise ValueError('owner budget metadata is not part of a foreign request')
     supplied = validate_budget(envelope.pop('_budget_seconds', REQUEST_TIMEOUT))
     with exchange_deadline(supplied) as end:
-        with socket.socket(socket.AF_UNIX) as client:
-            client.settimeout(remaining(end))
-            client.connect(str(endpoint))
+        from .owner_endpoint import TOKEN_FIELD, connect
+        client, token = connect(endpoint, remaining(end))
+        with client:
             if owner_budget:
                 envelope['_budget_seconds'] = remaining(end)
+            if token is not None:
+                envelope[TOKEN_FIELD] = token
             payload = json.dumps(envelope).encode() + b'\n'
             send_frame(client, payload, end, REQUEST_CAP)
             return receive_frame(client, end, RESPONSE_CAP)

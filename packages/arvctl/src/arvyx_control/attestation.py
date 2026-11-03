@@ -519,7 +519,7 @@ def _ssh_verify(
 ) -> bool:
     with tempfile.TemporaryDirectory() as tmp:
         sig = Path(tmp) / "signature"
-        sig.write_text(signature, encoding="utf-8")
+        sig.write_text(signature, encoding="utf-8", newline="\n")
         completed = subprocess.run(
             [
                 "ssh-keygen",

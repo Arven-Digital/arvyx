@@ -3,6 +3,7 @@ from arvyx_control.replica_authority import authority_context
 import tempfile
 import json
 import time
+import os
 import unittest
 import sqlite3
 from unittest.mock import patch
@@ -14,6 +15,7 @@ from arvyx_control.cockpit_team import TeamAuthority
 from arvyx_control.cockpit_archive_authority import governed_sink
 
 
+@unittest.skipUnless(os.name == 'posix', 'PTY owner, curses surface, fork or pidfd semantics are POSIX-only')
 class CaptureTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

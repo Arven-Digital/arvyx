@@ -1,9 +1,11 @@
 """Organizer context delegates to existing authenticated AMC session authority."""
+import os
 import unittest
 from arvyx_control.api import handle_api_request
 import test_cockpit_surface as fixtures
 
 
+@unittest.skipUnless(os.name == 'posix', 'the PTY owner fixture (host-environment natives) is POSIX-only')
 class OrganizerTests(unittest.TestCase):
     setUp = fixtures.SurfaceTests.setUp
 

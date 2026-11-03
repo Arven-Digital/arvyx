@@ -1,8 +1,10 @@
 """Offline capture -> authenticated API -> journal/barriers -> outbox recovery."""
+from arvyx_control import safe_open
 import hashlib
 import json
 import os
 import sqlite3
+from contextlib import closing
 import threading
 from types import SimpleNamespace
 
@@ -41,7 +43,7 @@ def owner_at(tmp_path):
 
 
 def operations(owner):
-    with sqlite3.connect(journal_path(owner.audit)) as db:
+    with closing(sqlite3.connect(journal_path(owner.audit))) as db, db:
         return db.execute('SELECT operation_id,state FROM operations').fetchall()
 
 
@@ -50,6 +52,7 @@ def receipt_payload(row):
         text=row['text'], host='original-host', project='', task='', kind='organizer', agent='operator')
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 @pytest.mark.parametrize('barrier', ['log', 'log_parent', 'blob', 'blob_parent'])
 def test_api_replay_repairs_durable_producer_before_outbox_ack(tmp_path, monkeypatch, barrier):
     owner = owner_at(tmp_path)
@@ -65,7 +68,7 @@ def test_api_replay_repairs_durable_producer_before_outbox_ack(tmp_path, monkeyp
     failing = True
 
     def sync(fd):
-        path = os.readlink(f'/proc/self/fd/{fd}')
+        path = safe_open.descriptor_path(fd)
         observed.append(path)
         # The initial blob file is synced at its temporary path, before rename.
         matches = path == str(target) or (barrier == 'blob' and path.startswith(str(blob.parent / '.')))

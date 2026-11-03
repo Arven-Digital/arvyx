@@ -70,5 +70,5 @@ def write_bridge_policy(
 ) -> BridgePolicyResult:
     result = build_bridge_policy(profile=profile, upstream=upstream, auth_env=auth_env)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result.policy, indent=2, sort_keys=False) + "\n", encoding="utf-8")
+    output.write_text(json.dumps(result.policy, indent=2, sort_keys=False) + "\n", encoding="utf-8", newline="\n")
     return BridgePolicyResult(profile=result.profile, policy=result.policy, written_to=str(output))

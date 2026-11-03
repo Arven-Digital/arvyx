@@ -1,11 +1,13 @@
 import json
 import os
 import sqlite3
+from contextlib import closing
 from unittest.mock import patch
 import pytest
 from test_consolidated_election import binding
 from arvyx_control.cockpit_human_binding import HumanBindings
 
+@pytest.mark.skipif(os.name != 'posix', reason='fork-based crash fixture is POSIX-only')
 def test_crash_before_enrollment_audit_recovers_only_its_fresh_files(binding):
     bindings,sessions,registry,_=binding
     vault=bindings.home/'vault/registry'
@@ -27,6 +29,6 @@ def test_crash_before_enrollment_audit_recovers_only_its_fresh_files(binding):
     assert len(set(vault.rglob('*.json'))-before)==2
     HumanBindings(bindings.home,bindings.primary)
     assert set(vault.rglob('*.json'))==before
-    with sqlite3.connect(bindings.path) as db:
+    with closing(sqlite3.connect(bindings.path)) as db, db:
         assert db.execute('SELECT COUNT(*) FROM audit').fetchone()[0]==0
         assert db.execute('SELECT status FROM enrollment_journal').fetchone()[0]=='rolled-back'

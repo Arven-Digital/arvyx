@@ -39,6 +39,6 @@ class NewHermesProfile:
             raise RoutingError('named profile already exists; never reuse an existing identity') from None
         # Public routing values only. Native Hermes resolves root OAuth in place.
         fd = os.open(self.home/'config.yaml', os.O_WRONLY|os.O_CREAT|os.O_EXCL, 0o600)
-        with os.fdopen(fd, 'w') as file:
+        with os.fdopen(fd, 'w', newline="\n") as file:
             file.write('model:\n  provider: openai-codex\n  default: gpt-6.1-sol\n')
         return HermesHistory(self.home, executable=self.executable, default_home=self.root)

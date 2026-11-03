@@ -6,6 +6,8 @@ import pytest
 
 from arvyx_control import cockpit_native_runtime as native, native_artifact_policy
 
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
+
 
 @pytest.fixture
 def runtime(tmp_path, monkeypatch):

@@ -163,11 +163,18 @@ def test_permission_errors_do_not_escape(tmp_path):
 
 
 def test_untrusted_profile_names_and_symlink_home(tmp_path):
-    for name in ['bad:name', 'bad\\\\name', '.hidden', 'x' * 129]:
+    # NTFS cannot hold names containing ':' or '\\'; the other untrusted shapes still apply.
+    names = ['.hidden', 'x' * 129] if os.name == 'nt' else ['bad:name', 'bad\\\\name', '.hidden', 'x' * 129]
+    for name in names:
         marker(tmp_path, f'.hermes/profiles/{name}/config.yaml')
     assert not discover_harnesses(tmp_path, platform='linux')['candidates']
     alias = tmp_path / 'alias'
-    alias.symlink_to(tmp_path, target_is_directory=True)
+    if os.name == 'nt':
+        # A directory symlink needs a privilege on Windows; a junction is the same reparse-point refusal.
+        import subprocess
+        subprocess.run(['cmd', '/c', 'mklink', '/J', str(alias), str(tmp_path)], check=True, capture_output=True)
+    else:
+        alias.symlink_to(tmp_path, target_is_directory=True)
     assert not discover_harnesses(alias, platform='linux')['candidates']
     with pytest.raises(ValueError):
         discover_harnesses(tmp_path / '..', platform='linux')

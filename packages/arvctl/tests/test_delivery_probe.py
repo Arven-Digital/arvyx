@@ -66,11 +66,11 @@ class Log:
         self.counter += 1
         record = {"id": f"event_{self.counter:06d}", "type": event_type, "task_id": task_id,
                   "timestamp": _ts(at), "payload": payload}
-        with self.path.open("a", encoding="utf-8") as handle:
+        with self.path.open("a", encoding="utf-8", newline="\n") as handle:
             handle.write(json.dumps(record, sort_keys=True) + "\n")
 
     def raw(self, text: str) -> None:
-        with self.path.open("a", encoding="utf-8") as handle:
+        with self.path.open("a", encoding="utf-8", newline="\n") as handle:
             handle.write(text)
 
     def item(self, event_type: str, item_id: str, target: str, at: datetime, *, status: str,

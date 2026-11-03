@@ -1,11 +1,15 @@
 """Synthetic stores only; no runtime plans, launch, or provider access."""
 import sqlite3
+from contextlib import closing
 import tempfile
 from pathlib import Path
 import pytest
 from arvyx_control.agent_sessions import RoutingError
 from arvyx_control.hermes_profile import HermesProfile
 from arvyx_control.cockpit_native_runtime import NativeRuntime
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
 
 
 @pytest.fixture
@@ -13,7 +17,7 @@ def native():
     with tempfile.TemporaryDirectory() as directory:
         home = Path(directory)
         store = home / 'state.db'
-        with sqlite3.connect(store) as db:
+        with closing(sqlite3.connect(store)) as db, db:
             db.execute('CREATE TABLE sessions(id, cwd, end_reason)')
             db.execute('INSERT INTO sessions VALUES(?,?,?)', ('selected', str(home), None))
             db.execute('CREATE TABLE messages(id INTEGER,session_id,role,content)')
@@ -26,7 +30,7 @@ def native():
 @pytest.mark.parametrize('value', ['x' * (2 * 1024 * 1024), b'blob', 12, 'x' * 12000], ids=['2MiB', 'blob', 'integer', 'aggregate'])
 def test_metadata_rejected_before_materialization(native, value):
     home, profile, _ = native
-    with sqlite3.connect(profile.store) as db:
+    with closing(sqlite3.connect(profile.store)) as db, db:
         db.execute('UPDATE sessions SET end_reason=?', (value,))
     from contextlib import contextmanager
     original = profile.connection
@@ -48,7 +52,7 @@ def test_metadata_rejected_before_materialization(native, value):
 
 def test_duplicate_rows_are_ambiguous(native):
     home, profile, _ = native
-    with sqlite3.connect(profile.store) as db:
+    with closing(sqlite3.connect(profile.store)) as db, db:
         db.executemany('INSERT INTO sessions VALUES(?,?,?)', [('selected', str(home), None)] * 1000)
     with pytest.raises(RoutingError, match='ambiguous'):
         profile.resolve('selected', home)
@@ -57,7 +61,7 @@ def test_duplicate_rows_are_ambiguous(native):
 def test_nearby_valid_reads(native):
     home, profile, runtime = native
     assert profile.resolve('selected', home)['end_reason'] is None
-    with sqlite3.connect(profile.store) as db:
+    with closing(sqlite3.connect(profile.store)) as db, db:
         db.execute('INSERT INTO messages VALUES(1,?,?,?)', ('selected', 'assistant', 'nearby'))
     assert runtime.transcript('selected') == [{'id': 1, 'role': 'assistant', 'content': 'nearby'}]
 
@@ -65,7 +69,7 @@ def test_nearby_valid_reads(native):
 @pytest.mark.parametrize('kind', ['metadata', 'transcript'])
 def test_unrelated_rows_obey_work_budget(native, kind):
     home, profile, runtime = native
-    with sqlite3.connect(profile.store) as db:
+    with closing(sqlite3.connect(profile.store)) as db, db:
         if kind == 'metadata':
             db.execute('DELETE FROM sessions')
             db.executemany('INSERT INTO sessions VALUES(?,?,?)', [('unrelated', str(home), None)] * 200000)

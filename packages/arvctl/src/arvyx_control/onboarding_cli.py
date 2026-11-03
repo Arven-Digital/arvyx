@@ -17,6 +17,7 @@ import sys
 import unicodedata
 import uuid
 
+from . import private_paths
 from .agent_creation import AgentCreation, CreationRequest
 from .harness_discovery import discover_harnesses
 from .organizer_authority import OrganizerAuthority
@@ -25,9 +26,10 @@ from .organizer_authority import OrganizerAuthority
 class Onboarding:
     def __init__(self, directory):
         self.directory = Path(directory)
-        self.directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+        self.directory.parent.mkdir(parents=True, exist_ok=True)
+        private_paths.ensure_private_directory(self.directory, mode=0o700)
         info = self.directory.lstat()
-        if self.directory.is_symlink() or info.st_uid != os.getuid() or info.st_mode & 0o077:
+        if self.directory.is_symlink() or not private_paths.owner_private(info, path=self.directory):
             raise ValueError('state directory must be private, owned by the current user, and not a symlink')
         self.db = sqlite3.connect(self.directory / 'onboarding.sqlite3')
         self.db.executescript('''
@@ -36,7 +38,7 @@ class Onboarding:
             CREATE TABLE IF NOT EXISTS setup (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         ''')
         profiles = self.directory / 'profiles'
-        profiles.mkdir(mode=0o700, exist_ok=True)
+        private_paths.ensure_private_directory(profiles, mode=0o700)
         self.creation = AgentCreation(self.db, profiles, workspace_id='local',
                                       local_host='local', isolated_harnesses=frozenset({'hermes'}))
 

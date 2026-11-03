@@ -11,6 +11,7 @@ import threading
 import time
 from unittest.mock import patch
 
+import os
 import pytest
 
 from arvyx_control import api
@@ -79,7 +80,11 @@ def test_core_preheader_worker_lifetime_is_bounded(tmp_path, monkeypatch, drip):
         else:
             client.sendall(b'GET /health HTTP/1.1\r\nX-Incomplete: ')
         # Must close even when bytes arrive faster than an idle socket timeout.
-        assert client.recv(4096) == b''
+        try:
+            closed = client.recv(4096)
+        except (ConnectionAbortedError, ConnectionResetError):
+            closed = b''  # Windows reports the peer's close on an unread request as an abort
+        assert closed == b''
         assert time.monotonic() - start < 1.25
         deadline = time.monotonic() + 1
         while not server._worker_slots.acquire(blocking=False):
@@ -204,6 +209,7 @@ def _recording_fsync(state, events, *, fail_directory=False):
     return fsync
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 def test_newline_only_recovery_persists_file_then_containing_directory(tmp_path):
     from arvyx_control import control
     state = tmp_path / 'log' / 'control.jsonl'
@@ -220,6 +226,7 @@ def test_newline_only_recovery_persists_file_then_containing_directory(tmp_path)
     assert not list(state.parent.glob('control.jsonl.torn-*'))
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 def test_newline_only_recovery_directory_barrier_failure_is_not_success(tmp_path):
     from arvyx_control import control
     state = tmp_path / 'log' / 'control.jsonl'

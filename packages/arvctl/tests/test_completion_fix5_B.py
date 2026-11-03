@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import sqlite3
+from contextlib import closing
 import os
 import subprocess
 import sys
@@ -43,12 +44,12 @@ def test_journal_refuses_authority_rebinding(tmp_path, monkeypatch, phase, diffe
     first = invoke(vault, state)
     assert first.status == 201 if transport == 'http' else 'error' not in first
     store = journal.journal_path(audit or audit_log.default_audit_log(state))
-    with sqlite3.connect(store) as conn:
+    with closing(sqlite3.connect(store)) as conn, conn:
         op = conn.execute('SELECT operation_id FROM operations').fetchone()[0]
     with authority_context(vault, state):
         journal.set_operation_state(store, op, phase)
     if phase != 'completed':
-        with sqlite3.connect(store) as conn:
+        with closing(sqlite3.connect(store)) as conn, conn:
             conn.execute('UPDATE operations SET dispatch_owner=NULL,safe_outcome_json=NULL,http_status=NULL')
     other_vault = tmp_path / 'other-vault' if different == 'vault' else vault
     other_state = tmp_path / 'second.jsonl' if different == 'state' else state
@@ -62,7 +63,7 @@ def test_journal_refuses_authority_rebinding(tmp_path, monkeypatch, phase, diffe
     assert state.read_bytes() == before
     if other_state != state:
         assert not other_state.exists()
-    with sqlite3.connect(store) as conn:
+    with closing(sqlite3.connect(store)) as conn, conn:
         assert conn.execute('SELECT state FROM operations').fetchone()[0] == phase
 
 
@@ -70,7 +71,7 @@ def test_populated_legacy_journal_is_not_silently_adopted(authority, tmp_path, m
     vault, state = authority
     monkeypatch.setattr(api, 'resolve_identity', lambda *a, **k: OPERATOR_IDENTITY)
     store = journal.journal_path(audit_log.default_audit_log(state))
-    with sqlite3.connect(store) as conn:
+    with closing(sqlite3.connect(store)) as conn, conn:
         conn.executescript(journal._SCHEMA)
         conn.execute("INSERT INTO operations(operation_id,principal_scope,action,key_hash,request_hash,state) "
                      "VALUES('legacy','operator:operator','POST:/tasks',?,?,'intent_durable')",
@@ -93,7 +94,7 @@ def test_bound_journal_legacy_migration_keeps_unknown_and_normal_intents(authori
     journal.set_operation_state(store, normal.operation_id, 'intent_durable')
     audit_log.append_audit(audit, {'operation_id': 'orphan-v1', 'phase': 'intent'})
     journal.migrate_legacy_audit_operations(audit)
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute("UPDATE operations SET state='intent_durable',dispatch_owner=NULL WHERE operation_id='orphan-v1'")
         db.execute("UPDATE journal_meta SET value='v1' WHERE key=?", (journal.LEGACY_MIGRATION_KEY,))
     class Interrupted(sqlite3.Connection):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import plistlib
 import unittest
 
@@ -16,15 +16,15 @@ class SecretTunnelArtifactTests(unittest.TestCase):
         payload = plistlib.loads(TEMPLATE.read_bytes())
         # Render caller-owned synthetic SSH inputs in memory; never read a key.
         args = payload["ProgramArguments"]
-        identity = Path("/synthetic/operator/.ssh/tunnel_ed25519")
-        configured_identity = Path(args[args.index("-i") + 1])
+        identity = PurePosixPath("/synthetic/operator/.ssh/tunnel_ed25519")  # launchd template: POSIX paths on any host
+        configured_identity = PurePosixPath(args[args.index("-i") + 1])
         self.assertTrue(configured_identity.is_absolute())
         self.assertEqual(configured_identity.parent.name, ".ssh")
         args[args.index("-i") + 1] = str(identity)
         known_hosts = [index for index, value in enumerate(args)
                        if value.startswith("UserKnownHostsFile=")]
         self.assertEqual(len(known_hosts), 1)
-        configured_hosts = Path(args[known_hosts[0]].split("=", 1)[1])
+        configured_hosts = PurePosixPath(args[known_hosts[0]].split("=", 1)[1])
         self.assertEqual(configured_hosts.parent, configured_identity.parent)
         self.assertEqual(configured_hosts.name, "known_hosts")
         args[known_hosts[0]] = "UserKnownHostsFile=/synthetic/operator/.ssh/known_hosts"

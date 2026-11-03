@@ -680,7 +680,7 @@ def _audit(config: dict[str, Any], event: dict[str, Any]) -> None:
         safe_event = _redact(config, event)
         # Sanitize decoded metadata before JSON escaping can hide secret shapes.
         safe_event, _ = _redact_secret_shapes(safe_event)
-    with path.open("a", encoding="utf-8") as handle:
+    with path.open("a", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(safe_event, sort_keys=True) + "\n")
 
 

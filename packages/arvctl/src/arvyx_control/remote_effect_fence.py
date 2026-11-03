@@ -10,6 +10,7 @@ import hashlib
 import hmac
 import http.client
 import json
+from . import private_paths, safe_open
 from .security import bounded_json_loads
 import math
 import os
@@ -383,12 +384,12 @@ def private_config(path):
     raw,identity,root_identity=_read(path.parent,(path.name,),65536)
     with _open_root(path.parent) as root:
         info=os.fstat(root)
-        if (info.st_dev,info.st_ino)!=root_identity:raise PermissionError('trusted config directory replaced')
+        if (safe_open.stable_identity(info.st_dev),safe_open.stable_identity(info.st_ino))!=root_identity:raise PermissionError('trusted config directory replaced')
         with _open_file(root,(path.name,)) as descriptor:
             info=os.fstat(descriptor)
             replaced=_identity(info)!=identity
         if replaced:raise PermissionError('trusted config inode changed during read')
-    if not path.is_absolute() or info.st_uid!=os.getuid() or info.st_mode&0o077:
+    if not path.is_absolute() or not private_paths.owner_private(info,path=path):
         raise PermissionError('private owned trusted fence configuration required')
     def unique(pairs):
         value=dict(pairs)

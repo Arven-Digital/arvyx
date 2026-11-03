@@ -4,6 +4,7 @@ import pytest
 from arvyx_control import native_install
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact) is POSIX-only')
 @pytest.mark.parametrize('kind', ['fifo', 'symlink', 'oversized', 'array'])
 def test_check_refuses_metadata_before_binary_read(tmp_path, monkeypatch, kind):
     # Isolate leaf admission, not production ancestor policy.

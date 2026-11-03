@@ -14,6 +14,8 @@ from secrets import token_hex
 import tempfile
 from typing import Iterator
 
+from . import private_paths
+from . import safe_open
 from .locks import exclusive_lock
 
 from .mcp import (
@@ -445,17 +447,17 @@ def _write_record(path: Path, record: dict[str, object]) -> None:
     fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
         if hasattr(os, "fchmod"):
-            os.fchmod(fd, 0o600)
+            private_paths.apply_mode(fd=fd, mode=0o600)
         with os.fdopen(fd, "wb") as handle:
             fd = -1
             handle.write(payload)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(tmp_name, path)
-        if hasattr(os, "O_DIRECTORY"):
-            directory_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+        safe_open.replace_path(tmp_name, path)
+        if True:
+            directory_fd = safe_open.open_directory(path.parent)
             try:
-                os.fsync(directory_fd)
+                safe_open.fsync_directory(directory_fd)
             finally:
                 os.close(directory_fd)
     except BaseException:

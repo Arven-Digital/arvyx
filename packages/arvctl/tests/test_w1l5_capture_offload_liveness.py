@@ -10,12 +10,15 @@ import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import os
 import pytest
 
 from retention_fixture_helpers import retention_receipt
 from test_local_onboarding_services import services  # noqa: F401  (fixture)
 from test_session_workspace_journey import journey  # noqa: F401  (fixture)
 from test_completion_fix4_C import native_owner, saved_session  # noqa: F401  (fixture)
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 
 
 def _until_complete(effect, attempts=64):
