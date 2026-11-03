@@ -20,11 +20,11 @@ from arvyx_control.security import (
     contains_literal_secret,
     load_private_denylist,
     load_secret_scan_allowlist,
-    multiline_constant_secret_spans,
+    multiline_constant_shape_spans,
     private_name_patterns,
     private_patterns,
-    python_constant_secret_spans,
-    secret_line_fingerprint,
+    python_constant_shape_spans,
+    reviewed_line_fingerprint,
 )
 
 
@@ -127,19 +127,19 @@ class PrivateDenylistTests(unittest.TestCase):
 
     def test_python_constant_scan_catches_multiline_literal_assembly(self) -> None:
         source = "value = (\n    'ghp_'\n    + '0123456789abcdefghij0123456789'\n)\n"
-        self.assertEqual(python_constant_secret_spans(source), {(2, 3)})
+        self.assertEqual(python_constant_shape_spans(source), {(2, 3)})
 
     def test_cross_language_constant_scan_catches_javascript_assembly(self) -> None:
         source = 'const value = "ghp_" +\n  "0123456789abcdefghij0123456789";\n'
-        self.assertEqual(multiline_constant_secret_spans(source), {(1, 2)})
+        self.assertEqual(multiline_constant_shape_spans(source), {(1, 2)})
 
     def test_cross_language_constant_scan_does_not_assemble_regex_definitions(self) -> None:
         source = """SECRET_PATTERNS = (\n    r\"sk-[A-Za-z0-9_-]{20,}\",\n    r\"ghp_[A-Za-z0-9_]{20,}\",\n)\n"""
-        self.assertEqual(multiline_constant_secret_spans(source), set())
+        self.assertEqual(multiline_constant_shape_spans(source), set())
 
     def test_cross_language_constant_scan_does_not_join_unrelated_literals(self) -> None:
         source = 'title = "public";\npattern = "ghp_[A-Za-z0-9_]{20,}";\n'
-        self.assertEqual(multiline_constant_secret_spans(source), set())
+        self.assertEqual(multiline_constant_shape_spans(source), set())
 
     def test_private_context_scan_fails_closed_without_denylist(self) -> None:
         import subprocess
@@ -193,7 +193,7 @@ class PrivateDenylistTests(unittest.TestCase):
             repo = Path(tmp)
             allowlist = repo / "fixtures" / "secret-scan-allowlist.txt"
             allowlist.parent.mkdir(parents=True)
-            fingerprint = secret_line_fingerprint(Path("tests/example.py"), "token = 'synthetic-value'")
+            fingerprint = reviewed_line_fingerprint(Path("tests/example.py"), "token = 'synthetic-value'")
             allowlist.write_text(
                 f"# synthetic test fixture\n{fingerprint} # tests/example.py:1\n",
                 encoding="utf-8",
@@ -202,7 +202,7 @@ class PrivateDenylistTests(unittest.TestCase):
         self.assertEqual(loaded, {fingerprint})
         self.assertNotEqual(
             fingerprint,
-            secret_line_fingerprint(Path("tests/example.py"), "token = 'different-value'"),
+            reviewed_line_fingerprint(Path("tests/example.py"), "token = 'different-value'"),
         )
 
     def test_audit_scans_test_tree_for_private_terms(self) -> None:
@@ -298,7 +298,7 @@ class PrivateDenylistTests(unittest.TestCase):
             allowlist = repo / "fixtures" / "secret-scan-allowlist.txt"
             allowlist.parent.mkdir(parents=True)
             allowlist.write_text(
-                secret_line_fingerprint(test_file.relative_to(repo), reviewed_line) + "\n",
+                reviewed_line_fingerprint(test_file.relative_to(repo), reviewed_line) + "\n",
                 encoding="utf-8",
             )
             result = _private_context_check(repo)
@@ -317,7 +317,7 @@ class PrivateDenylistTests(unittest.TestCase):
             allowlist = repo / "fixtures" / "secret-scan-allowlist.txt"
             allowlist.parent.mkdir(parents=True)
             allowlist.write_text(
-                secret_line_fingerprint(test_file.relative_to(repo), line) + "\n",
+                reviewed_line_fingerprint(test_file.relative_to(repo), line) + "\n",
                 encoding="utf-8",
             )
             self._complete_scan_policy(repo)
@@ -335,7 +335,7 @@ class PrivateDenylistTests(unittest.TestCase):
             allowlist = repo / "fixtures" / "secret-scan-allowlist.txt"
             allowlist.parent.mkdir(parents=True)
             stale_line = "token = 'synthetic-value'"  # gitleaks:allow -- stale-fingerprint test
-            stale = secret_line_fingerprint(Path("tests/missing.py"), stale_line)
+            stale = reviewed_line_fingerprint(Path("tests/missing.py"), stale_line)
             allowlist.write_text(f"{stale} # tests/missing.py:1\n", encoding="utf-8")
             result = _private_context_check(repo)
         self.assertFalse(result.ok)
@@ -343,6 +343,7 @@ class PrivateDenylistTests(unittest.TestCase):
 
 
 class PackagedDefaultTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'posix', 'POSIX mode bits and umask')
     def test_default_vault_survives_index_build_under_group_writable_umask(self):
         # Regression: the index writer created the vault metadata directory with the
         # ambient umask, so the next packaged-default resolution refused its own cache.
@@ -377,6 +378,7 @@ class PackagedDefaultTests(unittest.TestCase):
             finally:
                 os.chdir(cwd)
 
+    @unittest.skipUnless(os.name == 'posix', 'POSIX mode bits and umask')
     def test_default_vault_materializes_under_group_writable_umask(self) -> None:
         previous = os.umask(0o002)
         try:
@@ -392,6 +394,7 @@ class PackagedDefaultTests(unittest.TestCase):
         finally:
             os.umask(previous)
 
+    @unittest.skipUnless(os.name == 'posix', 'POSIX mode bits and umask')
     def test_preexisting_writable_cache_entry_is_still_refused(self) -> None:
         # Negative control: tightening applies only to the tree just created.
         for kind in ("file", "vault-dir"):
@@ -1299,11 +1302,11 @@ class SecretRedactionTests(unittest.TestCase):
         self.assertIn("[REDACTED-SECRET]", result.text)
 
     def test_bridge_redacts_secret_shapes_in_responses(self) -> None:
-        from safe_mcp_bridge.cli import _redact_secret_shapes
+        from safe_mcp_bridge.cli import _redact_shapes
 
         token = "ghp_" + "b" * 24
         payload = {"result": {"content": [{"type": "text", "text": f"key {token} here"}]}}
-        redacted, count = _redact_secret_shapes(payload)
+        redacted, count = _redact_shapes(payload)
         self.assertEqual(count, 1)
         self.assertNotIn(token, str(redacted))
 
@@ -1380,10 +1383,10 @@ class GovernedWriteTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             vault = Path(tmp) / "vault"
             init_vault(vault)
-            secret = "sk-" + "a" * 24
+            fixture_shape = "sk-" + "a" * 24
             cases = (
-                {"author": secret, "tags": None},
-                {"author": "demobot", "tags": ["safe", secret]},
+                {"author": fixture_shape, "tags": None},
+                {"author": "demobot", "tags": ["safe", fixture_shape]},
             )
             for case in cases:
                 with self.subTest(case=case):
@@ -1403,7 +1406,7 @@ class GovernedWriteTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             vault = Path(tmp) / "vault"
             init_vault(vault)
-            secret = "ghp_" + "c" * 24
+            fixture_shape = "ghp_" + "c" * 24
             promoted = suggest_memory(
                 vault=vault,
                 project="demo-agent",
@@ -1420,9 +1423,9 @@ class GovernedWriteTests(unittest.TestCase):
             )
 
             with self.assertRaises(ValueError):
-                promote_memory(vault=vault, project="demo-agent", source_path=promoted.path, promoted_by=secret)
+                promote_memory(vault=vault, project="demo-agent", source_path=promoted.path, promoted_by=fixture_shape)
             with self.assertRaises(ValueError):
-                reject_memory(vault=vault, project="demo-agent", source_path=rejected.path, rejected_by="operator", reason=secret)
+                reject_memory(vault=vault, project="demo-agent", source_path=rejected.path, rejected_by="operator", reason=fixture_shape)
 
     def test_reject_moves_to_archive(self) -> None:
         from arvyx_control.writes import list_pending, reject_memory, suggest_memory
@@ -2375,7 +2378,7 @@ class BridgeResilienceTests(unittest.TestCase):
         import safe_mcp_bridge.cli as bridge
 
         token = "ghp_" + "a" * 24
-        redacted, count = bridge._redact_secret_shapes({token: {"v": "sk-" + "b" * 24}})
+        redacted, count = bridge._redact_shapes({token: {"v": "sk-" + "b" * 24}})
         self.assertGreaterEqual(count, 1)
         self.assertNotIn(token, str(redacted))
 
@@ -2547,9 +2550,9 @@ class AuditPrivateNameExemptionTests(unittest.TestCase):
         self.assertEqual(result.findings, ["docs/public.md:1"])
 
     def test_private_only_file_with_secret_shape_is_still_a_finding(self) -> None:
-        secret = "ghp_" + "a" * 24
+        fixture_shape = "ghp_" + "a" * 24
         result = self._check(
-            {"docs/private.md": f"PRIVATE: DO NOT PUBLISH.\ntoken: {secret}\n", "docs/public.md": "clean\n"},
+            {"docs/private.md": f"PRIVATE: DO NOT PUBLISH.\ntoken: {fixture_shape}\n", "docs/public.md": "clean\n"},
             self._manifest(),
         )
         self.assertFalse(result.ok)

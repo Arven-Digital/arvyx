@@ -46,17 +46,17 @@ class PemTests(unittest.TestCase):
             text = pem(label)
             with self.subTest(label=label):
                 self.assertTrue(security.contains_literal_secret(text))
-                self.assertTrue(security.canonical_secret_line_spans(text))
+                self.assertTrue(security.canonical_shape_line_spans(text))
                 with self.assertRaises(ValueError):
                     control._reject_secret_shaped_text(transcript=text)
                 self.assertNotIn(BODY, security.redact_secrets(text))
-                self.assertNotIn(BODY, bridge.bounded_secret_subn(text, bridge._FALLBACK_SECRET_RE)[0])
+                self.assertNotIn(BODY, bridge.bounded_redaction_subn(text, bridge._FALLBACK_SECRET_RE)[0])
 
     def test_malformed_boundaries_and_parity(self):
         self.assertEqual(security.SECRET_RE.pattern, bridge._FALLBACK_SECRET_RE.pattern)
         for tail in ('', '\n-----END EC PRIVATE KEY-----\nstill sensitive'):
             text = pem('RSA PRIVATE KEY', False) + tail
-            for redact in (security.redact_secrets, lambda s: bridge.bounded_secret_subn(s, bridge._FALLBACK_SECRET_RE)[0]):
+            for redact in (security.redact_secrets, lambda s: bridge.bounded_redaction_subn(s, bridge._FALLBACK_SECRET_RE)[0]):
                 result = redact(text)
                 self.assertNotIn(BODY, result)
                 self.assertNotIn('still sensitive', result)

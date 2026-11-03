@@ -1,9 +1,11 @@
 from arvyx_control.local_executor import ExecutionPolicy
 """Shared layout contracts; no provider or remote resources required."""
+import os
 import unittest
 import test_cockpit_surface as fixtures
 
 
+@unittest.skipUnless(os.name == 'posix', 'the PTY owner fixture (host-environment natives) is POSIX-only')
 class SharedLayoutTests(unittest.TestCase):
     setUp = fixtures.SurfaceTests.setUp
     session = fixtures.SurfaceTests.session

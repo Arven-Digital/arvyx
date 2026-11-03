@@ -3,12 +3,14 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
+import os
 import unittest
 from unittest.mock import Mock, patch
 
 from arvyx_control import cockpit_arvyx as frontend
 
 
+@unittest.skipUnless(os.name == 'posix', 'the PTY owner fixture (host-environment natives) is POSIX-only')
 class ExactPaneFocusTests(unittest.TestCase):
     def run_watcher(self, *, reply=None, failure=None, frames=('sibling', 'sibling', 'bound', 'sibling')):
         events = []
@@ -113,6 +115,7 @@ class ExactPaneFocusTests(unittest.TestCase):
                 self.assertEqual([call.args[1] for call in authority.call_args_list if call.args[1] != 'native_lifecycle'], ['view'])
 
 
+@unittest.skipUnless(os.name == 'posix', 'the PTY owner fixture (host-environment natives) is POSIX-only')
 class AttachCleanupTests(unittest.TestCase):
     def run_open(self, attach_status=0, *, attach_error=None, cleanup_errors=False):
         events = []

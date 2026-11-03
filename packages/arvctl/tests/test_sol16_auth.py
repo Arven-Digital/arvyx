@@ -77,8 +77,8 @@ def test_issued_token_detected_rejected_and_redacted(tmp_path, agent):
         with pytest.raises(ValueError, match='secret'):
             create_handoff(tmp_path / 'events.jsonl', prose, from_agent='sender', to_agent='recipient')
         assert bridge._FALLBACK_SECRET_RE.pattern == SECRET_RE.pattern
-        with patch.object(bridge, '_secret_re', return_value=bridge._FALLBACK_SECRET_RE):
-            redacted, count = bridge._redact_secret_shapes({'text': prose, value: [prose]})
+        with patch.object(bridge, '_shape_detector_re', return_value=bridge._FALLBACK_SECRET_RE):
+            redacted, count = bridge._redact_shapes({'text': prose, value: [prose]})
         assert value not in json.dumps(redacted)
         assert count == 3
 

@@ -73,7 +73,7 @@ class BridgeKeyTests(unittest.TestCase):
         ):
             with self.subTest(value=value):
                 with self.assertRaises(bridge.BridgeError):
-                    bridge._redact_secret_shapes({'result': value})
+                    bridge._redact_shapes({'result': value})
                 self.assert_withheld_then_valid(value)
 
     def test_configured_secret_still_fails_closed(self):

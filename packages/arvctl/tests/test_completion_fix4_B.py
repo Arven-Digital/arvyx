@@ -6,9 +6,11 @@ from io import StringIO
 import json
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import threading
 from unittest.mock import patch
 
+import os
 import pytest
 
 from arvyx_control import api, cli, control, mcp, mutation_dispatch, operation_journal as journal
@@ -221,7 +223,7 @@ def test_journal_missing_row_after_effect_is_sanitized_in_stdio(lane):
     def missing(path, operation, state, **kwargs):
         if state == 'outcome_pending':
             # Disposable journal only: reproduce its maintained missing-row check.
-            with sqlite3.connect(path) as db:
+            with closing(sqlite3.connect(path)) as db, db:
                 db.execute('DELETE FROM operations WHERE operation_id=?', (operation,))
         return original(path, operation, state, **kwargs)
     with patch.object(mcp, 'set_operation_state', side_effect=missing):
@@ -241,7 +243,7 @@ def test_legacy_v1_upgrade_is_narrow_and_transactional(lane):
     journal.set_operation_state(store, normal.operation_id, 'intent_durable')
     append_audit(audit, {'operation_id': 'orphan-v1', 'phase': 'intent'})
     journal.migrate_legacy_audit_operations(audit)
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute("UPDATE operations SET state='intent_durable', dispatch_owner=NULL WHERE operation_id='orphan-v1'")
         db.execute("UPDATE journal_meta SET value='v1' WHERE key=?", (journal.LEGACY_MIGRATION_KEY,))
     class Interrupt(sqlite3.Connection):
@@ -515,7 +517,7 @@ def test_actual_sqlite_writer_lock_returns_error_then_ping_and_retry(lane):
     store = journal.journal_path(lane[2])
     with journal._connection(store): pass
     body = rpc({'target': 'demobot', 'idempotency_key': 'real-writer-lock-0001'})
-    with sqlite3.connect(store) as lock:
+    with closing(sqlite3.connect(store)) as lock, lock:
         lock.execute('BEGIN IMMEDIATE')
         responses = stdio(lane, [body, {'jsonrpc': '2.0', 'id': 2, 'method': 'ping'}])
     assert responses[0]['error']['message'].startswith('mutation durability unavailable')
@@ -596,6 +598,7 @@ def test_execution_notice_receipt_closes_delivery_without_subject_work(lane):
 
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='the deployment tree and its POSIX paths')
 def test_deployment_units_scope_exact_telemetry_namespace(tmp_path):
     from pathlib import Path
     root=Path(__file__).resolve().parents[3]

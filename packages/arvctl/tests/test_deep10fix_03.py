@@ -2,6 +2,7 @@
 import copy
 import json
 import sqlite3
+from contextlib import closing
 from unittest import mock
 
 import pytest
@@ -67,7 +68,7 @@ def audit_events(lane):
 def operations(lane):
     store = audit_log.journal_path(lane["audit"])
     assert store.is_file(), "common operation journal must exist"
-    with sqlite3.connect(store) as connection:
+    with closing(sqlite3.connect(store)) as connection, connection:
         return connection.execute("SELECT action, state FROM operations").fetchall()
 
 

@@ -8,6 +8,8 @@ import sqlite3
 import time
 import unicodedata
 from contextlib import closing
+from . import private_paths
+from . import safe_open
 from .locks import check_deadline, exclusive_lock, vault_lock
 from .cockpit_client import request
 from .auth import AGENT_ID_RE
@@ -22,7 +24,7 @@ class HumanBindings:
         self.keypath = self.home / 'runtime' / 'human-bindings.key'
         with exclusive_lock(self.keypath.with_suffix('.lock')):
             try:
-                fd = os.open(self.keypath, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                fd = safe_open.open_file(self.keypath, write=True, create=True, exclusive=True, mode=0o600)
             except FileExistsError:
                 pass
             else:
@@ -30,7 +32,7 @@ class HumanBindings:
                     f.write(os.urandom(32))
                     f.flush()
                     os.fsync(f.fileno())
-            fd = os.open(self.keypath, os.O_RDONLY | os.O_NOFOLLOW)
+            fd = safe_open.open_file(self.keypath)
             with os.fdopen(fd, 'rb') as f:
                 self.key = f.read()
             if len(self.key) != 32:
@@ -39,15 +41,15 @@ class HumanBindings:
             db.execute('CREATE TABLE IF NOT EXISTS bindings(session TEXT PRIMARY KEY, revision INTEGER, document TEXT, signature TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS audit(sequence INTEGER PRIMARY KEY, actor TEXT, document TEXT, signature TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS enrollment_journal(agent_id TEXT PRIMARY KEY, document TEXT, signature TEXT, status TEXT)')
-        os.chmod(self.path, 0o600)
+        private_paths.apply_mode(path=self.path, mode=0o600)
         self._recover_enrollments()
         self.primary.registry.attach_store(self.path, 'human_bindings')
 
     @staticmethod
     def _sync_directory(path):
-        fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        fd = safe_open.open_directory(path)
         try:
-            os.fsync(fd)
+            safe_open.fsync_directory(fd)
         finally:
             os.close(fd)
 
@@ -213,9 +215,9 @@ class HumanBindings:
             try:
                 for kind, record in (('runtimes', runtime), ('agents', agent)):
                     path = vault/'registry'/kind/(record['id']+'.json')
-                    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                    fd = safe_open.open_file(path, write=True, create=True, exclusive=True, mode=0o600)
                     made.append(path)
-                    with os.fdopen(fd, 'w') as stream:
+                    with os.fdopen(fd, 'w', newline="\n") as stream:
                         json.dump(record, stream, sort_keys=True)
                         stream.flush()
                         os.fsync(stream.fileno())

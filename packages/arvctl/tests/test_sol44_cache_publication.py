@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import stat
 import tempfile
 import unittest
@@ -16,6 +17,7 @@ from arvyx_control.checkpoint_jobs import (
 
 
 class CacheDurabilityTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'posix', 'directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
     def test_ancestor_sync_failure_precedes_publication_and_retry_preserves_old_cache(self):
         # Separate negative control from the post-replace barrier selections.
         # All bytes are synthetic; executed in wave1 lane 1 with mutation checks.
@@ -42,6 +44,7 @@ class CacheDurabilityTests(unittest.TestCase):
                 index._write_cache(root,{})
                 self.assertEqual(json.loads(destination.read_text()),{'format':index.INDEX_FORMAT,'files':{}})
 
+    @unittest.skipUnless(os.name == 'posix', 'directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
     def test_directory_sync_failure_propagates_after_visible_replacement(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -81,6 +84,7 @@ class CacheDurabilityTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "not an IO failure"):
                     index.load_index(root)
 
+    @unittest.skipUnless(os.name == 'posix', 'directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
     def test_checkpoint_sync_failure_is_failed_and_retry_reuses_checkpoints(self):
         for populated in (False, True):
             for barrier in ("file", "directory"):
@@ -130,7 +134,7 @@ class CacheDurabilityTests(unittest.TestCase):
                     status = index_rebuild_status(root)
                     self.assertEqual(status.status, "failed")
                     self.assertEqual(status.checkpoint, status.total)
-                    with sqlite3.connect(_journal_path(root)) as connection:
+                    with closing(sqlite3.connect(_journal_path(root))) as connection, connection:
                         state, expiry, updated = connection.execute(
                             "SELECT status, lease_expires_at, updated_at FROM jobs"
                         ).fetchone()

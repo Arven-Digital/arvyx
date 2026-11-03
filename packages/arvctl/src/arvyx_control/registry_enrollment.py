@@ -17,6 +17,7 @@ import time
 import unicodedata
 import uuid
 
+from . import safe_open
 from .auth import AGENT_ID_RE
 from .locks import vault_lock
 # Harnesses with an implemented local metadata adapter. Registration for any other
@@ -32,9 +33,9 @@ def canonical_display_name(name):
 
 
 def _sync(path):
-    fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    fd = safe_open.open_directory(path)
     try:
-        os.fsync(fd)
+        safe_open.fsync_directory(fd)
     finally:
         os.close(fd)
 
@@ -94,9 +95,9 @@ def register_profile_identity(vault, machine, display_name, harness, *, publicat
             for kind, record in (('runtimes', runtime), ('agents', agent)):
                 directory = _registry_dir(vault, kind)
                 path = directory / (record['id'] + '.json')
-                fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                fd = safe_open.open_file(path, write=True, create=True, exclusive=True, mode=0o600)
                 made.append(path)
-                with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+                with os.fdopen(fd, 'w', encoding='utf-8', newline="\n") as stream:
                     json.dump(record, stream, sort_keys=True)
                     stream.flush()
                     os.fsync(stream.fileno())

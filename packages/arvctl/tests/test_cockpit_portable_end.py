@@ -3,11 +3,13 @@ import signal
 from arvyx_control.replica_authority import authority_context
 import subprocess
 import threading
+import os
 import unittest
 from unittest.mock import patch, call
 from arvyx_control.cockpit import LocalCockpit
 
 
+@unittest.skipUnless(os.name == 'posix', 'PTY owner, curses surface, fork or pidfd semantics are POSIX-only')
 class PortableEndTests(unittest.TestCase):
     def setUp(self):
         wait = patch('os.waitpid',return_value=(410,0))
@@ -158,6 +160,7 @@ class PortableEndTests(unittest.TestCase):
         self.assertTrue(owner.closed)
 
 
+@unittest.skipUnless(os.name == 'posix', 'PTY owner, curses surface, fork or pidfd semantics are POSIX-only')
 class PortableLifecycleTests(unittest.TestCase):
     def setUp(self):
         import tempfile

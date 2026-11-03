@@ -9,6 +9,8 @@ import os
 import re
 import uuid
 
+from . import private_paths
+from . import safe_open
 from . import control
 from .filesystem import durable_mkdir
 
@@ -40,18 +42,18 @@ def append_transcript(vault, state, payload, *, actor, replay_only=False):
                 raise ValueError('transcript event conflict')
             # Repair both authorities before success: private blob then log.
             directory = vault / 'conversations' / 'cockpit-archive'
-            blob = directory / (payload['event_id'] + '.json')
-            fd = os.open(blob, os.O_RDONLY | os.O_NOFOLLOW)
+            blob = directory / safe_open.component(payload['event_id'] + '.json')
+            fd = safe_open.open_file(blob)
             try:
                 with os.fdopen(fd, 'rb', closefd=False) as stream:
                     if stream.read() != json.dumps(payload, sort_keys=True).encode():
                         raise ValueError('transcript archive unavailable or digest mismatch')
-                os.fsync(fd)
+                safe_open.fsync_file(fd)
             finally:
                 os.close(fd)
-            directory_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            directory_fd = safe_open.open_directory(directory)
             try:
-                os.fsync(directory_fd)
+                safe_open.fsync_directory(directory_fd)
             finally:
                 os.close(directory_fd)
             control._acknowledge_replay_unlocked(state, previous)
@@ -59,10 +61,10 @@ def append_transcript(vault, state, payload, *, actor, replay_only=False):
             if replay_only:
                 raise ValueError('transcript replay requires an existing exact event')
             if organizer:
-                if not (vault / 'registry/agents' / (actor + '.json')).is_file():
+                if not (vault / 'registry/agents' / safe_open.component(actor + '.json')).is_file():
                     raise ValueError('existing organizer registry identity required')
             else:
-                project_path = vault / 'registry/projects' / (payload['project'] + '.json')
+                project_path = vault / 'registry/projects' / safe_open.component(payload['project'] + '.json')
                 project = json.loads(project_path.read_text())
                 if actor != project['owner_agent_id']:
                     raise ValueError('transcript actor must own project')
@@ -73,21 +75,21 @@ def append_transcript(vault, state, payload, *, actor, replay_only=False):
             # The existing control authority stores only the private blob receipt.
             directory = vault / 'conversations' / 'cockpit-archive'
             durable_mkdir(directory, mode=0o700)
-            if directory.is_symlink() or directory.stat().st_mode & 0o077:
+            if directory.is_symlink() or not private_paths.is_private(directory.stat(), path=directory):
                 raise ValueError('private archive directory required')
-            blob = directory / (payload['event_id'] + '.json')
+            blob = directory / safe_open.component(payload['event_id'] + '.json')
             temporary = directory / ('.' + uuid.uuid4().hex)
             raw = json.dumps(payload, sort_keys=True).encode()
             try:
-                fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                fd = safe_open.open_file(temporary, write=True, create=True, exclusive=True, mode=0o600)
                 with os.fdopen(fd, 'wb') as stream:
                     stream.write(raw)
                     stream.flush()
                     os.fsync(stream.fileno())
-                os.replace(temporary, blob)
-                directory_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+                safe_open.replace_path(temporary, blob)
+                directory_fd = safe_open.open_directory(directory)
                 try:
-                    os.fsync(directory_fd)
+                    safe_open.fsync_directory(directory_fd)
                 finally:
                     os.close(directory_fd)
             finally:
@@ -144,7 +146,7 @@ def transcript_receipt(vault, state, event_id, *, identity):
         raise ValueError('unknown transcript event')
     if identity is None or (identity.binds_actor and identity.agent_id != event.payload['actor']):
         raise ValueError('transcript identity mismatch')
-    blob = vault / 'conversations' / 'cockpit-archive' / (event_id + '.json')
+    blob = vault / 'conversations' / 'cockpit-archive' / safe_open.component(event_id + '.json')
     if blob.is_symlink() or hashlib.sha256(blob.read_bytes()).hexdigest() != event.payload['sha256']:
         raise ValueError('transcript archive unavailable or digest mismatch')
     return {'event_id': event_id, 'sha256': event.payload['sha256'], 'recorded': True, 'curated_memory': False}

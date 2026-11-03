@@ -59,6 +59,7 @@ def pin(path):
     return hashlib.sha256(ssl.PEM_cert_to_DER_cert(path.read_text())).hexdigest()
 
 
+@unittest.skipUnless(os.name == 'posix', 'secret delivery destinations are defined by POSIX uid and mode semantics')
 class SecretDeliveryE2E(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

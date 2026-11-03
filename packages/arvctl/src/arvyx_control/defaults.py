@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import closing
 
 from importlib import resources
 from pathlib import Path
@@ -7,6 +8,7 @@ import stat
 import tempfile
 import threading
 
+from . import private_paths, safe_open
 from .vault import VAULT_MARKER
 from .vault import init_vault
 
@@ -58,7 +60,7 @@ def resolve_default_benchmark_cases(path: Path) -> Path:
             fd, name = tempfile.mkstemp(prefix='.benchmark-', dir=root)
             temporary = Path(name)
             try:
-                with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+                with os.fdopen(fd, 'w', encoding='utf-8', newline="\n") as stream:
                     stream.write(data)
                     stream.flush()
                     os.fsync(stream.fileno())
@@ -69,14 +71,14 @@ def resolve_default_benchmark_cases(path: Path) -> Path:
             finally:
                 temporary.unlink(missing_ok=True)
         # A same-user stale marker is not content authority either.
-        fd = os.open(cache, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        fd = safe_open.open_file(cache)
         with os.fdopen(fd, 'rb') as stream:
             if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode) or stream.read(len(data.encode()) + 1) != data.encode():
                 raise ValueError('packaged benchmark cache differs from packaged resource')
-            os.fsync(stream.fileno())
-        directory_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            safe_open.fsync_file(stream.fileno())
+        directory_fd = safe_open.open_directory(root)
         try:
-            os.fsync(directory_fd)
+            safe_open.fsync_directory(directory_fd)
         finally:
             os.close(directory_fd)
         return cache
@@ -105,8 +107,11 @@ def _cache_root() -> Path:
         if _CACHE_ROOT is None:
             # A stable per-user cache preserves default-vault identity across
             # CLI invocations. Never adopt the old shared marker-only cache.
-            root = Path(tempfile.gettempdir()) / f'amc-packaged-defaults-{os.getuid()}'
-            root.mkdir(mode=0o700, exist_ok=True)
+            # Windows keeps per-user caches under LOCALAPPDATA; TEMP there is often
+            # writable by other accounts, and the mode argument means nothing.
+            base = Path(os.environ['LOCALAPPDATA']) if os.name == 'nt' and os.environ.get('LOCALAPPDATA') else Path(tempfile.gettempdir())
+            root = base / f'amc-packaged-defaults-{private_paths.current_user()}'
+            private_paths.ensure_private_directory(root, mode=0o700)
             _validate_cache(root)
             _CACHE_ROOT = root
         return _CACHE_ROOT
@@ -118,10 +123,10 @@ def _validate_cache(root: Path) -> None:
     The stable per-user 0700 root is the access boundary; descendant
     defaults may be readable but may not be writable by other users.
     """
-    fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    fd = safe_open.open_directory(root)
     try:
         info = os.fstat(fd)
-        if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o077:
+        if not private_paths.owner_private(info, fd=fd):
             raise ValueError('packaged default cache requires owner-private root')
         _validate_cache_entries(fd)
     finally:
@@ -134,7 +139,7 @@ def _drop_group_other_write(root: Path, name: str) -> None:
     Descriptor-relative and no-follow: a symlink or special file is left as is
     and is then refused by _validate_cache. Ownership is never changed.
     """
-    parent = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    parent = safe_open.open_directory(root)
     try:
         _drop_write_at(parent, name)
     finally:
@@ -143,31 +148,33 @@ def _drop_group_other_write(root: Path, name: str) -> None:
 
 def _drop_write_at(parent: int, name: str) -> None:
     try:
-        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, dir_fd=parent)
+        fd = safe_open.open_entry_at(parent, name)
     except OSError:
         return  # missing, symlink or special entry: left for validation to decide
     try:
         info = os.fstat(fd)
-        if info.st_uid != os.getuid() or not (stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode)):
+        if not private_paths.owned_by_current_user(info, fd=fd) or not (stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode)):
             return
-        if info.st_mode & 0o022:
-            os.fchmod(fd, stat.S_IMODE(info.st_mode) & ~0o022)
+        private_paths.drop_others_write(info, fd)
         if stat.S_ISDIR(info.st_mode):
-            for child in os.listdir(fd):
-                _drop_write_at(fd, child)
+            with closing(safe_open.scandir_names(fd)) as names_iter:
+                for child in names_iter:
+                    _drop_write_at(fd, child)
     finally:
         os.close(fd)
 
 
 def _validate_cache_entries(fd: int) -> None:
-    for name in os.listdir(fd):
-        info = os.stat(name, dir_fd=fd, follow_symlinks=False)
-        if (info.st_uid != os.getuid() or info.st_mode & 0o022
-                or not (stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode))):
-            raise ValueError('packaged default cache contains untrusted entry')
-        if stat.S_ISDIR(info.st_mode):
-            child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
-            try:
-                _validate_cache_entries(child)
-            finally:
-                os.close(child)
+    with closing(safe_open.scandir_names(fd)) as names_iter:
+        for name in names_iter:
+            info = safe_open.stat_at(fd, name)
+            if (not (stat.S_ISREG(info.st_mode) or stat.S_ISDIR(info.st_mode))
+                    or not private_paths.owned_by_current_user(info, dirfd=fd, name=name)
+                    or not private_paths.not_writable_by_others(info, dirfd=fd, name=name)):
+                raise ValueError('packaged default cache contains untrusted entry')
+            if stat.S_ISDIR(info.st_mode):
+                child = safe_open.open_directory_at(fd, name)
+                try:
+                    _validate_cache_entries(child)
+                finally:
+                    os.close(child)

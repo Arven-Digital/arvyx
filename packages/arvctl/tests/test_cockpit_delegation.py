@@ -1,10 +1,12 @@
 from arvyx_control.local_executor import ExecutionPolicy
 """Durable delegation control: never a provider or terminal prompt runner."""
+import os
 import unittest
 import test_cockpit_surface as fixtures
 from arvyx_control.cockpit import LocalCockpit
 
 
+@unittest.skipUnless(os.name == 'posix', 'the PTY owner fixture (host-environment natives) is POSIX-only')
 class DelegationTests(unittest.TestCase):
     setUp = fixtures.SurfaceTests.setUp
     session = fixtures.SurfaceTests.session

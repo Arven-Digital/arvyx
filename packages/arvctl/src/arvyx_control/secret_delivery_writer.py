@@ -29,13 +29,14 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from dataclasses import dataclass
-import fcntl
 import json
 import os
 import re
 import secrets
 import stat
 import time
+
+from .locks import try_exclusive_lock
 
 # A socket deadline cannot interrupt flock. Bound acquisition in the writer itself.
 LOCK_WAIT_SECONDS = 0.5
@@ -53,6 +54,12 @@ _QUOTED = {
 _TAIL = re.compile(r'[ \t]*(?:\#[^\r\n]*)?(?:\r\n|\n|\r|\Z)')
 _UNQUOTED = re.compile(r'[^\r\n]*')
 _BLANK = re.compile(r'[ \t]*(?:\#[^\r\n]*)?(?:\r\n|\n|\r|\Z)')
+
+
+def _require_posix_ownership() -> None:
+    """Delivery destinations are defined by POSIX uid, sticky-bit and mode semantics."""
+    if os.name != "posix":
+        raise DeliveryError("unsupported-platform")
 
 
 class DeliveryError(Exception):
@@ -177,14 +184,12 @@ class Destination:
             while True:
                 if time.monotonic() >= deadline:
                     raise DeliveryError('lock-timeout')
-                try:
-                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                if try_exclusive_lock(lock):
                     break
-                except BlockingIOError:
-                    remaining = deadline - time.monotonic()
-                    if remaining <= 0:
-                        raise DeliveryError('lock-timeout') from None
-                    time.sleep(min(LOCK_POLL_SECONDS, remaining))
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise DeliveryError('lock-timeout')
+                time.sleep(min(LOCK_POLL_SECONDS, remaining))
             # Do not proceed to any mutation after the acquisition budget expired.
             if time.monotonic() >= deadline:
                 raise DeliveryError('lock-timeout')

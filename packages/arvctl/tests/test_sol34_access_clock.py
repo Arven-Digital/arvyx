@@ -3,6 +3,7 @@ from email.message import Message
 import json
 import threading
 import time
+import os
 import unittest
 from unittest.mock import patch
 
@@ -28,6 +29,7 @@ class WaitingLock:
         self.lock.release()
 
 
+@unittest.skipUnless(os.name == 'posix', 'secret delivery destinations are defined by POSIX uid and mode semantics')
 class AccessClockTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

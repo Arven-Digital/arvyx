@@ -18,6 +18,8 @@ from typing import Any, NoReturn
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit, urlunsplit
 from urllib.request import Request
+from . import safe_open
+from .filesystem import fsync_directory
 from .http_bounds import BoundedOpener
 
 from .locks import exclusive_lock, vault_lock
@@ -201,30 +203,26 @@ def _source_parts(relative: str) -> list[str]:
 @contextmanager
 def _source_root(vault: Path):
     # Fail closed on platforms without descriptor-relative no-follow support.
-    if (not hasattr(os, "O_NOFOLLOW") or not hasattr(os, "O_DIRECTORY")
-            or os.open not in os.supports_dir_fd):
+    if not safe_open.available():
         raise ValueError("replica source requires descriptor-relative no-follow support")
     absolute = vault.absolute()
     if ".." in absolute.parts:
         raise ValueError("replica source root must not contain traversal")
     with ExitStack() as stack:
-        fd = os.open(absolute.anchor, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        fd = safe_open.open_root(absolute)
         stack.callback(os.close, fd)
-        for part in absolute.parts[1:]:
-            fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
-            stack.callback(os.close, fd)
         yield fd
 
 
 def _source_files(directory_fd: int, prefix: str = ""):
-    for name in sorted(os.listdir(directory_fd)):
+    for name in sorted(safe_open.scandir_names(directory_fd)):
         relative = prefix + name
         if name in SKIP_SEGMENTS:
             continue
         _source_parts(relative)
-        info = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+        info = safe_open.stat_at(directory_fd, name)
         if stat.S_ISDIR(info.st_mode):
-            fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory_fd)
+            fd = safe_open.open_directory_at(directory_fd, name)
             try:
                 yield from _source_files(fd, relative + "/")
             finally:
@@ -238,10 +236,10 @@ def _source_bytes(root_fd: int, relative: str) -> bytes:
     with ExitStack() as stack:
         parent_fd = root_fd
         for part in parts[:-1]:
-            parent_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent_fd)
+            parent_fd = safe_open.open_directory_at(parent_fd, part)
             stack.callback(os.close, parent_fd)
-        # NONBLOCK prevents a replaced FIFO from hanging before fstat rejects it.
-        fd = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent_fd)
+        # NONBLOCK (inside safe_open) prevents a replaced FIFO from hanging before fstat rejects it.
+        fd = safe_open.open_file_at(parent_fd, parts[-1])
         stack.callback(os.close, fd)
         if not stat.S_ISREG(os.fstat(fd).st_mode):
             raise ValueError(f"replica source must be a regular file: {relative}")
@@ -393,8 +391,8 @@ def _sync_replica_locked(
             path = vault_root / relative
             with _destination_parent(path) as parent_fd:
                 _destination_leaf(parent_fd, path.name)
-                os.unlink(path.name, dir_fd=parent_fd)
-                os.fsync(parent_fd)
+                safe_open.unlink_at(parent_fd, path.name)
+                safe_open.fsync_directory(parent_fd)
             deleted.append(relative)
 
     state_fetched: list[str] = []
@@ -824,11 +822,7 @@ def _now() -> str:
 
 
 def _fsync_directory(path: Path) -> None:
-    fd = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-    try:
-        os.fsync(fd)
-    finally:
-        os.close(fd)
+    fsync_directory(path)
 
 
 def _durable_mkdir(path: Path) -> None:
@@ -844,18 +838,18 @@ def _durable_write(path: Path, data: bytes) -> None:
     with _destination_parent(path, create=True) as parent_fd:
         _destination_leaf(parent_fd, path.name)
         name = '.replica-' + os.urandom(16).hex()
-        fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=parent_fd)
+        fd = safe_open.open_file_at(parent_fd, name, write=True, create=True, exclusive=True, mode=0o600)
         try:
             with os.fdopen(fd, 'wb') as handle:
                 handle.write(data)
                 handle.flush()
                 os.fsync(handle.fileno())
             _destination_leaf(parent_fd, path.name)
-            os.replace(name, path.name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
-            os.fsync(parent_fd)
+            safe_open.replace_at(parent_fd, name, path.name)
+            safe_open.fsync_directory(parent_fd)
         finally:
             try:
-                os.unlink(name, dir_fd=parent_fd)
+                safe_open.unlink_at(parent_fd, name)
             except FileNotFoundError:
                 pass
 
@@ -866,23 +860,23 @@ def _destination_parent(path: Path, *, create=False):
     if '..' in absolute.parts:
         raise ValueError('replica destination traversal refused')
     with ExitStack() as stack:
-        fd = os.open(absolute.anchor, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        fd = safe_open.open_root(Path(absolute.anchor))
         stack.callback(os.close, fd)
         for part in absolute.parts[1:-1]:
             if create:
                 try:
-                    os.mkdir(part, mode=0o700, dir_fd=fd)
+                    safe_open.mkdir_at(fd, part, 0o700)
                 except FileExistsError:
                     pass
-                os.fsync(fd)
-            fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+                safe_open.fsync_directory(fd, tolerate_unwritable=True)
+            fd = safe_open.open_directory_at(fd, part)
             stack.callback(os.close, fd)
         yield fd
 
 
 def _destination_leaf(parent_fd, name):
     try:
-        info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+        info = safe_open.stat_at(parent_fd, name)
     except FileNotFoundError:
         return None
     if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
@@ -896,7 +890,7 @@ def _destination_matches(path, expected):
             before = _destination_leaf(parent_fd, path.name)
             if before is None:
                 return False
-            fd = os.open(path.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent_fd)
+            fd = safe_open.open_file_at(parent_fd, path.name)
             with os.fdopen(fd, 'rb') as handle:
                 info = os.fstat(handle.fileno())
                 if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not os.path.samestat(before, info):
@@ -904,8 +898,8 @@ def _destination_matches(path, expected):
                 data = handle.read(MAX_REPLICA_FILE_BYTES + 1)
                 if len(data) > MAX_REPLICA_FILE_BYTES or hashlib.sha256(data).hexdigest() != expected:
                     return False
-                os.fsync(handle.fileno())
-            os.fsync(parent_fd)
+                safe_open.fsync_file(handle.fileno())
+            safe_open.fsync_directory(parent_fd)
             return True
     except FileNotFoundError:
         return False
@@ -915,11 +909,11 @@ def _destination_inventory(root):
     """Refuse aliases also on unchanged/deletion-only paths, before metadata writes."""
     files = []
     def walk(fd, prefix=''):
-        for name in sorted(os.listdir(fd)):
+        for name in sorted(safe_open.scandir_names(fd)):
             relative = prefix + name
-            info = os.stat(name, dir_fd=fd, follow_symlinks=False)
+            info = safe_open.stat_at(fd, name)
             if stat.S_ISDIR(info.st_mode):
-                child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+                child = safe_open.open_directory_at(fd, name)
                 try:
                     walk(child, relative + '/')
                 finally:

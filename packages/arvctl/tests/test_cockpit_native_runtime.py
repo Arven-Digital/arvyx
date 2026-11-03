@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import sys
 import tempfile
 import time
@@ -16,6 +17,7 @@ from arvyx_control.cockpit_terminal_runner import JsonOperator
 from arvyx_control.cockpit_archive import import_native, pending_capture
 
 
+@unittest.skipUnless(os.name == 'posix', 'the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
 class NativeRuntimeTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -38,7 +40,7 @@ class NativeRuntimeTests(unittest.TestCase):
             with self.subTest(tool=tool):
                 store = self.home / ('state.db' if tool == 'hermes' else tool + '.metadata')
                 if tool == 'hermes':
-                    with sqlite3.connect(store) as db:
+                    with closing(sqlite3.connect(store)) as db, db:
                         db.execute('CREATE TABLE sessions(id TEXT PRIMARY KEY,cwd TEXT,end_reason TEXT)')
                         db.execute("INSERT INTO sessions VALUES(?,?,NULL)", ('exact-id',str(self.workspace)))
                 else:
@@ -81,7 +83,7 @@ class NativeRuntimeTests(unittest.TestCase):
 
     def test_hermes_transcript_import_is_exact_session_only_and_durable(self):
         store = self.home / 'state.db'
-        with sqlite3.connect(store) as db:
+        with closing(sqlite3.connect(store)) as db, db:
             db.execute('CREATE TABLE sessions(id TEXT PRIMARY KEY,cwd TEXT,end_reason TEXT)')
             db.execute("INSERT INTO sessions VALUES(?,?,NULL)", ('exact-id',str(self.workspace)))
             db.execute('CREATE TABLE messages(id INTEGER PRIMARY KEY,session_id TEXT,role TEXT,content TEXT)')

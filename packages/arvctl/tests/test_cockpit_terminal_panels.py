@@ -1,10 +1,12 @@
 """Read-only tiled previews never acquire input authority."""
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 import test_cockpit_surface as fixtures
 from arvyx_control import cockpit_surface
 
 
+@unittest.skipUnless(os.name == 'posix', 'PTY owner, curses surface, fork or pidfd semantics are POSIX-only')
 class PanelTests(unittest.TestCase):
     setUp = fixtures.SurfaceTests.setUp
     session = fixtures.SurfaceTests.session

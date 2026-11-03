@@ -482,6 +482,7 @@ class RoutesSealCliTests(unittest.TestCase):
             self.assertEqual(len(report["sha256"]), 64)
             self.assertFalse(load_route_document(routes).versioned)
 
+    @unittest.skipUnless(os.name == "posix", "POSIX mode bits")
     def test_seal_in_place_replaces_atomically_and_keeps_the_file_mode(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             routes = _write_document(Path(tmp) / "routes.json")
@@ -643,7 +644,7 @@ class RoutesSealCliTests(unittest.TestCase):
             self.assertIn("must not reuse", json.loads(out)["error"])
             self.assertFalse(destination.exists())
 
-    @unittest.skipUnless(shutil.which("setfacl") and shutil.which("getfacl"), "setfacl required")
+    @unittest.skipUnless(os.name == "posix" and shutil.which("setfacl") and shutil.which("getfacl"), "POSIX ACL tools required")
     def test_seal_in_place_preserves_an_acl_entry(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             routes = _write_document(Path(tmp) / "routes.json")
@@ -869,6 +870,7 @@ class RoutesSealCliTests(unittest.TestCase):
             self.assertEqual(code, 2)
             self.assertIn("changed after the swap", json.loads(out)["error"])
 
+    @unittest.skipUnless(os.name == "posix", "POSIX mode bits and extended attributes")
     def test_seal_applies_metadata_only_after_the_staged_file_is_verified(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             routes = _write_document(Path(tmp) / "routes.json")

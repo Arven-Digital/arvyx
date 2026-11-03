@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import threading
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -14,6 +15,8 @@ from test_session_workspace_journey import journey, plan, commit
 from arvyx_control.cockpit import LocalCockpit
 from arvyx_control.local_executor import ExecutionPolicy
 from arvyx_control.native_lifecycle import NativeLifecycle, OwnerProducer
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 
 
 @pytest.fixture
@@ -408,7 +411,7 @@ def test_native_new_retains_reviewed_identity_and_successful_ack(native_owner,tm
         # Only substitute process creation; run the exact production admission.
         fields['admission']()
         marker=fields['argv'][fields['argv'].index('-c')+1]
-        with sqlite3.connect(Path(connect['path'])/'state.db') as db:
+        with closing(sqlite3.connect(Path(connect['path'])/'state.db')) as db, db:
             db.execute('INSERT INTO sessions(id,title,started_at,cwd) VALUES(?,?,1,?)',('acknowledged-native-id',marker,owner._get(sid)['workspace']))
         owner.db.execute("UPDATE sessions SET status='running' WHERE id=?",(sid,));owner.db.commit();effects.append(sid)
         owner.live[sid]=dict(fd=1,attached=False,process_generation='synthetic-'+sid)

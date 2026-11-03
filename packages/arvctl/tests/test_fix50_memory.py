@@ -76,6 +76,7 @@ def test_suggestion_collision_never_overwrites_or_rolls_back_editor(tmp_path, mo
     assert not (tmp_path / '.b').exists()
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='simulates a POSIX platform without dir_fd')
 def test_unsupported_index_reader_is_not_silent_empty(tmp_path, monkeypatch):
     from arvyx_control.index import _source_snapshot
     monkeypatch.setattr(os, 'supports_dir_fd', set())

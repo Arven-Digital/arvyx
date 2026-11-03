@@ -7,10 +7,12 @@ Custom state roots and portable/editor extension installations require manual
 connection. Profile IDs are directory IDs, not inferred display names.
 """
 from __future__ import annotations
+from contextlib import closing
 
 from dataclasses import dataclass
 import os
 import errno
+from . import safe_open
 from pathlib import Path, PurePosixPath
 import re
 import stat
@@ -135,32 +137,24 @@ class _Metadata:
     def _directory(self, relative: str):
         """Open only directories, pinning each ancestor against symlink swaps.
 
-        Windows lacks dir_fd/O_NOFOLLOW: discovery there uses lstat metadata
-        only and rejects reparse points. No file payload is ever opened.
+        Both platforms walk with descriptor-relative no-follow opens (safe_open);
+        a reparse point anywhere on the path is refused. No file payload is ever opened.
         """
         parts = PurePosixPath(relative).parts
         if PurePosixPath(relative).is_absolute() or any(p in {'.', '..'} or '\\' in p or ':' in p for p in parts):
             raise ValueError('non-literal discovery path')
-        if os.name == 'posix':
-            fd = os.open(self.home.anchor, os.O_RDONLY | os.O_DIRECTORY)
-            try:
-                for part in (*self.home.parts[1:], *parts):
-                    self._tick()
-                    child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
-                    os.close(fd)
-                    fd = child
-                return fd
-            except BaseException:
-                os.close(fd)
-                raise
-        path = Path(self.home.anchor)
-        for part in (*self.home.parts[1:], *parts):
-            path /= part
+        for _part in (*self.home.parts[1:], *parts):
             self._tick()
-            info = path.lstat()
-            if _unsafe(info) or not stat.S_ISDIR(info.st_mode):
-                raise OSError('unsafe directory')
-        return path
+        fd = safe_open.open_root(self.home)
+        try:
+            for part in parts:
+                child = safe_open.open_directory_at(fd, part)
+                os.close(fd)
+                fd = child
+            return fd
+        except BaseException:
+            os.close(fd)
+            raise
 
     def exists(self, relative: str, directory: bool = False) -> bool:
         path = PurePosixPath(relative)
@@ -168,8 +162,7 @@ class _Metadata:
         try:
             parent = self._directory(str(path.parent))
             self._tick()
-            info = (os.stat(path.name, dir_fd=parent, follow_symlinks=False)
-                    if isinstance(parent, int) else (parent / path.name).lstat())
+            info = safe_open.stat_at(parent, path.name)
             return not _unsafe(info) and (stat.S_ISDIR(info.st_mode) if directory else stat.S_ISREG(info.st_mode))
         except OSError as exc:
             if exc.errno != errno.ENOENT:
@@ -184,14 +177,14 @@ class _Metadata:
         try:
             parent = self._directory(relative)
             names = []
-            with os.scandir(parent) as entries:
-                # Inspect no more than limit+1 names, never recurse or sort an
-                # unbounded directory. Sorting the bounded subset stabilizes UI.
-                for entry in entries:
+            # Inspect no more than limit+1 names, never recurse or sort an
+            # unbounded directory. Sorting the bounded subset stabilizes UI.
+            with closing(safe_open.scandir_names(parent)) as names_iter:
+                for entry_name in names_iter:
                     self._tick()
                     if len(names) == limit:
                         return sorted(names), True
-                    names.append(entry.name)
+                    names.append(entry_name)
             return sorted(names), False
         except OSError as exc:
             if exc.errno != errno.ENOENT:

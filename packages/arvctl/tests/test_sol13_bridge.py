@@ -8,14 +8,14 @@ import pytest
 from safe_mcp_bridge import cli
 
 
-@pytest.mark.parametrize('detector', [cli._FALLBACK_SECRET_RE, cli._secret_re()])
+@pytest.mark.parametrize('detector', [cli._FALLBACK_SECRET_RE, cli._shape_detector_re()])
 def test_postgres_failed_prefix_scaling(detector):
     def elapsed(n):
         text = 'postgres://u:' * n
         samples = []
         for _ in range(3):
             start = time.process_time()
-            assert cli.bounded_secret_subn(text, detector) == (text, 0)
+            assert cli.bounded_redaction_subn(text, detector) == (text, 0)
             samples.append(time.process_time() - start)
         return median(samples)
     small = elapsed(1000)
@@ -29,20 +29,20 @@ def test_postgres_failed_prefix_scaling(detector):
     'postgres://u:postgres://nested:password@host/db',
 ])
 def test_postgres_positive_matches_preserved(url):
-    assert cli.bounded_secret_subn(url, cli._FALLBACK_SECRET_RE) == ('[REDACTED-SECRET]', 1)
+    assert cli.bounded_redaction_subn(url, cli._FALLBACK_SECRET_RE) == ('[REDACTED-SECRET]', 1)
 
 
-@pytest.mark.parametrize('secret', ['quoted"back\\slash', 'line\nbreak\tvalue', 'unicode-\u00e9-value'])
-def test_configured_escaped_secret_blocked_request_audit(tmp_path, monkeypatch, secret):
-    monkeypatch.setenv('SOL13_SYNTHETIC_AUTH', secret)
+@pytest.mark.parametrize('shape', ['quoted"back\\slash', 'line\nbreak\tvalue', 'unicode-\u00e9-value'])
+def test_configured_escaped_secret_blocked_request_audit(tmp_path, monkeypatch, shape):
+    monkeypatch.setenv('SOL13_SYNTHETIC_AUTH', shape)
     path = tmp_path / 'audit.jsonl'
     config = {'policy': {'allow_tools': []}, 'auth': {'env': 'SOL13_SYNTHETIC_AUTH'},
               'audit': {'path': str(path), 'redact': True}}
-    response = cli._handle_line(config, json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'blocked/' + secret}))
+    response = cli._handle_line(config, json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'blocked/' + shape}))
     assert response['error']['code'] == cli.BLOCKED_METHOD_CODE
     event = json.loads(path.read_text())
     assert event['method'] == 'blocked/[redacted]'
-    nested = cli._redact(config, {secret: [{'value': secret}], 'count': 2})
+    nested = cli._redact(config, {shape: [{'value': shape}], 'count': 2})
     assert nested == {'[redacted]': [{'value': '[redacted]'}], 'count': 2}
 
 

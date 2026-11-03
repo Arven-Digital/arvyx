@@ -12,6 +12,7 @@ from pathlib import Path
 import secrets
 import tempfile
 
+from . import private_paths
 from .cockpit_paperclip import PaperclipHandler, PaperclipServer
 from .external_api import ExternalAPI, Principal
 from .external_grants import ExternalGrantStore
@@ -110,10 +111,10 @@ def build_fixture_server(home, frontend, private, *, fixture_only=False, port=0,
     assert_mutation_authority(vault)
     private = Path(private)
     private.mkdir(mode=0o700, parents=True, exist_ok=True)
-    os.chmod(private, 0o700)
+    private_paths.apply_mode(path=private, mode=0o700)
     selected = private/'selected'
     selected.mkdir(mode=0o700)
-    (selected/'review.txt').write_text('Synthetic selected workspace for local delegation UI review.\n')
+    (selected/'review.txt').write_text('Synthetic selected workspace for local delegation UI review.\n', newline="\n")
     snapshot = snapshot_workspace(selected, ['review.txt','.env'])
     store = ExternalGrantStore(private/'grants.db')
     ops = ['read','lookup','list','search','submit']

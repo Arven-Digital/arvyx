@@ -8,6 +8,7 @@ import ssl
 import tempfile
 import threading
 import time
+import os
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -17,6 +18,7 @@ from arvyx_control.secret_delivery_access import AccessVerifier, MAX_JWKS
 from arvyx_control.secret_delivery_protocol import Rejected
 
 
+@unittest.skipUnless(os.name == 'posix', 'secret delivery destinations are defined by POSIX uid and mode semantics')
 class JwksHttpsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

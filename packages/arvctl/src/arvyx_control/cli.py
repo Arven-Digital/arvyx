@@ -3063,7 +3063,7 @@ def _run_attest(args: argparse.Namespace) -> int:
             print(f"error: {exc}", file=sys.stderr)
             return 1
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+        args.output.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
         if args.json_output:
             print(json.dumps({"ok": True, "check_id": args.check, "output": str(args.output)}, sort_keys=True))
         else:
@@ -3131,7 +3131,7 @@ def _run_attest(args: argparse.Namespace) -> int:
         payload["status"] = "pending"
         payload.pop("synthesis", None)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+        path.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
         if args.json_output:
             print(json.dumps({"ok": True, "subject": args.subject, "models": len(reviews), "output": str(path)}, sort_keys=True))
         else:
@@ -3175,7 +3175,7 @@ def _run_attest(args: argparse.Namespace) -> int:
             "disagreements": args.disagreement,
             "resolution": args.resolution,
         }
-        path.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+        path.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
         if args.json_output:
             print(json.dumps({"ok": True, "subject": args.subject, "decision": args.decision, "output": str(path)}, sort_keys=True))
         else:

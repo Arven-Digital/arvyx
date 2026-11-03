@@ -53,6 +53,7 @@ def test_interrupted_forget_fences_parent_promotion_and_all_mutations(tmp_path, 
         pass
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='POSIX ownership and mode metadata and os.fsync barriers')
 def test_ownership_precedes_mode_and_file_barrier(tmp_path, monkeypatch):
     stage = tmp_path / 'stage'
     stage.write_bytes(b'original')
@@ -76,7 +77,7 @@ def test_ownership_failure_and_legacy_metadata_fail_closed(tmp_path, monkeypatch
     def denied(*args):
         raise PermissionError('ownership denied')
     monkeypatch.setattr(tx.os, 'fchown', denied, raising=False)
-    monkeypatch.setattr(tx.os, 'fchmod', lambda *args: pytest.fail('mode before ownership'))
+    monkeypatch.setattr(tx.os, 'fchmod', lambda *args: pytest.fail('mode before ownership'), raising=False)  # absent on Windows before 3.13
     with pytest.raises(PermissionError, match='ownership denied'):
         tx.apply_original_metadata(stage, {'uid': 10001, 'gid': 10001, 'mode': 0o600})
 

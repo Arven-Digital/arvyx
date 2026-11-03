@@ -2,9 +2,11 @@
 import hashlib
 import json
 import sqlite3
+from contextlib import closing
 import time
 from pathlib import Path
 from unittest.mock import patch
+import os
 import pytest
 from arvyx_control import cockpit_archive as archive
 from arvyx_control import promotion_transaction as promotion
@@ -52,14 +54,14 @@ def test_persisted_legacy_capture_provenance_is_quarantined(tmp_path,state):
 @pytest.mark.parametrize('state',LEGACY_STATES)
 def test_persisted_legacy_native_cursor_provenance_is_quarantined(tmp_path,state):
     store=tmp_path/'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE messages(id INTEGER PRIMARY KEY,session_id TEXT,role TEXT,content TEXT)')
         db.execute('INSERT INTO messages VALUES(1,?,?,?)',('conversation','assistant','ordinary historical record'))
     path=tmp_path/'capture.db';owner=native_owner(path,store)
     LocalCockpit.native_archive(owner,'s',actor='operator')
     with owner.db:owner.db.execute('UPDATE native_archive_context SET pem=?',(json.dumps(state),))
     before=archive.pending_capture(owner);owner.db.close();owner=native_owner(path,store)
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.executemany('INSERT INTO messages VALUES(?,?,?,?)',[(2,'conversation','assistant','SA PRIVATE KEY'),(3,'conversation','assistant','SYNTHETIC_SUFFIX')])
     try:
         with pytest.raises(ValueError,match='provenance|legacy'):
@@ -119,7 +121,7 @@ def test_new_context_reopen_keeps_safe_capture_and_legacy_reset_is_exact(tmp_pat
 
 def test_native_quarantine_recovery_reimports_from_zero_retaining_original_rows(tmp_path):
     store=tmp_path/'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE messages(id INTEGER PRIMARY KEY,session_id TEXT,role TEXT,content TEXT)')
         db.executemany('INSERT INTO messages VALUES(?,?,?,?)',[(1,'conversation','assistant','BEGIN RSA PRIVATE KEY'),(2,'conversation','assistant','END R\u00e9'),(3,'conversation','assistant','SA PRIVATE KEY'),(4,'conversation','assistant','SYNTHETIC_SUFFIX')])
     path=tmp_path/'archive.db';owner=native_owner(path,store);owner._get=lambda sid:dict(workspace=str(tmp_path/'workspace'),status='stopped')
@@ -198,6 +200,7 @@ def test_injected_connector_rechecks_after_its_own_blocking_preparation(journey)
     assert status==503 and not effects
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 def test_agent_creation_original_expiry_rechecked_after_content_sync(tmp_path):
     from arvyx_control.agent_creation import AgentCreation,CreationRequest
     from arvyx_control.reviewed_actions import consent_scope
@@ -222,7 +225,7 @@ def test_versioned_uncertain_capture_requires_stopped_clean_stream_recovery(tmp_
 
 def test_missing_legacy_native_context_cannot_adopt_a_cursor(tmp_path):
     store=tmp_path/'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE messages(id INTEGER PRIMARY KEY,session_id TEXT,role TEXT,content TEXT)');db.execute("INSERT INTO messages VALUES(1,'conversation','assistant','safe')")
     owner=native_owner(tmp_path/'archive.db',store);archive.import_native(owner,'s',actor='operator')
     with owner.db:

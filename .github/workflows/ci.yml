@@ -81,9 +81,95 @@ jobs:
           python scripts/mcp_streaming_compat_check.py --json
 
 
-  # macOS and Windows have no acceptance receipts yet (docs/limitations.md, Platform
-  # support). They run only when the owner opts in and are not required by the
-  # release workflow; failures are reported, never masked.
+  # Windows is a supported platform (docs/limitations.md, Platform support): the
+  # suite runs on main pushes and pull requests targeting main only when
+  # HOSTED_ACTIONS_ENABLED is true (also applies to manual dispatch); the release
+  # workflow requires these jobs on the tagged commit. POSIX-only lanes (PTY owner,
+  # host executors, secret delivery, the deployment kit) skip with their reason.
+  windows-tests:
+    if: vars.HOSTED_ACTIONS_ENABLED == 'true'
+    name: windows-latest / Python ${{ matrix.python }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install package and developer tools from hashed lock
+        run: |
+          python -m pip install --require-hashes -r requirements/dev.lock -r requirements/secret-edge.lock
+          python -m pip install --no-deps --no-build-isolation -e .
+
+      - name: Provide a trusted private temporary directory
+        # The product's privacy rule on Windows is the NTFS DACL (owner, SYSTEM,
+        # Administrators). The runner's TEMP may carry wider inherited entries, so
+        # the tests get a directory the product itself made private, fail-closed.
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          dir="${RUNNER_TEMP}/arvyx-private-tmp"
+          python - "$dir" <<'PY'
+          import os, sys
+          from arvyx_control.windows_acl import make_private, private_path_problem
+          path = sys.argv[1]
+          os.makedirs(path, exist_ok=True)
+          make_private(path)
+          problem = private_path_problem(path)
+          if problem:
+              raise SystemExit(f"::error::private temporary directory not accepted: {problem}")
+          PY
+          win="$(cygpath -w "$dir")"
+          printf 'TEMP=%s\nTMP=%s\n' "$win" "$win" >> "$GITHUB_ENV"
+
+      - name: Set up supported Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24.11.1"
+          cache: npm
+          cache-dependency-path: frontends/paperclip/package-lock.json
+
+      - name: Cache pinned frontend inputs for the offline npm smoke
+        working-directory: frontends/paperclip
+        shell: bash
+        # scripts/build_arvyx_npm.py runs npm with every NPM_CONFIG_* variable removed
+        # and the user npmrc disabled, so it resolves npm's default cache location,
+        # not the runner image's C:\npm\cache; warm the cache the offline build reads
+        # by resolving it under the same npm environment.
+        run: |
+          for name in $(env | sed -n 's/^\([Nn][Pp][Mm]_[Cc][Oo][Nn][Ff][Ii][Gg]_[^=]*\)=.*/\1/p'); do unset "$name"; done
+          export npm_config_userconfig=nul
+          cache_dir="$(npm config get cache)"
+          echo "npm cache for the offline build: $cache_dir"
+          npm ci --include=dev --ignore-scripts --no-audit --no-fund --cache "$cache_dir"
+
+      - name: Build, install and smoke the Windows npm package
+        timeout-minutes: 10
+        run: python scripts/npm_package_smoke.py --json
+
+      - name: Run unit tests
+        run: python -m pytest packages/arvctl/tests tests -q -n 4 --dist loadfile
+
+      - name: Build and smoke installed wheel and sdist outside checkout
+        run: python scripts/package_install_smoke.py --json
+
+      - name: Validate public secret shapes
+        run: python scripts/private_context_scan.py --shapes-only
+
+      - name: Validate tracked-path release boundary
+        run: python scripts/public_release_boundary.py
+
+  # macOS has no acceptance receipts yet (docs/limitations.md, Platform support).
+  # It runs only when the owner opts in and is not required by the release
+  # workflow; failures are reported, never masked.
   experimental-platform-tests:
     if: vars.HOSTED_ACTIONS_ENABLED == 'true' && vars.HOSTED_EXPERIMENTAL_PLATFORMS == 'true'
     name: experimental ${{ matrix.os }} / Python ${{ matrix.python }}
@@ -96,12 +182,6 @@ jobs:
           - os: macos-latest
             python: "3.12"
           - os: macos-latest
-            python: "3.13"
-          - os: windows-latest
-            python: "3.11"
-          - os: windows-latest
-            python: "3.12"
-          - os: windows-latest
             python: "3.13"
     runs-on: ${{ matrix.os }}
     steps:
@@ -312,7 +392,8 @@ jobs:
       - name: Exercise the MCP evidence client against its pinned lock
         # The producer only ever ran at tag time, so SDK or server drift would have
         # been discovered by a failed release instead of a failed push. This runs it
-        # unsigned on every push and proves the release mode refuses unsigned input.
+        # unsigned on main pushes / PRs targeting main (this correctness job is not
+        # controlled by HOSTED_ACTIONS_ENABLED) and proves unsigned release refusal.
         run: |
           set -Eeuo pipefail
           client_venv="${RUNNER_TEMP}/mcp-evidence-client"

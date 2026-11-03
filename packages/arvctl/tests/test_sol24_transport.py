@@ -17,6 +17,9 @@ from arvyx_control import http_bounds, secret_delivery_access as access
 from arvyx_control import secret_delivery_protocol as protocol
 from arvyx_control.secret_delivery import SecretDelivery, Session
 from safe_mcp_bridge import http_bounds as bridge_bounds, cli as bridge
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='secret delivery destinations are defined by POSIX uid and mode semantics')
 
 
 class WireSocket:

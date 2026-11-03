@@ -2,6 +2,7 @@ from arvyx_control.local_executor import ExecutionPolicy
 from arvyx_control.replica_authority import authority_context
 """Synthetic archive entrypoint regressions; no provider or PTY is started."""
 import json
+import os
 import socket
 import sqlite3
 import threading
@@ -193,6 +194,7 @@ def test_quota_denial_preserves_idempotency_and_history(tmp_path):
     owner.db.close()
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 def test_failed_fork_keeps_charged_run_evidence_and_quota_prevents_fork(tmp_path):
     with authority_context(tmp_path / 'pilot' / 'vault', tmp_path / 'pilot' / 'events.jsonl'):
         from arvyx_control import cockpit_client, control

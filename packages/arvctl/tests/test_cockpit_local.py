@@ -1,4 +1,6 @@
+from contextlib import closing
 from arvyx_control.local_executor import ExecutionPolicy
+import os
 import json
 from pathlib import Path
 import tempfile
@@ -25,7 +27,11 @@ class LocalConnectionTests(unittest.TestCase):
     def test_connection_file_is_exclusive_and_private(self):
         target = self.base / 'browser.json'
         write_browser_connection(target, 'http://127.0.0.1:1234', 'secret')
-        self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+        if os.name == 'nt':
+            from arvyx_control.windows_acl import private_path_problem
+            self.assertIsNone(private_path_problem(target))
+        else:
+            self.assertEqual(target.stat().st_mode & 0o777, 0o600)
         self.assertEqual(json.loads(target.read_text())['mode'], 'real-local')
         with self.assertRaises(FileExistsError):
             write_browser_connection(target, 'http://127.0.0.1:1234', 'other')
@@ -40,6 +46,7 @@ class LocalConnectionTests(unittest.TestCase):
         self.assertEqual(before, set(self.base.rglob('*')))
 
 
+@unittest.skipUnless(os.name == 'posix', 'the shared owner fixture starts host-environment natives through the PTY owner, which is POSIX-only')
 class HarmlessOwnerConnectionTests(unittest.TestCase):
     def setUp(self):
         import socketserver
@@ -134,7 +141,7 @@ class HarmlessOwnerConnectionTests(unittest.TestCase):
         self.assertEqual(state['primary_agent_id'], 'beta')
         self.assertFalse(state['primary_connected'])
         import sqlite3
-        with sqlite3.connect(self.home / 'events.jsonl.primary.sqlite') as db:
+        with closing(sqlite3.connect(self.home / 'events.jsonl.primary.sqlite')) as db, db:
             self.assertEqual(db.execute('SELECT agent_id,revision FROM primary_agent').fetchone(), ('beta',2))
 
     def test_binding_mismatch_and_owner_loss_fail_closed(self):

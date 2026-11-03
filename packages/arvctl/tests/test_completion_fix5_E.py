@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import tempfile
 from unittest.mock import patch
 
+import os
 import pytest
 from arvyx_control.external_api import ExternalAPI, Principal
 from arvyx_control.external_grants import ExternalGrantStore
@@ -16,6 +17,8 @@ from arvyx_control.external_work import ExternalWork, WorkAuthorization
 from arvyx_control.external_workspace import snapshot_workspace
 from arvyx_control.machine_pairing import MachineIdentity, PairingStore
 from arvyx_control.replica_authority import authority_context
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 
 
 @contextmanager

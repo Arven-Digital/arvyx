@@ -9,6 +9,9 @@ from arvyx_control import cockpit_web as web, control
 from arvyx_control.cockpit_client import exchange_deadline
 from arvyx_control.locks import exclusive_lock
 from arvyx_control.replica_authority import authority_context
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='fork-based fixtures are POSIX-only')
 
 
 def handler(snapshot, monkeypatch):

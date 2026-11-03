@@ -8,6 +8,9 @@ import pytest
 from test_session_workspace_journey import journey, plan, commit
 from test_local_onboarding_services import services
 from test_hermes_history import history
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 
 
 @pytest.mark.parametrize('mode', ['create', 'existing'])

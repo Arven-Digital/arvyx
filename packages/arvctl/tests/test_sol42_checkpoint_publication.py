@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -62,7 +63,7 @@ class CheckpointPublicationTests(unittest.TestCase):
                             with authority_context(root):
                                 rebuild_index_checkpointed(root, owner="worker", now=now)
                     self.assertEqual(index_rebuild_status(root).status, "failed")
-                    with sqlite3.connect(_journal_path(root)) as connection:
+                    with closing(sqlite3.connect(_journal_path(root))) as connection, connection:
                         status, expiry, updated = connection.execute(
                             "SELECT status, lease_expires_at, updated_at FROM jobs"
                         ).fetchone()

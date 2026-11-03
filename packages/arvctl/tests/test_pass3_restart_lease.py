@@ -4,6 +4,9 @@ from unittest.mock import patch
 import pytest
 from test_session_workspace_journey import journey
 from test_local_onboarding_services import services
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
 
 def test_reboot_continuation_is_exact_single_use_and_never_renews_consent(journey,tmp_path):
     from arvyx_control.cockpit import LocalCockpit

@@ -13,6 +13,8 @@ import stat
 import platform
 import sys
 from pathlib import Path
+from . import private_paths
+from . import safe_open
 from .agent_sessions import RoutingError
 
 NATIVE_MOUSE_BINARY_SHA256='c8cd3a11b577a23dc37b34f64814e37242e4d2af27726149e3feed6c21c0fd5a'
@@ -52,14 +54,14 @@ _SEALS = (fcntl.F_SEAL_WRITE | fcntl.F_SEAL_GROW | fcntl.F_SEAL_SHRINK | fcntl.F
 def open_native_directory(path):
     """Return a pinned, no-follow directory with the artifact ancestor policy."""
     path = Path(os.path.abspath(path))
-    directory = os.open('/', os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)
+    directory = safe_open.open_directory(path.anchor)
     try:
         for part in path.parts[1:]:
-            child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=directory)
+            child = safe_open.open_directory_at(directory, part)
             os.close(directory)
             directory = child
             info = os.fstat(directory)
-            if info.st_uid not in (0, os.getuid()) or info.st_mode & 0o022:
+            if not private_paths.owned_by_current_user(info, fd=directory, allow_root=True) or not private_paths.not_writable_by_others(info, fd=directory):
                 raise RoutingError('unsafe native artifact ancestor')
         return directory
     except BaseException:
@@ -72,7 +74,10 @@ def read_native_bytes(binary):
     path = Path(os.path.abspath(binary))
     directory = open_native_directory(path.parent)
     try:
-        fd = os.open(path.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+        try:
+            fd = safe_open.open_file_at(directory, path.name)
+        except IsADirectoryError:  # the historical open succeeded and the S_ISREG check below refused
+            raise RoutingError('bounded regular executable artifact required') from None
         with os.fdopen(fd, 'rb') as stream:
             info = os.fstat(stream.fileno())
             if not stat.S_ISREG(info.st_mode) or not info.st_mode & 0o111 or not 0 < info.st_size <= MAX_NATIVE_BYTES:

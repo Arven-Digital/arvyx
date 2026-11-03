@@ -1,6 +1,7 @@
 """Review50 regressions. NOT_EXECUTED: execution expressly prohibited."""
 import json
 import unittest
+from contextlib import closing
 from types import SimpleNamespace
 from unittest import mock
 
@@ -40,10 +41,8 @@ class PairingClaimTests(unittest.TestCase):
         import tempfile
         from pathlib import Path
         from arvyx_control.machine_pairing import PairingStore, MachineIdentity
-        with tempfile.TemporaryDirectory() as tmp:
-            now = [1000.0]
-            store = PairingStore(Path(tmp) / 'pairing.db', clock=lambda: now[0])
-            self.addCleanup(store.close)
+        now = [1000.0]
+        with tempfile.TemporaryDirectory() as tmp, closing(PairingStore(Path(tmp) / 'pairing.db', clock=lambda: now[0])) as store:
             identity = MachineIdentity('remote', base64.b64encode(b'x' * 32).decode())
             ticket = store.issue(actor='owner', ttl=10)
             self.assertTrue(store.claim(ticket.code, identity).allowed)

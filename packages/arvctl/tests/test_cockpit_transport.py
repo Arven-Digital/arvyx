@@ -1,4 +1,5 @@
 """Endpoint identity and offline-draft boundaries."""
+import os
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -16,6 +17,7 @@ class TransportTests(unittest.TestCase):
             self.assertEqual(endpoint.call('end', sid='stable-id', actor='operator')['status'], 'ended')
             self.assertEqual(rpc.call_args.kwargs['sid'], 'stable-id')
 
+    @unittest.skipUnless(os.name == 'posix', 'SSH streamlocal forwarding needs POSIX socket paths')
     def test_ssh_forwarding_uses_existing_trust_and_no_remote_commands(self):
         from arvyx_control.cockpit_transport import ssh_forward_plan
         argv = ssh_forward_plan('operator@rowan', Path('/home/operator/socket'), '/home/operator/runtime/cockpit.sock')

@@ -6,7 +6,10 @@ No upstream executable code or dependencies are imported.
 """
 from __future__ import annotations
 
-import curses
+try:
+    import curses
+except ImportError:  # Windows: the standard library has no curses
+    curses = None
 
 from html import escape
 import os
@@ -16,6 +19,7 @@ import sys
 import tempfile
 import webbrowser
 
+from . import safe_open
 from .cockpit_client import attach, request
 from .cockpit_terminal_panels import read_panels, draw_panels, ordered_sessions
 
@@ -116,10 +120,10 @@ def export_dashboard(root, model=None):
     model = snapshot(root) if model is None else model
     fd, name = tempfile.mkstemp(prefix='.team-', suffix='.html', dir=root)
     try:
-        with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+        with os.fdopen(fd, 'w', encoding='utf-8', newline="\n") as stream:
             stream.write(render_dashboard(model))
         target = root / 'team.html'
-        os.replace(name, target)
+        safe_open.replace_path(name, target)
         return target
     finally:
         Path(name).unlink(missing_ok=True)
@@ -127,6 +131,8 @@ def export_dashboard(root, model=None):
 
 def navigator(root):
     """Navigation and PTY attachment are separate modes; output cannot run commands."""
+    if curses is None:
+        raise RuntimeError("the terminal surface needs curses, which this platform's Python does not provide; use 'arvyx web' instead")
     while True:
         action = curses.wrapper(lambda screen: _navigate(screen, root))
         if action is None:

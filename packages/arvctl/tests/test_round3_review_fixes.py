@@ -19,6 +19,8 @@ import pytest
 from arvyx_control import control, embeddings, replica, public_onboarding_api, external_api
 from safe_mcp_bridge import cli as bridge
 
+pytestmark = pytest.mark.skipif(not hasattr(socket, 'AF_UNIX'), reason='raw Unix-socket owner transport; Windows uses the loopback endpoint (test_owner_endpoint)')
+
 
 @contextlib.contextmanager
 def serving(server):
@@ -85,7 +87,7 @@ def test_https_downgrade_is_refused_by_actual_client_opener(client, monkeypatch,
             self.send_header('Content-Length', str(len(data)))
             self.end_headers(); self.wfile.write(data)
     source = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
-    tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER); tls.load_cert_chain(cert, key)
+    tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER); tls.minimum_version = ssl.TLSVersion.TLSv1_2; tls.load_cert_chain(cert, key)
     source.socket = tls.wrap_socket(source.socket, server_side=True)
     module = replica if client == 'replica' else embeddings
     # Change certificate trust only; exercise the actual production transport.
@@ -252,6 +254,7 @@ import sys
 from pathlib import Path
 from arvyx_control import cockpit, cockpit_archive, control
 from arvyx_control.replica_authority import authority_context
+
 root, vault = map(Path, sys.argv[1:])
 state = root/'events.jsonl'
 # Task creation is a state mutation and requires the exact caller-owned binding.
@@ -313,7 +316,7 @@ cockpit.main()
         assert request('list')['result'] == before
         os.kill(pid, 0)
         import sqlite3
-        with sqlite3.connect(tmp_path / 'owner/sessions.sqlite') as db:
+        with contextlib.closing(sqlite3.connect(tmp_path / 'owner/sessions.sqlite')) as db, db:
             assert db.execute('SELECT COUNT(*) FROM native_archive_cursor').fetchone()[0] == 0
             assert db.execute('SELECT COUNT(*) FROM work_capture').fetchone()[0] == 0
     finally:

@@ -13,6 +13,7 @@ import shutil
 import sqlite3
 import subprocess
 import time
+from . import private_paths
 from .agent_sessions import RoutingError, SessionMetadata, SessionRoute, SessionTarget
 
 
@@ -183,7 +184,7 @@ class HermesHistory:
             if not (self.home == self.default_home and session_id is not None and authorize_default_resume):
                 raise RoutingError('launch requires an explicitly authorized isolated Hermes home, not default identity')
         info = self.home.stat()
-        if info.st_uid != os.getuid() or info.st_mode & 0o022:
+        if not private_paths.owned_by_current_user(info, path=self.home) or not private_paths.not_writable_by_others(info, path=self.home):
             raise RoutingError('isolated home must be owned by current user and not writable by others')
         for name in ('state.db','config.yaml','.env','SOUL.md','USER.md','AGENTS.md','auth.json','memories','memory','skills'):
             if (self.home/name).is_symlink():

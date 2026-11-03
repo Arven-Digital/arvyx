@@ -5,11 +5,11 @@ import pytest
 from safe_mcp_bridge import cli
 
 
-@pytest.mark.parametrize('detector', [cli._FALLBACK_SECRET_RE, cli._secret_re()])
+@pytest.mark.parametrize('detector', [cli._FALLBACK_SECRET_RE, cli._shape_detector_re()])
 @pytest.mark.parametrize('kind', ['method', 'tool'])
 @pytest.mark.parametrize('redact', [True, False, None])
 def test_rejected_metadata_audit_redaction(tmp_path, monkeypatch, detector, kind, redact):
-    monkeypatch.setattr(cli, '_secret_re', lambda: detector)
+    monkeypatch.setattr(cli, '_shape_detector_re', lambda: detector)
     bearer = 'fixture"with\\escapes\nand-unicode-\u00e9'
     shaped = 'sk-' + 'syntheticfixtureonly' * 2
     monkeypatch.setenv('SOL44_FIXTURE_AUTH', bearer)

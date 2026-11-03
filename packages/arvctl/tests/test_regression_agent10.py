@@ -56,7 +56,7 @@ class Focus75Agent10Boundaries(unittest.TestCase):
         self.assertIn('audit check failed: private_context', audit._failed_check_blockers([check]))
 
     def test_rev0151_unknown_font_and_moved_fingerprint_fail_closed(self):
-        from arvyx_control.security import is_verified_font, secret_line_fingerprint
+        from arvyx_control.security import is_verified_font, reviewed_line_fingerprint
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'synthetic.woff2'
             raw = bytearray(48)
@@ -67,10 +67,10 @@ class Focus75Agent10Boundaries(unittest.TestCase):
             path.write_bytes(raw + b'appended synthetic data')
             self.assertFalse(is_verified_font(path))
         line = 'synthetic harmless fixture text'
-        self.assertNotEqual(secret_line_fingerprint(Path('fixture-a.txt'), line),
-                            secret_line_fingerprint(Path('fixture-b.txt'), line))
-        self.assertNotEqual(secret_line_fingerprint(Path('fixture-a.txt'), line),
-                            secret_line_fingerprint(Path('fixture-a.txt'), line + ' changed'))
+        self.assertNotEqual(reviewed_line_fingerprint(Path('fixture-a.txt'), line),
+                            reviewed_line_fingerprint(Path('fixture-b.txt'), line))
+        self.assertNotEqual(reviewed_line_fingerprint(Path('fixture-a.txt'), line),
+                            reviewed_line_fingerprint(Path('fixture-a.txt'), line + ' changed'))
 
     def test_rev0152_aggregate_preserves_strict_scan_and_all_test_lanes(self):
         # This protects wiring only; it does NOT prove any CI result.

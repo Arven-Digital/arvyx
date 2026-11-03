@@ -1,8 +1,11 @@
 """Exact import link witnesses, reconciled only under the canonical vault lock."""
+from contextlib import closing
 import hashlib, json, os, re, stat, uuid
 from pathlib import Path
+from . import private_paths
 from .filesystem import durable_mkdir, fsync_directory, MAX_MEMORY_DOCUMENT_BYTES
 from .external_workspace import _read, _open_root
+from . import safe_open
 from .paths import resolve_under
 
 
@@ -16,7 +19,7 @@ def _path(root, value):
 def _identity(root,path):
     try:
         with _open_root(path.parent) as parent:
-            fd=os.open(path.name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=parent)
+            fd=safe_open.open_file_at(parent,path.name)
             try:
                 info=os.fstat(fd)
                 if not stat.S_ISREG(info.st_mode) or info.st_nlink not in (1,2) or info.st_size>MAX_MEMORY_DOCUMENT_BYTES:
@@ -44,10 +47,10 @@ def _finish(root,marker,record,*,retired=False):
     if published is not None:
         # Re-prove publication durability before retiring the only link witness.
         with _open_root(target.parent) as parent:
-            fd=os.open(target.name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=parent)
+            fd=safe_open.open_file_at(parent,target.name)
             try:
                 if [os.fstat(fd).st_dev,os.fstat(fd).st_ino]!=identity[:2]:raise ValueError('import publication replaced')
-                os.fsync(fd);os.fsync(parent)
+                safe_open.fsync_file(fd);safe_open.fsync_directory(parent)
             finally:os.close(fd)
     if not retired:
         # Retire authority durably BEFORE collecting its sole owned stage.
@@ -70,24 +73,24 @@ def _finish(root,marker,record,*,retired=False):
 def recover(root):
     root=Path(root);directory=root/'.arvyx/import-publications'
     if not directory.exists():return
-    with _open_root(directory):pass
     entries=[]
     # Pending names carry no publication authority. Collect only their own
     # directory entries, never parse their bytes or infer ownership of a stage.
     # Bound each pass; a retry makes progress even after a large fault backlog.
     exhausted=False
-    with os.scandir(directory) as scan:
-        for count,entry in enumerate(scan):
-            if count >= 2000:
-                exhausted=True
-                break
-            if re.fullmatch(r'[a-f0-9]{32}\.pending',entry.name):
-                info=entry.stat(follow_symlinks=False)
-                if not stat.S_ISREG(info.st_mode) or info.st_nlink!=1:
-                    raise ValueError('unsafe pending import artifact')
-                (directory/entry.name).unlink()
-            else:
-                entries.append(directory/entry.name)
+    with _open_root(directory) as root_fd:
+        with closing(safe_open.scandir_names(root_fd)) as names_iter:
+            for count,name in enumerate(names_iter):
+                if count >= 2000:
+                    exhausted=True
+                    break
+                if re.fullmatch(r'[a-f0-9]{32}\.pending',name):
+                    info=safe_open.stat_at(root_fd,name)
+                    if not stat.S_ISREG(info.st_mode) or info.st_nlink!=1:
+                        raise ValueError('unsafe pending import artifact')
+                    safe_open.unlink_at(root_fd,name)
+                else:
+                    entries.append(directory/name)
     fsync_directory(directory)
     if exhausted:raise ValueError('import recovery pass budget exceeded; retry to drain pending debris')
     if len(entries)>1000:raise ValueError('import recovery journal budget exceeded')
@@ -102,14 +105,16 @@ def publish(root,target,payload):
     durable_mkdir(directory,mode=0o700)
     identifier=uuid.uuid4().hex;stage=target.with_name('.import-'+identifier+'.stage');marker=directory/(identifier+'.json')
     with stage.open('xb') as stream:
-        os.fchmod(stream.fileno(),0o600);stream.write(payload);stream.flush();os.fsync(stream.fileno())
+        private_paths.apply_mode(fd=stream.fileno(),mode=0o600);stream.write(payload);stream.flush();os.fsync(stream.fileno())
     fsync_directory(stage.parent)
     record=dict(schema=1,target=target.relative_to(root).as_posix(),stage=stage.relative_to(root).as_posix(),identity=_identity(root,stage))
     pending=marker.with_suffix('.pending')
     with pending.open('xb') as stream:
-        os.fchmod(stream.fileno(),0o600);stream.write(json.dumps(record,sort_keys=True).encode());stream.flush();os.fsync(stream.fileno())
+        private_paths.apply_mode(fd=stream.fileno(),mode=0o600);stream.write(json.dumps(record,sort_keys=True).encode());stream.flush();os.fsync(stream.fileno())
     os.rename(pending,marker)
     fsync_directory(directory)
-    os.link(stage,target,follow_symlinks=False)
+    # Windows os.link cannot take follow_symlinks; the stage was created here and
+    # verified above with a no-follow open, so the link source is that regular file.
+    os.link(stage,target,**({'follow_symlinks':False} if os.link in os.supports_follow_symlinks else {}))
     fsync_directory(target.parent)
     _finish(root,marker,record)

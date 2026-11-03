@@ -27,6 +27,7 @@ import tarfile
 import tempfile
 import zipfile
 
+_WINDOWS = os.name == "nt"
 MIN_NODE = (24, 11)
 # The tarball is named after the package manifest, whatever the package is called
 # in this tree (the private tree ships `arvyx-local`, the public one `arvyx`).
@@ -44,7 +45,9 @@ class SmokeError(RuntimeError):
 
 
 def _run(command, *, cwd, env=None, expect=0):
-    process = subprocess.run([str(part) for part in command], cwd=cwd, env=env, text=True, capture_output=True)
+    # Windows npm exposes .cmd shims, which CreateProcess cannot execute directly.
+    shell = _WINDOWS and str(command[0]).lower().endswith((".cmd", ".bat"))
+    process = subprocess.run([str(part) for part in command], cwd=cwd, env=env, text=True, capture_output=True, shell=shell)
     if expect == 0 and process.returncode != 0:
         raise SmokeError(f"command failed ({process.returncode}): {command[:3]}: {process.stderr[-2000:]}")
     if expect != 0 and process.returncode == 0:
@@ -61,7 +64,7 @@ def _refused(command, *, cwd, env, needle):
 
 def _node_env():
     node = shutil.which("node")
-    npm = shutil.which("npm")
+    npm = shutil.which("npm.cmd" if _WINDOWS else "npm")
     if not node or not npm:
         raise SmokeError("node and npm are required on PATH")
     version = subprocess.run([node, "--version"], text=True, capture_output=True, check=True).stdout.strip()
@@ -113,16 +116,34 @@ def _write_intent(prefix: Path, record: dict) -> None:
     (prefix / "setup-intent.json").write_text(json.dumps(record) + "\n", encoding="utf-8")
 
 
+def _make_private(path: Path, mode: int = 0o700) -> None:
+    if _WINDOWS:
+        from arvyx_control.windows_acl import make_private
+        make_private(path)
+    else:
+        path.chmod(mode)
+
+
+def _require_private(path: Path) -> None:
+    if _WINDOWS:
+        from arvyx_control.windows_acl import private_path_problem
+        problem = private_path_problem(path)
+        if problem:
+            raise SmokeError(f"setup prefix is not private: {problem}")
+    elif os.stat(path).st_mode & 0o077:
+        raise SmokeError("setup prefix is not private")
+
+
 def _synthetic_native(root: Path) -> tuple[Path, Path]:
     """Bytes that are never executed and never match the admitted digest."""
     directory = root / "synthetic-native"
     directory.mkdir(mode=0o700)
     binary = directory / "arvyx"
     binary.write_bytes(b"#!/bin/sh\n# synthetic, unapproved, never executed\nexit 64\n")
-    binary.chmod(0o700)
+    _make_private(binary)
     receipt = directory / "receipt.json"
     receipt.write_text(json.dumps({"binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest()}))
-    receipt.chmod(0o600)
+    _make_private(receipt, 0o600)
     return binary, receipt
 
 
@@ -132,7 +153,7 @@ def run(repo: Path) -> dict[str, object]:
     checks: list[str] = []
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
-        os.chmod(root, 0o700)
+        _make_private(root)
         build = root / "build"
         _run([sys.executable, repo / "scripts/build_arvyx_npm.py", "--output", build], cwd=root, env=env)
         tarballs = [path for path in build.iterdir() if TARBALL_NAME.fullmatch(path.name)]
@@ -144,9 +165,9 @@ def run(repo: Path) -> dict[str, object]:
 
         npm_prefix = root / "npm-prefix"
         npm_prefix.mkdir(mode=0o700)
-        _run(["npm", "install", "--offline", "--ignore-scripts", "--no-audit", "--no-fund", "--prefix", npm_prefix, tarball],
+        _run([shutil.which("npm.cmd" if _WINDOWS else "npm"), "install", "--offline", "--ignore-scripts", "--no-audit", "--no-fund", "--prefix", npm_prefix, tarball],
              cwd=root, env=env)
-        launcher = npm_prefix / "node_modules/.bin/arvyx"
+        launcher = npm_prefix / ("node_modules/.bin/arvyx.cmd" if _WINDOWS else "node_modules/.bin/arvyx")
         if not launcher.exists():
             raise SmokeError("installed npm package exposes no arvyx launcher")
         venvs = root / "venvs"
@@ -162,8 +183,7 @@ def run(repo: Path) -> dict[str, object]:
         if intent.get("wheel") != contents["wheel"]:
             raise SmokeError("setup intent does not bind the bundled wheel")
         checks.append("setup installed the bundled wheel into a new private prefix")
-        if os.stat(prefix).st_mode & 0o077:
-            raise SmokeError("setup prefix is not private")
+        _require_private(prefix)
 
         doctor = _run([launcher, "doctor", "--prefix", prefix], cwd=root, env=env)
         if "Python package import OK" not in doctor.stdout or "Web assets OK" not in doctor.stdout:
@@ -191,11 +211,12 @@ def run(repo: Path) -> dict[str, object]:
         unapproved = venvs / "unapproved-native"
         process = _run([launcher, "setup", "--prefix", unapproved, "--python", sys.executable,
                         "--native-binary", binary, "--native-receipt", receipt], cwd=root, env=env, expect=2)
-        if "unapproved native" not in process.stderr:
-            raise SmokeError(f"unapproved native bytes were not refused by the artifact policy: {process.stderr[-1000:]}")
+        native_refusal = "no approved native artifact for this platform" if _WINDOWS else "unapproved native"
+        if process.returncode != 2 or native_refusal not in process.stderr:
+            raise SmokeError(f"native setup did not give its platform-specific refusal: {process.stderr[-1000:]}")
         if _read_intent(unapproved).get("state") != "incomplete" or (unapproved / "native").exists():
             raise SmokeError("refused native setup must retain an incomplete prefix without native bytes")
-        checks.append("unapproved native bytes refused by the shared artifact policy")
+        checks.append(f"native setup refused: {native_refusal}")
         checks.append(_refused([launcher, "doctor", "--prefix", unapproved], cwd=root, env=env, needle="Setup incomplete"))
 
         # Tamper with the complete prefix, then restore and prove it is healthy again.
@@ -210,18 +231,21 @@ def run(repo: Path) -> dict[str, object]:
         for record, needle in tampers:
             _write_intent(prefix, record)
             checks.append(_refused([launcher, "doctor", "--prefix", prefix], cwd=root, env=env, needle=needle))
-        native = prefix / "native"
-        native.mkdir(mode=0o700)
-        shutil.copy2(binary, native / "arvyx")
-        (native / "native-install.json").write_text(receipt.read_text())
-        _write_intent(prefix, {**intent, "native_requested": True, "native_capability": "onboarding-v1"})
-        process = _run([launcher, "doctor", "--prefix", prefix], cwd=root, env=env, expect=2)
-        if "unapproved native" not in process.stderr:
-            raise SmokeError(f"doctor did not recheck planted native bytes: {process.stderr[-1000:]}")
-        checks.append("doctor rechecks planted native bytes against the shared policy")
-        _run([launcher, "amc", "--prefix", prefix, "--help"], cwd=root, env=env, expect=2)
-        checks.append("amc refuses a prefix whose requested native component fails verification")
-        shutil.rmtree(native)
+        # Windows has no admitted native artifact; its install refusal is checked
+        # above. The planted native-install metadata uses a POSIX-only verifier.
+        if not _WINDOWS:
+            native = prefix / "native"
+            native.mkdir(mode=0o700)
+            shutil.copy2(binary, native / "arvyx")
+            (native / "native-install.json").write_text(receipt.read_text())
+            _write_intent(prefix, {**intent, "native_requested": True, "native_capability": "onboarding-v1"})
+            process = _run([launcher, "doctor", "--prefix", prefix], cwd=root, env=env, expect=2)
+            if "unapproved native" not in process.stderr:
+                raise SmokeError(f"doctor did not recheck planted native bytes: {process.stderr[-1000:]}")
+            checks.append("doctor rechecks planted native bytes against the shared policy")
+            _run([launcher, "amc", "--prefix", prefix, "--help"], cwd=root, env=env, expect=2)
+            checks.append("amc refuses a prefix whose requested native component fails verification")
+            shutil.rmtree(native)
         (prefix / "setup-intent.json").write_bytes(original)
         _run([launcher, "doctor", "--prefix", prefix], cwd=root, env=env)
         checks.append("restored intent is healthy again")

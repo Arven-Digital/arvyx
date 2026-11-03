@@ -13,6 +13,9 @@ import json
 from .security import bounded_json_loads
 from pathlib import Path
 import re
+
+# token "/" token, optionally "; charset=" token (RFC 9110 media type, no parameters beyond charset)
+_CONTENT_TYPE_RE = re.compile(r"[A-Za-z0-9!#$&^_.+-]+/[A-Za-z0-9!#$&^_.+-]+(?:; charset=[A-Za-z0-9._-]+)?")
 import secrets
 import webbrowser
 
@@ -292,8 +295,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     def reply(self, code, value, *, html=False, content_type=None):
         data = value if content_type else (value.encode() if html else json.dumps(value).encode())
+        header = content_type or ('text/html; charset=utf-8' if html else 'application/json')
+        if not _CONTENT_TYPE_RE.fullmatch(header):
+            raise ValueError('invalid content type for a reply')
+        header = header.replace('\n', '').replace('\r', '')  # excluded above; the form header-injection analysis models
         self.send_response(code)
-        self.send_header('Content-Type', content_type or ('text/html; charset=utf-8' if html else 'application/json'))
+        self.send_header('Content-Type', header)
         self.send_header('Content-Length', str(len(data)))
         self.send_header('Cache-Control', 'no-store')
         self.send_header('Content-Security-Policy', CSP)

@@ -1,5 +1,6 @@
 import json
 from unittest.mock import patch
+import os
 import pytest
 from arvyx_control.public_onboarding_api import fixture_composition
 from arvyx_control.harness_discovery import discover_harnesses
@@ -19,6 +20,7 @@ def test_malformed_route_is_400(api,route):
     assert call('sessions/select',dict(route=route,confirmed=True))[0]==400
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='POSIX mode bits and umask')
 def test_discovery_reports_permission_and_unsafe_ancestor(tmp_path):
     with patch('os.open',side_effect=PermissionError('denied')):
         result=discover_harnesses(tmp_path)

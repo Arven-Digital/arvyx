@@ -5,6 +5,7 @@ These checks do not approve a native artifact or establish installed acceptance.
 """
 from pathlib import Path
 from unittest.mock import patch
+import os
 import pytest
 
 
@@ -16,6 +17,7 @@ def test_native_check_preserves_requested_capability(monkeypatch):
     assert observed == [(Path('/explicit/native'), {'required_capability': 'onboarding-v1'})]
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact) is POSIX-only')
 def test_native_check_forwards_capability_to_byte_policy(tmp_path, monkeypatch):
     from arvyx_control import native_install
     directory = tmp_path / 'native'

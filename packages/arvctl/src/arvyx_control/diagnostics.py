@@ -22,6 +22,7 @@ import threading
 import time
 import uuid
 
+from . import private_paths
 from . import __version__
 
 TRACE: ContextVar[str | None] = ContextVar('diagnostic_trace', default=None)
@@ -160,7 +161,7 @@ class Reporter:
     def _check_path(self):
         assert self.path is not None
         mode = self.path.lstat().st_mode
-        if not stat.S_ISREG(mode) or mode & 0o077:
+        if not stat.S_ISREG(mode) or not private_paths.is_private_mode(mode, path=self.path):
             raise PermissionError('unsafe diagnostic store')
         # Inspect identity without opening SQLite: foreign files (including WAL)
         # must never acquire SQLite sidecars or trigger journal recovery.
@@ -222,7 +223,9 @@ class Reporter:
             db.execute('INSERT INTO groups VALUES (?, ?, 1, ?, ?) ON CONFLICT(fingerprint) DO UPDATE SET payload=CASE WHEN excluded.last>=last THEN excluded.payload ELSE payload END, count=count+1, first=min(first,excluded.first), last=max(last,excluded.last)', (fp, json.dumps(event, sort_keys=True), now, now))
             if kind:
                 db.execute('INSERT INTO feed(fingerprint,kind,time) VALUES (?,?,?)', (fp, kind, now))
-            db.execute('DELETE FROM groups WHERE fingerprint NOT IN (SELECT fingerprint FROM groups ORDER BY last DESC LIMIT ?)', (self.max_groups,))
+            # Ties on `last` are real where the clock is coarse (Windows before Python
+            # 3.13 reports time.time() in 15.6 ms steps): the newest group wins them.
+            db.execute('DELETE FROM groups WHERE fingerprint NOT IN (SELECT fingerprint FROM groups ORDER BY last DESC, rowid DESC LIMIT ?)', (self.max_groups,))
             prune = 'id NOT IN (SELECT id FROM feed ORDER BY id DESC LIMIT 1024) OR time < ?'
             # Record the highest lost cursor in the SAME transaction as pruning,
             # including non-prefix expiry from out-of-order observations.
@@ -291,7 +294,9 @@ class Reporter:
                 self.queue.put_nowait(None)
             except queue.Full:
                 pass
-            self.thread.join(timeout=.1)
+            # Bounded, but long enough for an in-flight store to finish and release
+            # its connection: Windows cannot delete the store while it is open.
+            self.thread.join(timeout=5)
 
     @_serialized_read
     def read(self, fingerprint=None):

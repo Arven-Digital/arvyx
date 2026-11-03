@@ -18,6 +18,7 @@ edge = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(edge)
 
 
+@unittest.skipUnless(os.name == 'posix', 'secret delivery destinations are defined by POSIX uid and mode semantics')
 class DeadlineTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -16,6 +16,7 @@ if sys.platform == "linux":
 
 
 @unittest.skipUnless(sys.platform == "linux", "local PTY slice requires Linux")
+@unittest.skipUnless(hasattr(socket, 'AF_UNIX'), 'PTY owner integration over the Unix socket is POSIX-only; Windows covers its loopback endpoint in test_owner_endpoint')
 class CockpitTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()

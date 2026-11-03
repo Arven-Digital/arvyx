@@ -1,5 +1,9 @@
+import os
+import pytest
 from arvyx_control.local_executor import ExecutionPolicy
 import json
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 from types import SimpleNamespace
 from arvyx_control.cockpit import LocalCockpit
 from arvyx_control.cockpit_primary import PrimaryAgentRegistry

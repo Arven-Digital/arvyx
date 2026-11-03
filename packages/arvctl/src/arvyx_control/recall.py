@@ -5,8 +5,10 @@ from datetime import datetime, timezone
 import json
 import math
 from pathlib import Path
+import os
 import re
 
+from . import safe_open
 from .embeddings import EmbeddingConfig, EmbeddingError, embed_texts, load_embedding_config
 from .index import (
     IndexedChunk,
@@ -692,13 +694,21 @@ def _parse_line_range(lines: str) -> tuple[int, int]:
 
 
 def _resolve_source_path(vault: Path, source_path: str) -> Path:
-    vault_root = vault.resolve()
-    path = (vault_root / source_path).resolve()
+    vault_root = safe_open.resolve_path(vault)
+    root_text = os.path.normpath(str(vault_root))
     # containment BEFORE existence: an outside path must be refused uniformly
     # whether or not it exists, so this cannot be used as a host file-existence
-    # oracle via the FileNotFoundError vs ValueError distinction
-    if vault_root not in path.parents and path != vault_root:
+    # oracle via the FileNotFoundError vs ValueError distinction. The lexical
+    # check runs before any filesystem access; the resolved path is checked again.
+    candidate_text = os.path.normpath(os.path.join(root_text, source_path))
+    if candidate_text == root_text:
         raise ValueError(f"refusing to read outside vault: {source_path}")
+    if not candidate_text.startswith(root_text + os.sep):
+        raise ValueError(f"refusing to read outside vault: {source_path}")
+    path_text = os.path.normpath(str(safe_open.resolve_path(candidate_text)))
+    if path_text == root_text or not path_text.startswith(root_text + os.sep):
+        raise ValueError(f"refusing to read outside vault: {source_path}")
+    path = Path(path_text)
     if not path.is_file():
         raise FileNotFoundError(source_path)
     return path

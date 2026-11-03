@@ -1,4 +1,5 @@
 """Synthetic exact operator archival contract tests."""
+from contextlib import closing
 import hashlib
 import json
 from pathlib import Path
@@ -157,7 +158,7 @@ class OperatorArchiveTests(unittest.TestCase):
             _append_event(self.state, _event(event_type, h.id, _now(), dict(p)))
             db = Path(self.tmp.name)/'store.sqlite'
             sync_sqlite(self.state, db)
-            with sqlite3.connect(db) as conn:
+            with closing(sqlite3.connect(db)) as conn, conn:
                 actual = conn.execute('SELECT accepted_by FROM handoffs WHERE id=?', (h.id,)).fetchone()[0]
             self.assertEqual(expected, _project_handoffs(self.state)[h.id].accepted_by)
             self.assertEqual(expected, actual)
@@ -461,7 +462,7 @@ class OperatorArchiveTests(unittest.TestCase):
         self.apply(self.request(task.id, 'task'), dry_run=False)
         db = Path(self.tmp.name)/'projection.db'
         sync_sqlite(self.state, db)
-        with sqlite3.connect(db) as conn:
+        with closing(sqlite3.connect(db)) as conn, conn:
             for table, identifier in [('threads',t.id), ('tasks',task.id)]:
                 row = conn.execute(f'SELECT status, retirement_json FROM {table} WHERE id=?',(identifier,)).fetchone()
                 self.assertEqual('retired', row[0])

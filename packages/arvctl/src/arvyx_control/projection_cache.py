@@ -27,6 +27,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 import json
+from . import safe_open
+from . import private_paths
 from .security import bounded_json_loads
 import os
 from pathlib import Path
@@ -572,14 +574,14 @@ def _write_checkpoint(state: Path, payload: dict[str, object]) -> None:
         prefix=f".{checkpoint_path(state).name}.", dir=str(directory)
     )
     try:
-        os.fchmod(descriptor, stat.S_IRUSR | stat.S_IWUSR)
+        private_paths.apply_mode(fd=descriptor, mode=stat.S_IRUSR | stat.S_IWUSR)
         handle = os.fdopen(descriptor, "wb")
         descriptor = -1
         with handle:
             handle.write(body)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary, checkpoint_path(state))
+        safe_open.replace_path(temporary, checkpoint_path(state))
         _fsync_directory(directory)
     finally:
         if descriptor >= 0:

@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from unittest.mock import patch
 
@@ -200,7 +201,7 @@ def test_cached_timestamp_damage_does_not_change_recency(tmp_path, damage, route
         else:
             chunk['timestamp'] = damage
     if route == 'checkpoint':
-        with sqlite3.connect(jobs._journal_path(tmp_path)) as db:
+        with closing(sqlite3.connect(jobs._journal_path(tmp_path))) as db, db:
             db.execute('UPDATE checkpoints SET entry_json=? WHERE relative_path=?', (json.dumps(entry), relative))
         (tmp_path / index.INDEX_RELATIVE).unlink()
     else:
@@ -391,19 +392,19 @@ def test_completed_restore_copy_replays_without_adopting_copied_inode(tmp_path):
 
 def test_known_backup_comparison_is_not_a_literal_secret():
     from pathlib import Path
-    from arvyx_control.security import canonical_secret_line_spans,python_constant_secret_spans
+    from arvyx_control.security import canonical_shape_line_spans,python_constant_shape_spans
     source=(Path(__file__).resolve().parents[3]/'scripts/backup_restore.py').read_text()
-    assert not list(canonical_secret_line_spans(source))
-    assert not python_constant_secret_spans(source)
+    assert not list(canonical_shape_line_spans(source))
+    assert not python_constant_shape_spans(source)
 
 
 def test_known_synthetic_fingerprints_are_exact_and_path_bound():
     from pathlib import Path
-    from arvyx_control.security import load_secret_scan_allowlist,secret_line_fingerprint
+    from arvyx_control.security import load_secret_scan_allowlist,reviewed_line_fingerprint
     root=Path(__file__).resolve().parents[3]
     source=Path('packages/arvctl/tests/test_recall.py')
     line=next(l for l in (root/source).read_text().splitlines() if 'authorization="Bearer synthetic-control-plane-operator"' in l)
     allowed=load_secret_scan_allowlist(root)
-    assert secret_line_fingerprint(source,line) in allowed
-    assert secret_line_fingerprint(Path('unreviewed.py'),line) not in allowed
-    assert secret_line_fingerprint(source,line.replace('synthetic-control-plane-operator','a-new-unreviewed-marker')) not in allowed
+    assert reviewed_line_fingerprint(source,line) in allowed
+    assert reviewed_line_fingerprint(Path('unreviewed.py'),line) not in allowed
+    assert reviewed_line_fingerprint(source,line.replace('synthetic-control-plane-operator','a-new-unreviewed-marker')) not in allowed

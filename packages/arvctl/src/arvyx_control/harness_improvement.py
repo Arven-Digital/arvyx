@@ -15,6 +15,7 @@ import math
 import os
 from pathlib import Path, PurePosixPath
 import sqlite3
+from contextlib import closing
 import subprocess
 import sys
 import tempfile
@@ -124,7 +125,7 @@ class HarnessImprovement:
     @contextmanager
     def _transaction(self, initial=False):
         self._authorize()
-        with sqlite3.connect(self.path, timeout=40) as db:
+        with closing(sqlite3.connect(self.path, timeout=40)) as db, db:
             db.execute('CREATE TABLE IF NOT EXISTS improvement (singleton INTEGER PRIMARY KEY CHECK(singleton=1), payload TEXT NOT NULL)')
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT payload FROM improvement WHERE singleton=1').fetchone()
@@ -231,7 +232,7 @@ class HarnessImprovement:
     def _effects(self):
         # Independent durable observations survive rollback of the lifecycle
         # transaction that spans the trusted local checker. Never used to retry.
-        with sqlite3.connect(self.path.with_name(self.path.name + '.effects.sqlite')) as db:
+        with closing(sqlite3.connect(self.path.with_name(self.path.name + '.effects.sqlite'))) as db, db:
             db.execute('PRAGMA synchronous=FULL')
             db.execute('CREATE TABLE IF NOT EXISTS effects (id TEXT PRIMARY KEY, binding TEXT NOT NULL, receipt TEXT)')
             yield db
@@ -309,14 +310,14 @@ class HarnessImprovement:
         scratch = Path(os.environ.get('TMPDIR', str(self.path.parent)))
         with tempfile.TemporaryDirectory(prefix='amc-probe-', dir=scratch) as directory:
             root = Path(directory)
-            (root / 'harness.json').write_text(json.dumps(configuration, sort_keys=True))
+            (root / 'harness.json').write_text(json.dumps(configuration, sort_keys=True), newline="\n")
             (root / 'probe.py').write_bytes(source)
             for name, content in t['inputs'].items():
                 # Revalidate legacy persisted tasks too; never remove a prefix
                 # from the unnormalized spelling and join a resulting absolute path.
                 path = root / 'inputs' / input_path(name)
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(content)
+                path.write_text(content, newline="\n")
             argv = [sys.executable, '-I', str(root / 'probe.py')]
             # Disk capture avoids unbounded pipe memory. Trusted checker owns its
             # own output limits; output is truncated in the durable receipt.

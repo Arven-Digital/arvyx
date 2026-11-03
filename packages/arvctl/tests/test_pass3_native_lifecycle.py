@@ -1,10 +1,14 @@
 """Disposable owner integration; recorder substitutes ONLY the process boundary."""
+from contextlib import closing
 import json,sqlite3
 from pathlib import Path
 from unittest.mock import patch
 import pytest
 from test_session_workspace_journey import journey, plan, commit
 from test_local_onboarding_services import services
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
 
 
 def test_effective_executor_modes_never_collapse(tmp_path):
@@ -141,7 +145,7 @@ def test_hermes_new_uses_confirmed_native_producer_id_not_workspace_id(journey,t
     def process(sid,**kwargs):
         argv=kwargs['argv'];assert argv[0]==str(exe) and '--create-if-missing' in argv
         title=argv[argv.index('-c')+1]
-        with sqlite3.connect(Path(connect['path'])/'state.db') as db:
+        with closing(sqlite3.connect(Path(connect['path'])/'state.db')) as db, db:
             db.execute('INSERT INTO sessions(id,title,started_at,cwd) VALUES(?,?,?,?)',('harness-created-immutable-id',title,2000,str(root/'existing')))
         owner.db.execute("UPDATE sessions SET status='running',pid=12345 WHERE id=?",(sid,));owner.db.commit()
         owner.live[sid]=dict(fd=1,attached=False,process_generation='synthetic-'+sid)

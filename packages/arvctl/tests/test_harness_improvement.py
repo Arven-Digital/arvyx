@@ -3,11 +3,14 @@ import json
 import sys
 from dataclasses import replace
 
+import os
 import pytest
 
 from arvyx_control.agent_sessions import AgentSessions, SessionTarget
 from arvyx_control.organizer_authority import OrganizerAuthority
 from arvyx_control.harness_improvement import HarnessImprovement, ProbeSpec
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the owned-command broker supervises with POSIX process groups and is POSIX-only')
 
 
 @pytest.fixture

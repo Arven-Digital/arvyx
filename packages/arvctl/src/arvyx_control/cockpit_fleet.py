@@ -11,6 +11,13 @@ from typing import Any
 from .cockpit_client import reserved_deadline, absolute_deadline, deadline_lock, checkpoint
 
 
+# One fleet read: the local snapshot plus the sequential fan-out to every remote host
+# must finish inside this budget; a host that does not answer in time is reported
+# offline with its cached sessions. Tests on slow hosted runners widen it.
+SNAPSHOT_BUDGET_SECONDS = 1.0
+SNAPSHOT_RESERVE_SECONDS = 0.5
+
+
 class FleetCockpit:
     def __init__(self, owner, endpoints):
         self.owner = owner
@@ -59,7 +66,7 @@ class FleetCockpit:
         # Anchor before the local snapshot too. Fanout is sequential: there is
         # no executor backlog or timed-out worker continuing in the background.
         try:
-            with reserved_deadline(1.0, .5) as fanout_end:
+            with reserved_deadline(SNAPSHOT_BUDGET_SECONDS, SNAPSHOT_RESERVE_SECONDS) as fanout_end:
                 pass
         except TimeoutError:
             fanout_end = time.monotonic()

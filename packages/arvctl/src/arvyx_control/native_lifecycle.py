@@ -6,6 +6,7 @@ Reopen never renews authority and never replays effects.
 """
 from dataclasses import asdict
 import hashlib,json,secrets,time
+from . import safe_open
 from .session_workspaces import encoded
 from .reviewed_actions import assert_consent_active, consent_scope, current_consent_expiry
 
@@ -175,7 +176,7 @@ class NativeLifecycle:
                             if current!=snapshot['workspace']:raise ValueError('workspace changed')
                             assert_consent_active()
                             os.mkdir(leaf,0o700,dir_fd=parent);os.fsync(parent)
-                            fd=os.open(leaf,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=parent)
+                            fd=safe_open.open_directory_at(parent,leaf)
                             try:created=[os.fstat(fd).st_dev,os.fstat(fd).st_ino]
                             finally:os.close(fd)
                         check=self.workspace_request(request);check['workspace']=dict(check['workspace'],mode='existing')

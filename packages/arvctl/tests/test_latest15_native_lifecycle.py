@@ -3,6 +3,7 @@ from arvyx_control.local_executor import ExecutionPolicy
 import os
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import threading
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -18,6 +19,8 @@ from arvyx_control.hermes_profile import HermesProfile
 from arvyx_control.replica_authority import authority_context
 from arvyx_control.control import create_task
 
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
+
 
 @pytest.fixture
 def profile(tmp_path, monkeypatch):
@@ -25,7 +28,7 @@ def profile(tmp_path, monkeypatch):
     home.mkdir(mode=0o700)
     workspace = tmp_path/'workspace'
     workspace.mkdir()
-    with sqlite3.connect(home/'state.db') as db:
+    with closing(sqlite3.connect(home/'state.db')) as db, db:
         db.execute('CREATE TABLE sessions(id TEXT,cwd TEXT,end_reason TEXT)')
         db.executemany('INSERT INTO sessions VALUES(?,?,NULL)', [('one', str(workspace)), ('two', str(workspace))])
     # Only admission tests explicitly supply synthetic proc data below.

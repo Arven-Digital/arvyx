@@ -1,6 +1,5 @@
 """Lane 01 deadline regressions: disposable vaults, no native/service starts."""
 from contextlib import contextmanager
-import fcntl
 import importlib.util
 import inspect
 import json
@@ -14,9 +13,12 @@ import pytest
 
 from arvyx_control import promotion_transaction as tx
 from arvyx_control import snapshot_guard as guard
-from arvyx_control.locks import vault_lock
+from arvyx_control.locks import try_exclusive_lock, vault_lock
 
-_fixture_fork = os.fork
+# The deadline fixtures fork helper children and hold flock-style locks; both are POSIX.
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='fork-based deadline fixtures are POSIX-only')
+
+_fixture_fork = getattr(os, 'fork', None)
 
 
 @pytest.fixture
@@ -158,11 +160,10 @@ def test_copy_keeps_lock_and_original_body_error(tmp_path, children):
     with pytest.raises(CopyFailure):
         with guard.snapshot_preparation(tmp_path, deadline=time.monotonic() + 2):
             with (tmp_path / '.arvyx/vault.lock').open('a+') as handle:
-                with pytest.raises(BlockingIOError):
-                    fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                assert not try_exclusive_lock(handle)
             raise CopyFailure('fixture copy failed')
     with (tmp_path / '.arvyx/vault.lock').open('a+') as handle:
-        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        assert try_exclusive_lock(handle)
     assert_reaped(children)
 
 

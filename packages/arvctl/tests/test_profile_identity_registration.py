@@ -14,6 +14,13 @@ from arvyx_control.cockpit_primary import compatible_native_identity
 from arvyx_control.registry_enrollment import preflight, register_profile_identity
 
 
+def _private(path):
+    if os.name == 'posix':
+        return oct(os.stat(path).st_mode & 0o777) == '0o600'
+    from arvyx_control import windows_acl
+    return windows_acl.private_path_problem(str(path)) is None
+
+
 def _candidate(owner, profile, local_id='one'):
     candidate = dict(id='hermes:profile:' + local_id, family='hermes', label='Hermes', kind='profile',
                      local_id=local_id, path=str(profile / 'config.yaml'),
@@ -45,7 +52,7 @@ def test_registration_requires_review_and_creates_permissionless_compatible_iden
     assert record['machine_id'] == owner.extension.machine
     runtime = json.loads((_registry(owner) / 'runtimes' / (record['runtime_id'] + '.json')).read_text())
     assert runtime['harness'] == 'hermes'
-    assert oct(os.stat(_registry(owner) / 'agents' / (agent_id + '.json')).st_mode & 0o777) == '0o600'
+    assert _private(_registry(owner) / 'agents' / (agent_id + '.json'))
     assert compatible_native_identity(owner.extension.vault, agent_id, owner.extension.machine, 'hermes')
     # Registration is not connection: no target exists until the separate review.
     assert call('targets')[1]['items'] == []

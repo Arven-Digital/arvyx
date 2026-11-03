@@ -85,7 +85,7 @@ def test_socket_trickle_cannot_hold_policy_revocation(tmp_path):
             prepared=service.route('delegations/prepare','POST',body())[1];result=[]
             def dispatch():
                 with authority_context(tmp_path/'vault'):result.append(service.route('delegations/commit','POST',consent(prepared)))
-            worker=threading.Thread(target=dispatch);worker.start();assert received.wait(2)
+            worker=threading.Thread(target=dispatch);worker.start();assert received.wait(20)  # setup synchronization; the revocation bound is below
             start=time.monotonic();other.set_organizer(other_actor,False);elapsed=time.monotonic()-start
             worker.join(2)
             assert not worker.is_alive() and elapsed<1.5

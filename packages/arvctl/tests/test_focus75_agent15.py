@@ -3,6 +3,9 @@ from types import SimpleNamespace
 from unittest.mock import patch
 import pytest
 from test_hermes_history import history
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
 
 
 def test_delayed_native_inspection_never_dispatches_attachment():

@@ -8,6 +8,8 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+from . import safe_open
+from . import private_paths
 from .security import bounded_json_loads
 import os
 from pathlib import Path
@@ -223,8 +225,8 @@ def build_local_server(connection, frontend, *, operator_secret, port=0, capabil
 
 def write_browser_connection(path, origin, capability):
     """Explicit local handoff only, never overwrite an existing file or symlink."""
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
-    with os.fdopen(fd, 'w') as stream:
+    fd = safe_open.open_file(path, write=True, create=True, exclusive=True, mode=0o600)
+    with os.fdopen(fd, 'w', newline="\n") as stream:
         json.dump(dict(origin=origin, capability=capability, mode='real-local'), stream)
         stream.write('\n')
 
@@ -258,7 +260,7 @@ def main():
         from .external_workspace import _read
         p=args.operator_credential_file
         raw,identity,_=_read(p.parent,(p.name,),4096)
-        if identity[2]&0o077:raise ValueError('operator credential must be private')
+        if not private_paths.is_private_mode(identity[2],path=p):raise ValueError('operator credential must be private')
         credential=raw.decode().strip()
     server = build_local_server(args.connection, args.frontend,
                                 operator_secret=credential or getpass.getpass('Existing AMC operator shared secret (server only): '), port=args.port,

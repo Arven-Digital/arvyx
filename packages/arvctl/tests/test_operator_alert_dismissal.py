@@ -1,4 +1,5 @@
 """Synthetic alert-only cancellation; never embeds production histories."""
+import contextlib
 import hashlib
 import json
 from pathlib import Path
@@ -280,7 +281,7 @@ class AlertDismissalTests(unittest.TestCase):
         self.apply(dry_run=False)
         database = Path(self.tmp.name)/'cold.sqlite'
         sync_sqlite(self.state, database)
-        with sqlite3.connect(database) as connection:
+        with contextlib.closing(sqlite3.connect(database)) as connection, connection:
             row = connection.execute('SELECT status,pending,done_at FROM threads WHERE id=?', (self.alert.id,)).fetchone()
         self.assertIsNotNone(row)
         self.assertEqual(('retired', 0, ''), row)

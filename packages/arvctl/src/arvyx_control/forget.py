@@ -41,6 +41,7 @@ import re
 import stat as stat_module
 import uuid
 
+from . import safe_open
 from .promotion_transaction import memory_mutation
 from .forget_guard import assert_copyable_forget_operations, _read_regular_nofollow
 from .filesystem import fsync_directory
@@ -131,7 +132,7 @@ def soft_forget(
         archive_rel = f"excluded/forgotten/{batch_id}/{token}.original"
         tombstone_rel = f"excluded/forgotten/{batch_id}/{token}.tombstone.json"
         status = "dry-run" if dry_run else "forgotten"
-        tombstone = resolve_under(root, *tombstone_rel.split("/")[:-1]) / tombstone_rel.split("/")[-1]
+        tombstone = resolve_under(root, *tombstone_rel.split("/"))
         if _lexists_regular(source):
             digest = hashlib.sha256(_read_regular_nofollow(source, root)).hexdigest()
         elif not dry_run and _lexists_regular(tombstone):
@@ -146,7 +147,7 @@ def soft_forget(
         if dry_run:
             return result
 
-        archive = resolve_under(root, *archive_rel.split("/")[:-1]) / archive_rel.split("/")[-1]
+        archive = resolve_under(root, *archive_rel.split("/"))
         operation = _operation_path(root, idempotency_key)
         metadata = {
             **result.to_dict(),
@@ -238,7 +239,7 @@ def restore_forgotten(
         archive_parts = PurePosixPath(archive_path).parts
         if not archive_parts:
             raise ValueError("tombstone has invalid archive path")
-        archive = resolve_under(root, *archive_parts[:-1]) / archive_parts[-1]
+        archive = resolve_under(root, *archive_parts)
         digest = str(metadata.get("content_sha256", ""))
         try:
             archive_bytes = _read_regular_nofollow(archive, root)
@@ -421,7 +422,7 @@ def _resolve_tombstone(root: Path, source_path: str) -> Path:
     parts = PurePosixPath(source_path).parts
     if len(parts) != 4 or parts[:2] != ("excluded", "forgotten") or not parts[-1].endswith(".tombstone.json"):
         raise ValueError("tombstone_path must be an exact excluded/forgotten tombstone path")
-    path = resolve_under(root, *parts[:-1]) / parts[-1]
+    path = resolve_under(root, *parts)
     if not _lexists_regular(path):
         raise FileNotFoundError(source_path)
     return path
@@ -431,7 +432,7 @@ def _validate_id(label: str, value: str) -> str:
     normalized = value.strip()
     if not _ID_RE.fullmatch(normalized):
         raise ValueError(f"{label} must be 3-128 safe identifier characters")
-    return normalized
+    return safe_open.component(normalized)
 
 
 def _validate_key(value: str) -> str:
@@ -440,7 +441,7 @@ def _validate_key(value: str) -> str:
         raise ValueError("idempotency_key contains a secret-shaped string")
     if not _KEY_RE.fullmatch(normalized):
         raise ValueError("idempotency_key must be 16-256 safe identifier characters")
-    return normalized
+    return safe_open.component(normalized)
 
 
 def _operation_path(root: Path, key: str) -> Path:
@@ -505,7 +506,7 @@ def _atomic_write_bytes_via(temporary: Path, final: Path, payload: bytes) -> Non
         handle.write(payload)
         handle.flush()
         os.fsync(handle.fileno())
-    os.replace(temporary, final)
+    safe_open.replace_path(temporary, final)
     _fsync_dir(final.parent)
 
 

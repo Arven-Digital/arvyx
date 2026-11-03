@@ -1,3 +1,4 @@
+import contextlib
 from arvyx_control.replica_authority import authority_context
 """Synthetic-only diagnostics contracts; never read a live state store."""
 import json
@@ -74,7 +75,7 @@ class DiagnosticsTests(unittest.TestCase):
             with self.subTest(kind=kind), tempfile.TemporaryDirectory() as tmp:
                 path = Path(tmp)/'foreign.sqlite'
                 if kind in ('projection', 'empty-sqlite', 'lookalike'):
-                    with sqlite3.connect(path) as db:
+                    with contextlib.closing(sqlite3.connect(path)) as db, db:
                         db.execute('PRAGMA user_version=17')
                         if kind != 'empty-sqlite':
                             db.execute('CREATE TABLE control_events (payload TEXT)')
@@ -115,7 +116,7 @@ class DiagnosticsTests(unittest.TestCase):
                     reporter.close()
             with ThreadPoolExecutor(max_workers=4) as pool:
                 list(pool.map(writer, range(4)))
-            with sqlite3.connect(path) as db:
+            with contextlib.closing(sqlite3.connect(path)) as db, db:
                 self.assertEqual(db.execute('PRAGMA application_id').fetchone()[0], 0x414D4344)
                 self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 1)
                 self.assertEqual(db.execute('SELECT sum(count) FROM groups').fetchone()[0], 40)
@@ -292,7 +293,7 @@ class DiagnosticsTests(unittest.TestCase):
             reporter = Reporter(path)
             reporter.capture(RuntimeError(), component='api', code='boundary')
             reporter.flush()
-            with sqlite3.connect(path) as db:
+            with contextlib.closing(sqlite3.connect(path)) as db, db:
                 db.execute('BEGIN EXCLUSIVE')
                 started = time.monotonic()
                 for _ in range(400):
@@ -308,7 +309,7 @@ class DiagnosticsTests(unittest.TestCase):
 
     def test_browser_script_reports_fixed_metadata_and_renders(self):
         import subprocess
-        html = (Path(__file__).parents[1]/'src/arvyx_control/static/index.html').read_text()
+        html = (Path(__file__).parents[1]/'src/arvyx_control/static/index.html').read_text(encoding='utf-8')
         self.assertIn('AMC_DIAGNOSTICS_BEGIN', html)
         script = html.split('// AMC_DIAGNOSTICS_BEGIN')[1].split('// AMC_DIAGNOSTICS_END')[0]
         harness = '''const assert = require('node:assert/strict');
@@ -327,6 +328,22 @@ console.log('browser metadata and rendering verified'); })();'''
         result = subprocess.run(['node', '-e', harness+script+check], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_retention_ties_keep_the_newest_group(self):
+        # A coarse clock (Windows time.time() before Python 3.13) stamps several
+        # observations with the same time; the bound must still drop the oldest.
+        from unittest import mock
+        from arvyx_control import diagnostics
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(diagnostics.time, 'time', lambda: 1_700_000_000.0):
+            reporter = diagnostics.Reporter(Path(tmp)/'errors.sqlite', max_groups=2)
+            for code in ('first', 'second', 'third'):
+                reporter.capture(RuntimeError(), component='api', code=code)
+            reporter.client({'kind': 'error'})
+            self.assertTrue(reporter.flush(timeout=10))
+            feed = reporter.feed(0)
+            self.assertEqual([e['component'] for e in feed['events'][-2:]], ['api', 'browser'])
+            self.assertEqual(feed['events'][-1]['trust'], 'untrusted-client')
+            self.assertEqual(len(reporter.read()['groups']), 2)
+
     def test_feed_carries_trust_and_retention_is_bounded(self):
         from arvyx_control.diagnostics import Reporter
         import sqlite3
@@ -342,7 +359,7 @@ console.log('browser metadata and rendering verified'); })();'''
             self.assertEqual(feed['events'][-1]['trust'], 'untrusted-client')
             self.assertEqual(feed['events'][-1]['component'], 'browser')
             self.assertEqual(feed['checkpoint'], feed['cursor'])
-            with sqlite3.connect(reporter.path) as db:
+            with contextlib.closing(sqlite3.connect(reporter.path)) as db, db:
                 db.execute('DELETE FROM feed WHERE id < 4')
             self.assertTrue(reporter.feed(1)['gap'])
             reporter.close()
@@ -357,7 +374,7 @@ console.log('browser metadata and rendering verified'); })();'''
             self.assertTrue(reporter.flush())
             cursor = reporter.feed()['cursor']
             reporter.close()
-            with sqlite3.connect(path) as db:
+            with contextlib.closing(sqlite3.connect(path)) as db, db:
                 db.execute('UPDATE retention SET floor=? WHERE singleton=1', (cursor,))
                 db.execute('DELETE FROM feed')
             observer = Reporter(path, observer=True)
@@ -375,7 +392,7 @@ console.log('browser metadata and rendering verified'); })();'''
         with tempfile.TemporaryDirectory() as tmp:
             reporter = Reporter(Path(tmp)/'errors.sqlite')
             with patch.object(diagnostics, '_reporter', reporter), patch.object(mcp, 'append_audit', side_effect=OSError('SECRET')):
-                result = mcp._audit_secret_resolve(params={'name':'secret.resolve','arguments':{'ref':'synthetic'}}, audit_log=Path(tmp)/'audit', require_audit=True, surface='mcp', actor=None, allowed_tools={'secret.resolve'})
+                result = mcp._audit_reference_resolve(params={'name':'secret.resolve','arguments':{'ref':'synthetic'}}, audit_log=Path(tmp)/'audit', require_audit=True, surface='mcp', actor=None, allowed_tools={'secret.resolve'})
                 self.assertIn('refusing', result)
                 reporter.flush()
                 self.assertEqual(reporter.read()['groups'][0]['code'], 'secret_audit')
@@ -489,7 +506,7 @@ console.log('browser metadata and rendering verified'); })();'''
         with tempfile.TemporaryDirectory() as tmp:
             reporter = Reporter(Path(tmp)/'errors.sqlite')
             reporter.flush()
-            with sqlite3.connect(reporter.path) as db:
+            with contextlib.closing(sqlite3.connect(reporter.path)) as db, db:
                 db.execute('BEGIN EXCLUSIVE')
                 reporter.capture(RuntimeError(), component='worker', code='contention')
                 time.sleep(.35)

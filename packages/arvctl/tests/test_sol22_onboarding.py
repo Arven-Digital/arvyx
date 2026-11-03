@@ -12,7 +12,7 @@ def test_sol22_cli_reviews_individual_bounded_pages(tmp_path, text):
     from arvyx_control.agent_creation import _IDENTITY
     paths = sorted(_IDENTITY)
     for path in paths:
-        (tmp_path / path).write_text(text)
+        (tmp_path / path).write_text(text, encoding='utf-8')
     from arvyx_control.hermes_history import HermesHistory
     from arvyx_control.agent_sessions import AgentSessions
     history = HermesHistory(tmp_path)

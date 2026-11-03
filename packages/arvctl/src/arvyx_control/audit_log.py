@@ -51,7 +51,7 @@ def _persist_audit(path: Path, record: dict[str, Any] | None = None) -> None:
     from .replica_authority import assert_bound_authority
     assert_bound_authority()
     durable_mkdir(path.parent)
-    with path.open("a" if record is not None else "r+", encoding="utf-8") as handle:
+    with path.open("a" if record is not None else "r+", encoding="utf-8", newline="\n") as handle:
         if record is not None:
             handle.write(json.dumps(record, sort_keys=True) + "\n")
         handle.flush()

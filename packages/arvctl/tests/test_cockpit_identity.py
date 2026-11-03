@@ -31,9 +31,14 @@ class LaunchIdentityTests(unittest.TestCase):
             path = Path(tmp) / 'operator.secret'
             path.write_text('fixture-operator-credential\n')
             os.chmod(path, 0o644)
+            if os.name == 'nt':  # modes mean nothing here: widen the DACL to Users instead
+                import subprocess
+                subprocess.run(['icacls', str(path), '/grant', '*S-1-5-32-545:R'], check=True, capture_output=True)
             with patch.dict('os.environ', {}, clear=True), self.assertRaises(ValueError):
                 cockpit.configured_team(Path('vault'), Path('state'), path)
             os.chmod(path, 0o600)
+            if os.name == 'nt':
+                subprocess.run(['icacls', str(path), '/remove:g', '*S-1-5-32-545'], check=True, capture_output=True)
             # Two explicit credentials at once is a configuration error, not a precedence rule.
             with patch.dict('os.environ', {'AMC_COCKPIT_AUTHORIZATION': bearer('fixture-existing')}, clear=True):
                 with self.assertRaises(ValueError):

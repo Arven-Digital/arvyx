@@ -1,5 +1,6 @@
 """New-workspace preparation via real authenticated handlers, no native launch."""
-import json,sqlite3
+from contextlib import closing
+import json,os,sqlite3
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -8,11 +9,16 @@ from test_local_onboarding_services import services
 from test_local_handler_wire import request
 from arvyx_control.public_onboarding_api import handler_for
 
+def private(path):
+    if os.name=='posix': return path.stat().st_mode&0o777==0o700
+    from arvyx_control import windows_acl
+    return windows_acl.private_path_problem(str(path)) is None
+
 @pytest.fixture
 def journey(services,tmp_path):
     api,_,profile,root=services
     workspace=tmp_path/'work';workspace.mkdir(mode=0o700);(workspace/'existing').mkdir()
-    with sqlite3.connect(profile/'state.db') as db:
+    with closing(sqlite3.connect(profile/'state.db')) as db, db:
         db.execute('ALTER TABLE sessions ADD COLUMN cwd TEXT');db.execute('ALTER TABLE sessions ADD COLUMN end_reason TEXT')
         db.execute('UPDATE sessions SET cwd=?',(str(workspace/'existing'),))
     api.owners['local-owner'].extension.workspace_roots={'work':workspace}
@@ -42,7 +48,7 @@ def test_actual_http_prepare_commit_new_workspace_is_reviewed_and_single_use(jou
     with patch('subprocess.Popen') as process:
         status,result=call('sessions/commit',commit(preview));assert status==201,result
         process.assert_not_called()
-    assert (root/'fresh').is_dir() and (root/'fresh').stat().st_mode&0o777==0o700
+    assert (root/'fresh').is_dir() and private(root/'fresh')
     assert result['status']=='workspace_ready' and result['native_session_created'] is False
     assert result['execution'] is False and result['target']==target
     assert call('sessions/commit',commit(preview))[0]==400
@@ -79,11 +85,12 @@ def test_traversal_symlink_preexisting_destination_and_execution_denied(journey)
 
 def test_recorded_workspace_can_be_the_authorized_root_itself(journey):
     _,call,target,root,connect=journey
-    with sqlite3.connect(Path(connect['path'])/'state.db') as db:db.execute('UPDATE sessions SET cwd=?',(str(root),))
+    with closing(sqlite3.connect(Path(connect['path'])/'state.db')) as db, db:db.execute('UPDATE sessions SET cwd=?',(str(root),))
     status,p=call('sessions/prepare',plan(target,'current'));assert status==200,p
     assert call('sessions/commit',commit(p))[1]['workspace']==str(root)
 
 
+@pytest.mark.skipif(os.name!='posix',reason='directory fsync barriers are not performed on Windows (docs/limitations.md, Windows durability)')
 def test_changed_root_and_ambiguous_directory_effect_are_never_replayed(journey):
     api,call,target,root,_=journey
     p=call('sessions/prepare',plan(target))[1]

@@ -38,6 +38,7 @@ class BrokerBoundsTests(unittest.TestCase):
     def command(self, code, timeout=2):
         return self.resolve({'provider': 'command', 'command': [sys.executable, '-c', code, '{path}'], 'timeout_seconds': timeout})
 
+    @unittest.skipUnless(os.name == 'posix', 'the owned-command broker supervises with POSIX process groups and is POSIX-only')
     def test_command_each_stream_is_bounded_before_decode(self):
         with patch.object(brokers, 'MAX_SECRET_BYTES', 1024):
             for fd in (1, 2):
@@ -46,6 +47,7 @@ class BrokerBoundsTests(unittest.TestCase):
                         self.command(f'import os; os.write({fd}, b"x" * 8192 + {suffix!r}); os.write(1, b"ok")')
             self.assertEqual(self.command('import os; os.write(2, b"x" * 1024); os.write(1, b"ok")'), 'ok')
 
+    @unittest.skipUnless(os.name == 'posix', 'the owned-command broker supervises with POSIX process groups and is POSIX-only')
     def test_concurrent_stream_collection_and_nonzero_exit(self):
         self.assertEqual(self.command('import os; [(os.write(2,b"e"*4096),os.write(1,b"o"*4096)) for _ in range(8)]'), 'o' * 32768)
         with self.assertRaises(brokers.BrokerError):
@@ -68,6 +70,7 @@ class BrokerBoundsTests(unittest.TestCase):
             self.command('import os,time; os.close(1); os.close(2); time.sleep(4)', 0.15)
         self.assertLess(time.monotonic() - started, 1.5)
 
+    @unittest.skipUnless(os.name == 'posix', 'the owned-command broker supervises with POSIX process groups and is POSIX-only')
     def test_cleanup_never_signals_after_other_reaper_lost_child_identity(self):
         from unittest.mock import Mock
         process = Mock(pid=410, returncode=None, stdin=None, stdout=None, stderr=None)
@@ -79,6 +82,7 @@ class BrokerBoundsTests(unittest.TestCase):
         process.wait.assert_called_once_with(timeout=1.0)
         self.assertNotIn('private-detail', str(failure.exception))
 
+    @unittest.skipUnless(os.name == 'posix', 'the owned-command broker supervises with POSIX process groups and is POSIX-only')
     def test_cleanup_keeps_unreaped_leader_until_after_group_signal(self):
         from unittest.mock import Mock
         process = Mock(pid=410, returncode=None, stdin=None, stdout=None, stderr=None)

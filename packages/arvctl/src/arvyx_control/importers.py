@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from contextlib import nullcontext
+from contextlib import closing, nullcontext
 from dataclasses import dataclass
 from datetime import UTC
 from datetime import datetime
@@ -11,6 +11,7 @@ import re
 import stat
 import uuid
 
+from . import safe_open
 from .filesystem import MAX_MEMORY_DOCUMENT_BYTES, durable_mkdir, fsync_directory, memory_document_bytes
 from .memory_frontmatter import render_frontmatter, split_frontmatter
 
@@ -156,7 +157,7 @@ def _write_manifest(
         "imported_count": len(imported),
         "skipped_count": len(skipped),
     }
-    with manifest.open("a", encoding="utf-8") as handle:
+    with manifest.open("a", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(event, sort_keys=True) + "\n")
         handle.flush()
         os.fsync(handle.fileno())
@@ -216,7 +217,7 @@ def _capture_inputs(source: Path):
         files += 1
         if files > MAX_IMPORT_FILES:
             raise ValueError('import file budget exceeded')
-        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent_fd)
+        fd = safe_open.open_file_at(parent_fd, name)
         with os.fdopen(fd, 'rb') as stream:
             if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
                 raise ValueError('import requires regular source files')
@@ -234,32 +235,32 @@ def _capture_inputs(source: Path):
         nonlocal count
         if depth > 32:
             raise ValueError('import depth budget exceeded')
-        with os.scandir(fd) as entries:
-            for entry in entries:
+        with closing(safe_open.scandir_names(fd)) as names_iter:
+            for name in names_iter:
                 count += 1
                 if count > MAX_IMPORT_ENTRIES:
                     raise ValueError('import enumeration budget exceeded')
-                info = entry.stat(follow_symlinks=False)
-                child_path = path / entry.name
+                info = safe_open.stat_at(fd, name)
+                child_path = path / name
                 if stat.S_ISDIR(info.st_mode):
-                    child = os.open(entry.name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+                    child = safe_open.open_directory_at(fd, name)
                     try:
                         walk(child, child_path, depth + 1)
                     finally:
                         os.close(child)
                 elif stat.S_ISREG(info.st_mode):
-                    capture(fd, entry.name, child_path)
-                elif entry.name.lower().endswith('.md'):
+                    capture(fd, name, child_path)
+                elif name.lower().endswith('.md'):
                     skipped.append(f'input-entry-{count}:outside-source')
 
     if source.is_file():
-        fd = os.open(source.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        fd = safe_open.open_directory(source.parent)
         try:
             capture(fd, source.name, source)
         finally:
             os.close(fd)
     else:
-        fd = os.open(source, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        fd = safe_open.open_directory(source)
         try:
             walk(fd, source, 0)
         finally:

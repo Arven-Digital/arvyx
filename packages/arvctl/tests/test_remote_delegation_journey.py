@@ -6,6 +6,9 @@ from arvyx_control.public_onboarding_api import handler_for
 from test_local_handler_wire import request as wire_request
 from test_completion_fix5_F import lane,journey,services
 from test_completion_fix5_remote_fence import remote,fence_authority,prepare,commit
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 
 
 @pytest.mark.parametrize('lane',['root'],indirect=True)

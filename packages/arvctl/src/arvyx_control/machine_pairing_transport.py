@@ -2,6 +2,8 @@
 import base64
 import hashlib
 import json
+from . import safe_open
+from . import private_paths
 from .security import bounded_json_loads
 import os
 from pathlib import Path
@@ -42,8 +44,9 @@ def _crypto():
 
 def private_directory(path):
     path = Path(path)
-    path.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if path.is_symlink() or path.stat().st_uid != os.getuid() or stat.S_IMODE(path.stat().st_mode) & 0o077:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    private_paths.ensure_private_directory(path, mode=0o700)
+    if path.is_symlink() or not private_paths.owner_private(path.stat(), path=path):
         raise ValueError('state directory must be owned by current user and mode 0700')
     return path
 
@@ -51,14 +54,14 @@ def private_directory(path):
 def load_identity(directory):
     private, _, serialization = _crypto()
     directory = private_directory(directory)
-    directory_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    directory_fd = safe_open.open_directory(directory)
     temporary = '.identity-' + secrets.token_hex(16)
     owned = False
     try:
         try:
-            os.stat('identity.key', dir_fd=directory_fd, follow_symlinks=False)
+            safe_open.stat_at(directory_fd, 'identity.key')
         except FileNotFoundError:
-            fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=directory_fd)
+            fd = safe_open.open_file_at(directory_fd, temporary, write=True, create=True, exclusive=True, mode=0o600)
             owned = True
             with os.fdopen(fd, 'wb') as stream:
                 raw = private.generate().private_bytes(serialization.Encoding.Raw, serialization.PrivateFormat.Raw, serialization.NoEncryption())
@@ -68,25 +71,25 @@ def load_identity(directory):
             try:
                 # Exclusive publication of complete bytes; a concurrent winner
                 # is retained, never rotated or overwritten by initialization.
-                os.link(temporary, 'identity.key', src_dir_fd=directory_fd, dst_dir_fd=directory_fd, follow_symlinks=False)
+                safe_open.link_at(directory_fd, temporary, 'identity.key')
             except FileExistsError:
                 pass
-        fd = os.open('identity.key', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory_fd)
+        fd = safe_open.open_file_at(directory_fd, 'identity.key')
         with os.fdopen(fd, 'rb') as stream:
             info = os.fstat(stream.fileno())
-            if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o077 or not stat.S_ISREG(info.st_mode):
+            if not private_paths.owner_private(info, fd=stream.fileno()) or not stat.S_ISREG(info.st_mode):
                 raise ValueError('identity key must be private regular file')
             try:
                 key = private.from_private_bytes(stream.read(33))
             except ValueError:
                 raise ValueError('invalid identity key; explicit identity recovery required, refusing rotation') from None
-            os.fsync(stream.fileno())
+            safe_open.fsync_file(stream.fileno())
         # Repeat the namespace barrier on retries after uncertain publication.
-        os.fsync(directory_fd)
+        safe_open.fsync_directory(directory_fd)
         return key
     finally:
         if owned:
-            os.unlink(temporary, dir_fd=directory_fd)
+            safe_open.unlink_at(directory_fd, temporary)
         os.close(directory_fd)
 
 
@@ -96,7 +99,7 @@ class PairingTransport:
         directory = private_directory(directory)
         # Precreate the DB privately before sqlite opens it.
         path = directory / 'pairing.sqlite3'
-        fd = os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        fd = safe_open.open_file(path, write=True, create=True, mode=0o600)
         os.close(fd)
         self.store = PairingStore(path, clock=clock, limit=limit)
         self.clock = clock

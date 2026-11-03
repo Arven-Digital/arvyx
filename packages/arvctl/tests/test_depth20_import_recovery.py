@@ -15,7 +15,7 @@ def test_import_stage_collision_preserves_unowned_file(tmp_path):
     from contextlib import nullcontext
     from types import SimpleNamespace
     source = tmp_path / 'note.md'
-    source.write_text('ordinary body')
+    source.write_text('ordinary body', encoding='utf-8')
     vault = tmp_path / 'vault'
     lane = vault / 'projects/demo/imported'
     lane.mkdir(parents=True)
@@ -33,7 +33,7 @@ def test_rejected_filename_does_not_escape_receipt(tmp_path):
     source = tmp_path / 'private-source'
     source.mkdir()
     token = 'ghp_' + 'a' * 36
-    (source / (token + '.md')).write_text('ordinary body')
+    (source / (token + '.md')).write_text('ordinary body', encoding='utf-8')
     vault = tmp_path / 'vault'
     vault.mkdir()
     with patch.object(imp, 'memory_mutation', lambda _: __import__('contextlib').nullcontext()):
@@ -46,7 +46,7 @@ def test_rejected_filename_does_not_escape_receipt(tmp_path):
 
 def test_failed_stage_never_publishes_markdown(tmp_path):
     source = tmp_path / 'note.md'
-    source.write_text('multibyte ' + '\N{SNOWMAN}' * 100)
+    source.write_text('multibyte ' + '\N{SNOWMAN}' * 100, encoding='utf-8')
     vault = tmp_path / 'vault'
     vault.mkdir()
     with patch.object(imp, 'memory_mutation', lambda _: __import__('contextlib').nullcontext()), patch.object(imp.os, 'fsync', side_effect=OSError('disk full')):
@@ -100,6 +100,7 @@ def test_gc_interruption_never_replays_partial_authority(tmp_path):
     assert not list(root.iterdir())
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='POSIX mode bits and umask')
 def test_marker_metadata_uses_journal_authority(tmp_path):
     journal = tmp_path / 'journal'
     journal.mkdir()

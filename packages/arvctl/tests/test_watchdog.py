@@ -1,4 +1,5 @@
 from __future__ import annotations
+import contextlib
 from contextlib import ExitStack
 
 from datetime import datetime, timedelta, timezone
@@ -1472,7 +1473,7 @@ class ExactRetirementTests(unittest.TestCase):
         self.assertEqual(project_outbox(self.state), _project_outbox_state({}, after))
         db = Path(self.tmp.name) / "projection.sqlite"
         sync_sqlite(self.state, db)
-        with sqlite3.connect(db) as conn:
+        with contextlib.closing(sqlite3.connect(db)) as conn, conn:
             row = conn.execute("SELECT status,pending,done_by,retirement_json FROM threads WHERE id=?", (alert,)).fetchone()
             self.assertEqual(row[:3], ("retired", 0, ""))
             self.assertEqual(json.loads(row[3]), _project_threads(self.state)[alert].retirement)

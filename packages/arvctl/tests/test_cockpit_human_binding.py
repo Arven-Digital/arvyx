@@ -1,3 +1,4 @@
+from contextlib import closing
 import json
 from test_cockpit_local import HarmlessOwnerConnectionTests
 
@@ -51,7 +52,7 @@ class HumanBindingTests(HarmlessOwnerConnectionTests):
         self.assertEqual(self.http('/api/local-bindings',payload)[0],200)
         reopened=HumanBindings(self.home,self.server.primary)
         self.assertEqual(reopened.connected(),['alpha'])
-        with sqlite3.connect(reopened.path) as db:
+        with closing(sqlite3.connect(reopened.path)) as db, db:
             self.assertEqual(db.execute('SELECT COUNT(*) FROM audit').fetchone()[0],1)
             db.execute('UPDATE bindings SET revision=99')
         self.assertEqual(reopened.connected(),[])

@@ -477,7 +477,7 @@ def fixture_composition(root, *, session_count=1205):
     assert_mutation_authority(vault)
     home = root / 'fixture-home'
     (home / '.hermes').mkdir(parents=True, exist_ok=True)
-    (home / '.hermes/config.yaml').write_text('# synthetic discovery marker\n')
+    (home / '.hermes/config.yaml').write_text('# synthetic discovery marker\n', newline="\n")
     profiles = root / 'profiles'
     profiles.mkdir(mode=0o700, exist_ok=True)
     creation = AgentCreation(sqlite3.connect(root / 'agents.sqlite', check_same_thread=False),

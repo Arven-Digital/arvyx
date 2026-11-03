@@ -2,6 +2,7 @@
 import hashlib
 import json
 import sqlite3
+from contextlib import closing
 import pytest
 
 @pytest.fixture
@@ -16,8 +17,8 @@ def services(tmp_path):
         directory=vault/'registry'/kind;directory.mkdir(parents=True)
         (directory/(record['id']+'.json')).write_text(json.dumps(record))
     profile=tmp_path/'profile';profile.mkdir(mode=0o700)
-    (profile/'SOUL.md').write_text('Be careful and cite sources.\n')
-    with sqlite3.connect(profile/'state.db') as db:
+    (profile/'SOUL.md').write_text('Be careful and cite sources.\n',newline='\n')
+    with closing(sqlite3.connect(profile/'state.db')) as db, db:
         db.executescript('CREATE TABLE sessions(id TEXT PRIMARY KEY,title TEXT,started_at REAL); CREATE TABLE messages(session_id TEXT,timestamp REAL);')
         db.executemany('INSERT INTO sessions VALUES(?,?,?)',[(str(i),f'Session {i}',i) for i in range(1205)])
     api=local_composition(root,vault=vault,machine_id='machine-a',capability='browser-test',discovery_home=home)
@@ -40,7 +41,7 @@ def test_manual_exact_identity_metadata_history_and_refresh(services):
     assert result['live_runtime'] is False
     page=call('sessions/all',dict(target=target,limit=97))[1]
     ids=[x['route']['session_id'] for x in page['items']]
-    with sqlite3.connect(profile/'state.db') as db: db.execute('INSERT INTO messages VALUES(?,?)',('0',100000))
+    with closing(sqlite3.connect(profile/'state.db')) as db, db: db.execute('INSERT INTO messages VALUES(?,?)',('0',100000))
     while page['next_cursor']:
         page=call('sessions/all',dict(target=target,limit=97,cursor=page['next_cursor']))[1]
         ids.extend(x['route']['session_id'] for x in page['items'])
@@ -94,7 +95,7 @@ def test_terminal_and_web_share_exact_creation_authority(services):
     with patch('arvyx_control.onboarding_cli.choose',side_effect=lambda *a: next(choices)),patch('builtins.input',return_value='CLI Agent'),patch('builtins.print'):
         assert menu(shared)==0
     assert call('agents')[1]['items'][0]['name']=='CLI Agent'
-    with sqlite3.connect(root/'agents.sqlite') as db:
+    with closing(sqlite3.connect(root/'agents.sqlite')) as db, db:
         assert db.execute('SELECT status FROM onboarding_consents').fetchone()[0]=='completed'
 
 

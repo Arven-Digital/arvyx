@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
@@ -58,7 +59,7 @@ def connected_history(services):  # noqa: F811
     # Rebuild the synthetic profile's metadata in place (same state.db inode as the
     # fixture) with a Hermes-like schema: archived, hidden, child and ended rows,
     # out-of-ID-order activity and a transcript body that must never be exposed.
-    with sqlite3.connect(profile / 'state.db') as db:
+    with closing(sqlite3.connect(profile / 'state.db')) as db, db:
         db.executescript('''DROP TABLE sessions; DROP TABLE messages;
             CREATE TABLE sessions(id TEXT PRIMARY KEY,title TEXT,started_at REAL,ended_at REAL,
                 end_reason TEXT,cwd TEXT,parent_session_id TEXT,archived INTEGER,hidden INTEGER);
@@ -90,7 +91,7 @@ def test_native_last5_is_activity_ordered_persisted_history_not_running_bindings
     # Nothing is running: there is no owner, pane or binding in this composition.
     assert 'SYNTHETIC TRANSCRIPT BODY' not in json.dumps(response)
     # Refresh: new activity on a stopped, old segment is reflected on the next call.
-    with sqlite3.connect(profile / 'state.db') as db:
+    with closing(sqlite3.connect(profile / 'state.db')) as db, db:
         db.execute("INSERT INTO messages(session_id,timestamp,content) VALUES(?,?,'x')", (_sid(5), 20_000.0))
     refreshed = call('sessions/recent', {'target': target})[1]['items']
     assert refreshed[0]['route']['session_id'] == _sid(5)
@@ -136,6 +137,7 @@ def test_native_all_cursor_expiry_and_cross_query_reuse_are_refused(connected_hi
     assert status != 200 and 'items' not in response
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='Linux x86_64 admitted native artifact and PTY presentation')
 def test_native_shared_chooser_requires_onboarding_v1_and_admitted_artifact_refuses(tmp_path):
     """The legacy mouse-only digest lacks onboarding-v1; the shared chooser fails closed on it.
 
@@ -223,6 +225,7 @@ def sandbox_owner(tmp_path):
     owner.close()
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='POSIX host_uid and PTY sandbox execution')
 def test_rev0538_ordinary_launcher_sandbox_refuses_before_any_effect(sandbox_owner):
     from arvyx_control.local_executor import ExecutionPolicy
     owner, sid, launcher = sandbox_owner
@@ -234,6 +237,7 @@ def test_rev0538_ordinary_launcher_sandbox_refuses_before_any_effect(sandbox_own
     assert owner._get(sid)['status'] == 'stopped'
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='POSIX host_uid and PTY sandbox execution')
 def test_rev0538_replacement_after_final_admission_keeps_pinned_mount_source(sandbox_owner, tmp_path):
     from arvyx_control.local_executor import ExecutionPolicy
     owner, sid, launcher = sandbox_owner
@@ -286,6 +290,8 @@ from test_completion_fix4_C import native_owner  # noqa: E402,F401  (fixture)
 from test_session_workspace_journey import journey  # noqa: E402,F401  (fixture)
 
 
+
+
 def _presentation_fixture(owner, ext, connect, tmp_path):
     from arvyx_control.cockpit_native_runtime import NativeRuntime
     from arvyx_control.native_presentation import NativePresentation
@@ -295,7 +301,7 @@ def _presentation_fixture(owner, ext, connect, tmp_path):
     owner.native_runtimes['hermes'] = NativeRuntime(tool='hermes', executable=exe, home=connect['path'],
                                                     store=Path(connect['path']) / 'state.db')
     workspace = None
-    with sqlite3.connect(Path(connect['path']) / 'state.db') as db:
+    with closing(sqlite3.connect(Path(connect['path']) / 'state.db')) as db, db:
         workspace = db.execute("SELECT cwd FROM sessions WHERE id='1204'").fetchone()[0]
     sid = 'exact-owner-session'
     owner.db.execute("INSERT INTO sessions VALUES(?,NULL,NULL,'exact',?,'running',NULL,'local')", (sid, workspace))
@@ -339,6 +345,7 @@ def _presentation_fixture(owner, ext, connect, tmp_path):
     return sid, state, RecordedNative, focus
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='Linux x86_64 admitted native artifact and PTY presentation')
 def test_rev0103_metadata_select_is_inert_and_present_attaches_exact_running_conversation(native_owner, tmp_path):
     owner, producer, ext, call, target, root, connect = native_owner
     sid, state, RecordedNative, focus = _presentation_fixture(owner, ext, connect, tmp_path)
@@ -364,6 +371,7 @@ def test_rev0103_metadata_select_is_inert_and_present_attaches_exact_running_con
     assert [tuple(r) for r in owner.db.execute('SELECT session,pane FROM native_frontend_panes')] == [(sid, 'w_1-1')]
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='Linux x86_64 admitted native artifact and PTY presentation')
 def test_rev0103_stale_process_generation_or_admitted_artifact_refuses_presentation(native_owner, tmp_path):
     owner, producer, ext, call, target, root, connect = native_owner
     sid, state, RecordedNative, focus = _presentation_fixture(owner, ext, connect, tmp_path)
@@ -384,6 +392,7 @@ def test_rev0103_stale_process_generation_or_admitted_artifact_refuses_presentat
     assert owner.db.execute('SELECT count(*) FROM native_frontend_panes').fetchone()[0] == 0
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='Linux x86_64 admitted native artifact and PTY presentation')
 def test_rev0103_browser_attach_grants_exact_owner_lease_only_for_mapped_conversation(native_owner, tmp_path):
     """PublicOnboarding.tsx 'Attach existing native session' -> native/attach; no native binary."""
     owner, producer, ext, call, target, root, connect = native_owner

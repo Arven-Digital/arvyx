@@ -276,7 +276,8 @@ jobs:
           # Linux is the verified platform; macOS and Windows matrix jobs are
           # conditional and do not gate a release until their receipts exist.
           required = {'test'} | {
-              f'ubuntu-latest / Python {version}'
+              f'{os_name} / Python {version}'
+              for os_name in ('ubuntu-latest', 'windows-latest')
               for version in ('3.11', '3.12', '3.13')
           }
           for name in sorted(required):

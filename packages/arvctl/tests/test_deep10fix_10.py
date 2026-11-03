@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import tempfile
+import os
 import unittest
 from unittest.mock import Mock, patch
 from contextlib import redirect_stdout
@@ -29,6 +30,7 @@ ROOT = Path(__file__).resolve().parents[3]
 T0 = datetime(2026, 8, 20, 12, tzinfo=timezone.utc)
 
 
+@unittest.skipUnless(os.name == 'posix', 'host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 class ReturnReplayTests(unittest.TestCase):
     def setUp(self):
         self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
@@ -176,6 +178,7 @@ class MemorySocket:
         self.output.write(data)
 
 
+@unittest.skipUnless(os.name == 'posix', 'host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 class FleetIdentityTests(unittest.TestCase):
     def setUp(self):
         self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
@@ -250,6 +253,7 @@ class FleetIdentityTests(unittest.TestCase):
         self.assertEqual(start.call_count, 1)
 
 
+@unittest.skipUnless(os.name == 'posix', 'host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 class NativeHeaderSourceTests(unittest.TestCase):
     def test_r10_02_source_request_header_reaches_real_handler(self):
         # No native compilation/execution is authorized. Decode the exact wire

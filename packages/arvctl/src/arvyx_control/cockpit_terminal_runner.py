@@ -7,6 +7,7 @@ before staging text and again before the separate Enter key. A crash/partial
 write waits for human reconciliation and is never replayed.
 """
 import os
+from . import private_paths
 import json
 from pathlib import Path
 import subprocess
@@ -25,7 +26,7 @@ class JsonOperator:
                 or any(not isinstance(arg, str) or not arg or len(arg) > 4096 or '\x00' in arg for arg in argv)):
             raise ValueError('explicit bounded operator argv required')
         executable = Path(argv[0]).resolve(strict=True)
-        if not executable.is_file() or executable.stat().st_mode & 0o022 or not os.access(executable, os.X_OK):
+        if not executable.is_file() or not private_paths.not_writable_by_others(executable.stat(), path=executable) or not os.access(executable, os.X_OK):
             raise ValueError('trusted explicit operator executable required')
         self.argv = [str(executable), *argv[1:]]
         self.cwd = Path(cwd).resolve(strict=True)

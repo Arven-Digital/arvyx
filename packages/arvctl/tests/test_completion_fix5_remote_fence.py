@@ -17,6 +17,8 @@ from arvyx_control.executor_endpoint import ExecutorEndpoint
 from arvyx_control.remote_delegation import RemoteDelegationEndpoint
 from arvyx_control.replica_authority import authority_context
 
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
+
 
 def test_verified_transport_uses_the_same_pinned_ca_bytes(remote):
     """TLS factory/connection recorder; no socket or certificate acceptance."""

@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 
-from arvyx_control import cockpit_client, control
+from arvyx_control import cockpit_client, cockpit_fleet, control
 from arvyx_control.cockpit import LocalCockpit
 from arvyx_control.cockpit_fleet import FleetCockpit
 
@@ -27,6 +27,12 @@ class FleetTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
+        # These tests exercise a reachable in-process host; on a loaded hosted runner two
+        # cockpit snapshots can exceed the one-second product budget, which would report
+        # the host offline (the behaviour the budget exists for, not the one under test).
+        budget = patch.object(cockpit_fleet, 'SNAPSHOT_BUDGET_SECONDS', 30.0)
+        budget.start()
+        self.addCleanup(budget.stop)
         self.owners = []
         for host in ('host-a', 'host-b'):
             root = Path(self.temp.name) / host

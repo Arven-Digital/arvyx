@@ -1,5 +1,6 @@
 """Actual local endpoint regressions, disposable cat owner only."""
 import sqlite3
+from contextlib import closing
 from unittest.mock import patch
 import test_cockpit_human_binding as base
 from arvyx_control.cockpit_primary import PrimaryAgentRegistry
@@ -26,7 +27,7 @@ class DurableBindingTests(base.HumanBindingTests):
         registry = self.server.primary.registry
         registry.db.execute("CREATE TRIGGER fail_election BEFORE UPDATE ON primary_agent BEGIN SELECT RAISE(ABORT, 'injected disk failure'); END")
         self.assertEqual(self.http('/api/local-bindings', payload)[0], 503)
-        with sqlite3.connect(self.server.bindings.path) as db:
+        with closing(sqlite3.connect(self.server.bindings.path)) as db, db:
             self.assertEqual(db.execute('SELECT COUNT(*) FROM bindings').fetchone()[0], 0)
             self.assertEqual(db.execute('SELECT COUNT(*) FROM audit').fetchone()[0], 0)
         registry.db.execute('DROP TRIGGER fail_election')

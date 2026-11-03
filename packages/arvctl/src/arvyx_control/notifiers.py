@@ -365,7 +365,7 @@ class _FileNotifier:
             "text": text,
         }
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.open("a", encoding="utf-8") as handle:
+        with self.path.open("a", encoding="utf-8", newline="\n") as handle:
             handle.write(json.dumps(row, sort_keys=True) + "\n")
         return _delivery("file", candidate, text, "recorded", detail=str(self.path))
 

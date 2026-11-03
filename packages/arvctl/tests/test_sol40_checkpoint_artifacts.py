@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -23,7 +24,7 @@ class CompletedCheckpointArtifactTests(unittest.TestCase):
                     rebuild_index_checkpointed(root, owner="worker", now=now, max_attempts=1)
                 expected = _read_cache(root)
                 artifact = root / INDEX_RELATIVE
-                with sqlite3.connect(_journal_path(root)) as connection:
+                with closing(sqlite3.connect(_journal_path(root))) as connection, connection:
                     previous = connection.execute("SELECT generation FROM jobs").fetchone()[0]
                 payload = json.loads(artifact.read_text(encoding="utf-8"))
                 if damage == "missing":
@@ -47,7 +48,7 @@ class CompletedCheckpointArtifactTests(unittest.TestCase):
                         result = rebuild_index_checkpointed(root, owner="worker", now=now, max_attempts=1)
                 self.assertEqual(result.status, "completed")
                 self.assertEqual(_read_cache(root), expected)
-                with sqlite3.connect(_journal_path(root)) as connection:
+                with closing(sqlite3.connect(_journal_path(root))) as connection, connection:
                     generation = connection.execute("SELECT generation FROM jobs").fetchone()[0]
                 self.assertNotEqual(generation, previous)
                 with patch("arvyx_control.checkpoint_jobs._write_cache", side_effect=AssertionError("republished valid cache")):
@@ -83,7 +84,7 @@ class CompletedCheckpointArtifactTests(unittest.TestCase):
                 rebuild_index_checkpointed(root, owner="worker", now=now)
             expected = _read_cache(root)
             (root / INDEX_RELATIVE).unlink()
-            with sqlite3.connect(_journal_path(root)) as connection:
+            with closing(sqlite3.connect(_journal_path(root))) as connection, connection:
                 connection.execute("UPDATE checkpoints SET entry_json='{' WHERE relative_path='projects/bad.md'")
             with patch("arvyx_control.checkpoint_jobs._index_file", wraps=_index_file) as tokenize:
                 with authority_context(root):

@@ -13,6 +13,7 @@ Only the true external boundary is substituted: the remote target's
 import io
 import json
 import sqlite3
+from contextlib import closing
 import threading
 import time
 import uuid
@@ -24,6 +25,9 @@ import pytest
 from arvyx_control.secret_delivery import COOKIE, SecretDelivery, Session
 from arvyx_control.secret_delivery_protocol import Principal, Receipts
 from arvyx_control.vault import init_vault
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='secret delivery destinations are defined by POSIX uid and mode semantics')
 
 HOLD = 0.3  # seconds the competing writer keeps the lock after reserve blocks
 
@@ -57,7 +61,7 @@ def _prepared_payload(session, delivery_id, value):
 
 
 def _row(path, delivery_id):
-    with sqlite3.connect(path, timeout=0) as db:
+    with closing(sqlite3.connect(path, timeout=0)) as db, db:
         return db.execute('SELECT status FROM receipts WHERE id=?', (delivery_id,)).fetchone()
 
 

@@ -8,6 +8,9 @@ from pathlib import Path
 from types import SimpleNamespace
 import pytest
 from test_local_onboarding_services import services
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='tests open directories with POSIX flags')
 
 
 def test_rev0023_duplicate_classifications_fail_before_validation(tmp_path):

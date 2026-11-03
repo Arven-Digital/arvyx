@@ -7,6 +7,8 @@ import json
 import os
 from pathlib import Path
 
+from .locks import try_exclusive_lock
+from . import private_paths, safe_open
 from .cockpit_adapters import resume_plan
 
 
@@ -178,7 +180,6 @@ class NativeConversationReservation:
     _IDLE = b'amc-native-idle-v1\n'
 
     def __init__(self, runtime, conversation):
-        import fcntl
         import hashlib
         import stat
         from .native_artifact_policy import open_native_directory
@@ -186,26 +187,23 @@ class NativeConversationReservation:
         directory = open_native_directory(runtime.home)
         try:
             home_info = os.fstat(directory)
-            if home_info.st_uid != os.getuid():
+            if not private_paths.owned_by_current_user(home_info, fd=directory):
                 raise ValueError('native home must be owned by current user')
             key = hashlib.sha256(json.dumps([runtime.tool, conversation], ensure_ascii=True).encode()).hexdigest()
             name = '.amc-native-conversation-' + key + '.lock'
-            flags = os.O_RDWR | os.O_NOFOLLOW | os.O_CLOEXEC
             try:
-                fd = os.open(name, flags | os.O_CREAT | os.O_EXCL, 0o600, dir_fd=directory)
+                fd = safe_open.open_file_at(directory, name, write=True, create=True, exclusive=True, mode=0o600)
                 created = True
             except FileExistsError:
-                fd = os.open(name, flags, dir_fd=directory)
+                fd = safe_open.open_file_at(directory, name, write=True)
                 created = False
             try:
                 info = os.fstat(fd)
-                if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077 or info.st_nlink != 1:
+                if not stat.S_ISREG(info.st_mode) or not private_paths.owner_private(info, fd=fd) or info.st_nlink != 1:
                     raise ValueError('unsafe native conversation reservation')
-                try:
-                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                except BlockingIOError:
-                    raise ValueError('native conversation already reserved; attach instead') from None
-                current = os.stat(name, dir_fd=directory, follow_symlinks=False)
+                if not try_exclusive_lock(fd):
+                    raise ValueError('native conversation already reserved; attach instead')
+                current = safe_open.stat_at(directory, name)
                 if (current.st_dev, current.st_ino) != (info.st_dev, info.st_ino):
                     raise ValueError('native conversation reservation replaced')
                 # Legacy empty lock files prove only that their owner exited,

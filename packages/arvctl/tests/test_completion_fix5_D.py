@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import sqlite3
+from contextlib import closing
 import subprocess
 import sys
 import tarfile
@@ -15,6 +16,8 @@ from arvyx_control import capture_offload as offload
 from arvyx_control import composition_recovery as recovery
 from arvyx_control.cockpit import LocalCockpit
 from arvyx_control.cockpit_archive import WorkCapture, sync_capture
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the deployment scripts take POSIX locks and fail closed elsewhere')
 
 
 SCRIPT = Path(__file__).resolve().parents[3] / 'scripts/backup_restore.py'
@@ -326,7 +329,7 @@ def test_composition_restore_preserves_storage_binding_without_rebinding(owner, 
     recovery.capture(topology, bundle)
     recovery.restore(bundle, candidate)
     assert recovery.inspect_candidate(candidate)['mutable'] is False
-    with sqlite3.connect(candidate / 'runtime/sessions.sqlite') as db:
+    with closing(sqlite3.connect(candidate / 'runtime/sessions.sqlite')) as db, db:
         assert db.execute('SELECT * FROM capture_offload_storage').fetchone() == binding
     assert offload.read_offload_chain(candidate / 'offload', latest['sha256'])[0]['text'] == 'fixture\n'
     from arvyx_control.replica_authority import ReplicaAuthorityUnavailable

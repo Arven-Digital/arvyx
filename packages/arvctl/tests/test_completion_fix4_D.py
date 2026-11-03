@@ -1,8 +1,10 @@
 """Lane D: real offload and offline composition boundaries on disposable state."""
+from arvyx_control import safe_open
 from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import stat
 import threading
 
@@ -39,9 +41,10 @@ def retained(owner):
 
 
 def fd_path(fd):
-    return Path(os.readlink('/proc/self/fd/' + str(fd)))
+    return Path(safe_open.descriptor_path(fd))
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 def test_offload_retry_repeats_failed_file_barrier_and_reopens(captured_owner, monkeypatch):
     owner, directory = captured_owner
     real_sync = os.fsync
@@ -91,6 +94,7 @@ def test_offload_ack_requires_its_own_durability_barriers(captured_owner, monkey
     assert not owner.db.execute('SELECT * FROM capture_offload_head').fetchall()
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 @pytest.mark.parametrize('change', ['replace', 'mutate'])
 def test_offload_refuses_bundle_changed_during_file_barrier(captured_owner, monkeypatch, change):
     owner, directory = captured_owner
@@ -197,6 +201,7 @@ def watch_sync(monkeypatch, fail=None):
     return events
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 @pytest.mark.parametrize('missing_parent', [False, True])
 def test_restore_fence_namespace_is_durable_before_state(tmp_path, monkeypatch, missing_parent):
     t = topology(tmp_path)
@@ -213,6 +218,7 @@ def test_restore_fence_namespace_is_durable_before_state(tmp_path, monkeypatch, 
     assert recovery.inspect_candidate(candidate)['mutable'] is False
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 def test_restore_fence_barrier_failure_never_publishes_state(tmp_path, monkeypatch):
     t = topology(tmp_path)
     bundle = tmp_path / 'bundle'
@@ -232,6 +238,7 @@ def test_restore_fence_barrier_failure_never_publishes_state(tmp_path, monkeypat
         recovery.restore(bundle, candidate)
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 @pytest.mark.parametrize('operation', ['capture', 'restore'])
 def test_nested_directory_barrier_failure_withholds_completion(tmp_path, monkeypatch, operation):
     t = topology(tmp_path)
@@ -254,6 +261,7 @@ def test_nested_directory_barrier_failure_withholds_completion(tmp_path, monkeyp
         assert not (destination / 'runtime').exists()
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='directory fsync barriers are not performed on Windows and file flushes bypass os.fsync (docs/limitations.md, Windows durability)')
 def test_capture_syncs_populated_namespace_before_complete_manifest(tmp_path, monkeypatch):
     t = topology(tmp_path)
     destination = tmp_path / 'bundle'
@@ -272,7 +280,7 @@ def test_declared_suffix_named_authority_survives_restore(tmp_path, suffix, sqli
     name = 'grants' + suffix
     path = t.root / name
     if sqlite:
-        with sqlite3.connect(path) as db:
+        with closing(sqlite3.connect(path)) as db, db:
             db.execute('CREATE TABLE proof(value TEXT)')
             db.execute("INSERT INTO proof VALUES('retained')")
     else:
@@ -284,7 +292,7 @@ def test_declared_suffix_named_authority_survives_restore(tmp_path, suffix, sqli
     candidate = tmp_path / 'candidate'
     recovery.restore(bundle, candidate)
     if sqlite:
-        with sqlite3.connect(candidate / name) as db:
+        with closing(sqlite3.connect(candidate / name)) as db, db:
             assert db.execute('SELECT value FROM proof').fetchall() == [('retained',)]
     else:
         assert (candidate / name).read_bytes() == path.read_bytes()
@@ -294,7 +302,7 @@ def test_declared_suffix_named_authority_survives_restore(tmp_path, suffix, sqli
 @pytest.mark.parametrize('suffix', ['-wal', '-shm', '-journal'])
 def test_explicit_database_sidecar_is_rejected_before_publication(tmp_path, suffix):
     t = topology(tmp_path)
-    with sqlite3.connect(t.root / 'grants') as db:
+    with closing(sqlite3.connect(t.root / 'grants')) as db, db:
         if suffix != '-journal':
             db.execute('PRAGMA journal_mode=WAL')
         db.execute('CREATE TABLE proof(value TEXT)')
@@ -315,7 +323,7 @@ def test_tree_sqlite_wal_is_folded_into_backup_with_ordinary_suffix_files(tmp_pa
     profile.mkdir()
     t.roles['profile_tree'] = ['profiles']
     (profile / 'memo-journal').write_bytes(b'ordinary authoritative file')
-    with sqlite3.connect(profile / 'state.db') as db:
+    with closing(sqlite3.connect(profile / 'state.db')) as db, db:
         db.execute('PRAGMA journal_mode=WAL')
         db.execute('CREATE TABLE proof(value TEXT)')
         db.execute("INSERT INTO proof VALUES('committed WAL')")
@@ -326,5 +334,5 @@ def test_tree_sqlite_wal_is_folded_into_backup_with_ordinary_suffix_files(tmp_pa
         assert 'profiles/state.db-shm' not in record['files']
         assert 'profiles/memo-journal' in record['files']
     recovery.restore(tmp_path / 'bundle', tmp_path / 'candidate')
-    with sqlite3.connect(tmp_path / 'candidate/profiles/state.db') as db:
+    with closing(sqlite3.connect(tmp_path / 'candidate/profiles/state.db')) as db, db:
         assert db.execute('SELECT value FROM proof').fetchall() == [('committed WAL',)]

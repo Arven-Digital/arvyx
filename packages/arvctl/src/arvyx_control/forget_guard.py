@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import stat as stat_module
+from . import safe_open
 from .filesystem import fsync_directory
 
 def _read_regular_nofollow(path: Path, root: Path) -> bytes:
@@ -26,7 +27,7 @@ def _read_regular_nofollow(path: Path, root: Path) -> bytes:
                 or not stat_module.S_ISREG(named.st_mode)
                 or (info.st_dev, info.st_ino) != (named.st_dev, named.st_ino)):
             raise ValueError(f"refusing non-regular file: {path}")
-        resolved = Path(os.path.realpath(path))
+        resolved = safe_open.resolve_path(path)
         if resolved != root and root not in resolved.parents:
             raise ValueError(f"refusing path outside root: {path}")
         chunks: list[bytes] = []

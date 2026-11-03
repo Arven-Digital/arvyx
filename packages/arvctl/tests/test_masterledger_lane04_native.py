@@ -5,6 +5,9 @@ import pytest
 from arvyx_control.cockpit import LocalCockpit
 from arvyx_control.cockpit_primary import PrimaryAgentRegistry
 from arvyx_control import native_install
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
 
 
 def test_missing_interpreter_never_publishes_primary(tmp_path):

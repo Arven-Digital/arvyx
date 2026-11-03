@@ -44,6 +44,7 @@ class ExternalWorkspaceTests(unittest.TestCase):
             "binary": "unsupported-content"})
         self.assertEqual(set(export_snapshot(snap)), {"src/main.py"})
 
+    @unittest.skipUnless(os.name == 'posix', 'FIFO fixtures are POSIX-only')
     def test_discovery_denies_unsafe_entries_and_bounds(self):
         for kind in ("symlink", "fifo", "hardlink"):
             target = self.root / "unsafe"
@@ -132,6 +133,7 @@ class ExternalWorkspaceTests(unittest.TestCase):
         with self.assertRaises(WorkspaceError):
             snapshot_workspace(alias, ("src/main.py",))
 
+    @unittest.skipUnless(os.name == 'posix', 'FIFO fixtures are POSIX-only')
     def test_special_files_directories_and_hardlinks_rejected(self):
         os.mkfifo(self.root / "fifo")
         os.link(self.root / "src/main.py", self.root / "hard")

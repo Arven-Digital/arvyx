@@ -7,6 +7,17 @@ import shutil
 import subprocess
 import sys
 
+
+def _npm(args, **kwargs):
+    # npm is a command-interpreter shim on Windows, not a PE executable; POSIX keeps
+    # the plain name (the historical call, pinned by the dependency metadata tests).
+    if os.name != 'nt':
+        return subprocess.run(['npm', *args], **kwargs)
+    npm = shutil.which('npm.cmd')
+    if not npm:
+        raise RuntimeError('npm.cmd is required on PATH')
+    return subprocess.run([npm, *args], shell=True, **kwargs)
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',required=True,type=Path)
@@ -40,10 +51,10 @@ def main():
                     ignore=shutil.ignore_patterns('node_modules','dist','dist-*','.git','__pycache__'))
     # npm has no --locked build flag. ci enforces package-lock agreement and
     # offline refuses cache misses instead of resolving/downloading new inputs.
-    subprocess.run(['npm','ci','--offline','--include=dev','--ignore-scripts','--no-audit','--no-fund'],cwd=frontend,env=build_env,check=True)
-    subprocess.run(['npm','run','build','--','--outDir',str(payload/'web')],cwd=frontend,
+    _npm(['ci','--offline','--include=dev','--ignore-scripts','--no-audit','--no-fund'],cwd=frontend,env=build_env,check=True)
+    _npm(['run','build','--','--outDir',str(payload/'web')],cwd=frontend,
                    env=dict(build_env, VITE_AMC_FIXTURE_ONLY='false'), check=True)
-    subprocess.run(['npm','pack','--offline','--ignore-scripts','--pack-destination',str(output)],cwd=package,env=build_env,check=True)
+    _npm(['pack','--offline','--ignore-scripts','--pack-destination',str(output)],cwd=package,env=build_env,check=True)
     print('LOCAL ONLY: '+str(output))
 
 if __name__=='__main__':main()

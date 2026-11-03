@@ -4,6 +4,9 @@ import os
 from pathlib import Path
 import sqlite3
 import time
+from . import safe_open
+from .locks import try_exclusive_lock
+from . import private_paths
 from .agent_sessions import RoutingError
 
 
@@ -118,7 +121,7 @@ class HermesProfile:
             if not entry.name.isdecimal() or int(entry.name) == os.getpid():
                 continue
             try:
-                if entry.stat().st_uid != os.getuid():
+                if not private_paths.owned_by_current_user(entry.stat(), path=entry):
                     continue
                 values = (entry/'environ').read_bytes().split(b'\0')
                 scoped = next((v.split(b'=',1)[1] for v in values if v.startswith(b'HERMES_HOME=')), None)
@@ -142,25 +145,22 @@ class HermesProfile:
 class ProfileReservation:
     """Cooperative admission, not evidence that an arbitrary PID is ours."""
     def __init__(self, profile, conversation, *, default_home=None):
-        import fcntl
         import stat
         self.profile = profile
         self.conversation = conversation
         self.fd = None
         profile.validate()
         home_info = profile.home.stat()
-        if home_info.st_uid != os.getuid() or home_info.st_mode & 0o022:
+        if not private_paths.owned_by_current_user(home_info, path=profile.home) or not private_paths.not_writable_by_others(home_info, path=profile.home):
             raise RoutingError('profile must be owned by current user and not writable by others')
         path = profile.home / '.amc-native-writer.lock'
-        fd = os.open(path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600)
+        fd = safe_open.open_file(path, write=True, create=True, mode=0o600)
         try:
             info = os.fstat(fd)
-            if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077 or info.st_nlink != 1:
+            if not stat.S_ISREG(info.st_mode) or not private_paths.owner_private(info, fd=fd) or info.st_nlink != 1:
                 raise RoutingError('unsafe native profile reservation')
-            try:
-                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError:
-                raise RoutingError('profile already reserved; attach to existing writer instead') from None
+            if not try_exclusive_lock(fd):
+                raise RoutingError('profile already reserved; attach to existing writer instead')
             if inode(path) != (info.st_dev, info.st_ino):
                 raise RoutingError('profile reservation replaced')
             profile.assert_idle(default_home=default_home)

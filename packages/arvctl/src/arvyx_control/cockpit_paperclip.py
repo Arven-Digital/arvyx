@@ -1,13 +1,28 @@
 """Paperclip React distribution over the existing governed authority."""
-from pathlib import Path
+from contextlib import closing
+from pathlib import Path, PurePosixPath
+
+# Content types of the enumerated distribution assets, by suffix: a constant table,
+# not the platform's MIME registry (Windows reads the registry) and not the request.
+ASSET_TYPES = {'.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
+               '.json': 'application/json', '.map': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml',
+               '.ico': 'image/x-icon', '.woff': 'font/woff', '.woff2': 'font/woff2', '.txt': 'text/plain',
+               '.webmanifest': 'application/manifest+json'}
+
+
+def asset_content_type(path):
+    """The constant content type for a distribution path ('/' is the shell)."""
+    if path == '/':
+        return 'text/html'
+    return ASSET_TYPES.get(PurePosixPath(path).suffix.lower(), 'application/octet-stream')
 import argparse
 import json
-import mimetypes
 import os
 import stat
 from html.parser import HTMLParser
 from threading import Lock
 from urllib.parse import urlsplit
+from . import safe_open
 from .cockpit_web import DashboardHandler, DashboardServer, snapshot
 
 
@@ -28,7 +43,7 @@ class _BuildReferences(HTMLParser):
 
 def _read_regular(directory, name):
     # Descriptor-relative opens forbid symlink swaps, including parent directories.
-    fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+    fd = safe_open.open_file_at(directory, name)
     with os.fdopen(fd, 'rb') as stream:
         before = os.fstat(stream.fileno())
         if not stat.S_ISREG(before.st_mode):
@@ -47,17 +62,18 @@ def _content_identity(info):
 
 def _capture_build(directory, prefix=''):
     files = {}
-    for name in os.listdir(directory):
-        info = os.stat(name, dir_fd=directory, follow_symlinks=False)
-        path = prefix + '/' + name
-        if stat.S_ISDIR(info.st_mode):
-            fd = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
-            try:
-                files.update(_capture_build(fd, path))
-            finally:
-                os.close(fd)
-        elif stat.S_ISREG(info.st_mode):
-            files[path] = _read_regular(directory, name)
+    with closing(safe_open.scandir_names(directory)) as names_iter:
+        for name in names_iter:
+            info = safe_open.stat_at(directory, name)
+            path = prefix + '/' + name
+            if stat.S_ISDIR(info.st_mode):
+                fd = safe_open.open_directory_at(directory, name)
+                try:
+                    files.update(_capture_build(fd, path))
+                finally:
+                    os.close(fd)
+            elif stat.S_ISREG(info.st_mode):
+                files[path] = _read_regular(directory, name)
     return files
 
 
@@ -128,7 +144,7 @@ class PaperclipHandler(DashboardHandler):
         if asset is None:
             self.reply(404, {'error': 'Unknown frontend asset'})
             return
-        self.reply(200, asset, content_type=mimetypes.guess_type(self.path)[0] or ('text/html' if self.path == '/' else 'application/octet-stream'))
+        self.reply(200, asset, content_type=asset_content_type(self.path))
 
     def do_POST(self):
         if self.path == '/api/primary-agent':
@@ -162,7 +178,7 @@ class PaperclipServer(DashboardServer):
         self.RequestHandlerClass = PaperclipHandler
 
     def _refresh_frontend(self):
-        fd = os.open(self.frontend, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        fd = safe_open.open_directory(self.frontend)
         try:
             index = _read_regular(fd, 'index.html')
             if self.frontend_files.get('/') == index:

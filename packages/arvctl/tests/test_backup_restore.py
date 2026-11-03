@@ -31,6 +31,7 @@ docker_preflight = importlib.util.module_from_spec(PREFLIGHT_SPEC)
 PREFLIGHT_SPEC.loader.exec_module(docker_preflight)
 
 
+@unittest.skipUnless(os.name == 'posix', 'the Docker deployment script takes a POSIX flock and fails closed elsewhere')
 class BackupRestoreTests(unittest.TestCase):
     def test_public_entrypoints_share_stable_lock_before_validation(self) -> None:
         import fcntl

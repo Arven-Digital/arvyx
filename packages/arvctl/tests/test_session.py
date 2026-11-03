@@ -221,10 +221,12 @@ class SessionHttpIdentityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             vault = Path(tmp) / "vault"
             init_vault(vault)
-            issued = issue_token(vault, "demobot", scopes=["memory.read"], ttl_seconds=1)
+            # A real TTL: three seconds leaves room for the first resolution on a slow
+            # hosted runner (one second expired before it there) without editing the record.
+            issued = issue_token(vault, "demobot", scopes=["memory.read"], ttl_seconds=3)
             authorization = f"Bearer {issued.token}"
             self.assertIsNotNone(resolve_identity(vault, authorization))
-            deadline = time.monotonic() + 3
+            deadline = time.monotonic() + 8
             while resolve_identity(vault, authorization) is not None and time.monotonic() < deadline:
                 time.sleep(0.05)
             self.assertIsNone(resolve_identity(vault, authorization))

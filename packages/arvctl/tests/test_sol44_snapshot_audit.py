@@ -1,11 +1,13 @@
 """Audit/receipt cut regression source. NOT_EXECUTED in this static fix round."""
 import importlib.util
 import sqlite3
+from contextlib import closing
 from pathlib import Path
 
+import os
 import pytest
 from pathlib import Path as _Path
-pytestmark = pytest.mark.skipif(not (_Path(__file__).resolve().parents[3] / 'deploy').is_dir(), reason='deployment tree is not part of this checkout (public candidate)')
+pytestmark = [pytest.mark.skipif(not (_Path(__file__).resolve().parents[3] / 'deploy').is_dir(), reason='deployment tree is not part of this checkout (public candidate)'), pytest.mark.skipif(os.name != 'posix', reason='the deployment scripts take POSIX locks and fail closed elsewhere')]
 
 
 @pytest.fixture
@@ -25,7 +27,7 @@ def test_old_audit_prefix_with_new_written_receipt_is_rejected(tmp_path, monkeyp
     audit = data / 'audit/audit-log.jsonl'
     audit.write_bytes(b'{"event":"old"}\n')
     db = data / 'state/operations.sqlite3'
-    with sqlite3.connect(db) as connection:
+    with closing(sqlite3.connect(db)) as connection, connection:
         connection.execute('CREATE TABLE receipts (event TEXT, status TEXT)')
     monkeypatch.setattr(snapshot, 'DATA', data)
     monkeypatch.setattr(snapshot, 'INCLUDES', ('audit', 'state'))
@@ -38,7 +40,7 @@ def test_old_audit_prefix_with_new_written_receipt_is_rejected(tmp_path, monkeyp
             # Manifest A already observed audit L. The append and receipt commit
             # complete before A observes the operations database.
             audit.write_bytes(audit.read_bytes() + b'{"event":"new"}\n')
-            with sqlite3.connect(db) as connection:
+            with closing(sqlite3.connect(db)) as connection, connection:
                 connection.execute('INSERT INTO receipts VALUES (?, ?)', ('new', 'written'))
             advanced = True
         return original_digest(path, deadline)
@@ -51,7 +53,7 @@ def test_old_audit_prefix_with_new_written_receipt_is_rejected(tmp_path, monkeyp
     c = snapshot.manifest(stage)
     assert advanced
     assert a['state/operations.sqlite3'] == b['state/operations.sqlite3'] == c['state/operations.sqlite3']
-    with sqlite3.connect(stage / 'state/operations.sqlite3') as connection:
+    with closing(sqlite3.connect(stage / 'state/operations.sqlite3')) as connection, connection:
         assert connection.execute('SELECT event, status FROM receipts').fetchall() == [('new', 'written')]
     assert a['audit/audit-log.jsonl'] != b['audit/audit-log.jsonl']
     assert not snapshot.stable_cut(a, b, c)
@@ -112,7 +114,7 @@ def test_old_control_prefix_with_new_completed_journal_is_rejected(tmp_path, mon
     control.write_bytes(b'{"event":"old"}\n')
     journal = data / 'audit/audit-log.jsonl.operations.sqlite3'
     # Minimal on-disk journal fixture: no production API or runtime is invoked.
-    with sqlite3.connect(journal) as connection:
+    with closing(sqlite3.connect(journal)) as connection, connection:
         connection.execute('CREATE TABLE operations (operation_id TEXT, state TEXT)')
     monkeypatch.setattr(snapshot, 'DATA', data)
     # Match production traversal: state is captured before audit/journal.
@@ -125,7 +127,7 @@ def test_old_control_prefix_with_new_completed_journal_is_rejected(tmp_path, mon
         if path == journal and not advanced:
             with control.open('ab') as stream:
                 stream.write(b'{"event":"task.created","id":"new"}\n')
-            with sqlite3.connect(journal) as connection:
+            with closing(sqlite3.connect(journal)) as connection, connection:
                 connection.execute('INSERT INTO operations VALUES (?, ?)', ('new', 'completed'))
             advanced = True
         return original_digest(path, deadline)
@@ -139,7 +141,7 @@ def test_old_control_prefix_with_new_completed_journal_is_rejected(tmp_path, mon
     assert advanced
     rel = 'audit/audit-log.jsonl.operations.sqlite3'
     assert a[rel] == b[rel] == c[rel]
-    with sqlite3.connect(stage / rel) as connection:
+    with closing(sqlite3.connect(stage / rel)) as connection, connection:
         assert connection.execute('SELECT operation_id, state FROM operations').fetchall() == [('new', 'completed')]
     assert a['state/control-events.jsonl'] != b['state/control-events.jsonl']
     assert not snapshot.stable_cut(a, b, c)

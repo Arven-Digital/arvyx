@@ -4,12 +4,16 @@ from datetime import datetime, timedelta, timezone
 import importlib
 import json
 import sqlite3
+from contextlib import closing
 import threading
 from unittest.mock import patch
 
 import pytest
 
 from arvyx_control import checkpoint_jobs as jobs, embeddings, index
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='the deployment scripts take POSIX locks and fail closed elsewhere')
 
 retrieval = importlib.import_module("arvyx_control.recall")
 RELATIVE = "projects/synthetic/STATUS.md"
@@ -163,7 +167,7 @@ def test_completed_artifact_repair_revalidates_checkpoints(vault, kind, artifact
     good = index._read_cache(vault)
     bad = copy.deepcopy(good)
     corrupt(bad[RELATIVE], kind)
-    with sqlite3.connect(jobs._journal_path(vault)) as connection:
+    with closing(sqlite3.connect(jobs._journal_path(vault))) as connection, connection:
         connection.execute("UPDATE checkpoints SET entry_json=? WHERE relative_path=?",
                            (json.dumps(bad[RELATIVE]), RELATIVE))
     if artifact == "corrupt":
@@ -174,7 +178,7 @@ def test_completed_artifact_repair_revalidates_checkpoints(vault, kind, artifact
         now=NOW + timedelta(seconds=1), max_attempts=1)
     assert repaired.status == "completed" and repaired.attempt == 1
     assert index._read_cache(vault) == good
-    with sqlite3.connect(jobs._journal_path(vault)) as connection:
+    with closing(sqlite3.connect(jobs._journal_path(vault))) as connection, connection:
         stored = json.loads(connection.execute("SELECT entry_json FROM checkpoints").fetchone()[0])
     assert stored == good[RELATIVE]
 
@@ -184,7 +188,7 @@ def test_failed_attempt_revalidates_corrupt_checkpoint_on_retry(vault):
         raise RuntimeError("synthetic interruption")
     with pytest.raises(RuntimeError, match="synthetic interruption"):
         jobs.rebuild_index_checkpointed(vault, owner="synthetic", now=NOW, after_checkpoint=interrupt)
-    with sqlite3.connect(jobs._journal_path(vault)) as connection:
+    with closing(sqlite3.connect(jobs._journal_path(vault))) as connection, connection:
         bad = json.loads(connection.execute("SELECT entry_json FROM checkpoints").fetchone()[0])
         corrupt(bad, "beyond-eof")
         connection.execute("UPDATE checkpoints SET entry_json=?", (json.dumps(bad),))

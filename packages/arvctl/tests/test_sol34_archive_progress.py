@@ -1,6 +1,7 @@
 """Synthetic offline regressions for candidate33 findings 2 and 3."""
 import json
 import sqlite3
+from contextlib import closing
 from unittest.mock import patch
 import pytest
 from arvyx_control import cockpit_archive as archive
@@ -68,7 +69,7 @@ def test_context_rollback_and_backpressure(tmp_path):
 @pytest.mark.parametrize('content', ['x' * 12000, '\u00e9' * 6000], ids=['ascii', 'json-escaped'])
 def test_real_native_archive_bounded_pages_progress(tmp_path, pump, content):
     store = tmp_path / 'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE messages(id INTEGER PRIMARY KEY, session_id TEXT, role TEXT, content TEXT)')
         db.executemany('INSERT INTO messages VALUES(?,?,?,?)',
                        [(i, 'conversation', 'assistant', content) for i in range(1, 101)])

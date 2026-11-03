@@ -1,5 +1,6 @@
 """Offline synthetic regressions for candidate26 findings 1 and 2."""
 import sqlite3
+from contextlib import closing
 import threading
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -7,6 +8,9 @@ import pytest
 from arvyx_control import cockpit_archive as archive
 from arvyx_control.cockpit import LocalCockpit
 from arvyx_control.cockpit_native_runtime import NativeRuntime
+import os
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='secret delivery destinations are defined by POSIX uid and mode semantics')
 
 
 def owner_at(path):
@@ -54,7 +58,7 @@ def native_owner(path, store):
 
 def test_native_sql_adapter_page_restart_and_atomic_retry(tmp_path):
     store = tmp_path / 'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE messages(id INTEGER PRIMARY KEY, session_id TEXT, role TEXT, content TEXT)')
         db.executemany('INSERT INTO messages VALUES(?,?,?,?)', [(i, 'conversation', 'assistant', 'safe') for i in range(1,100)])
         db.execute('INSERT INTO messages VALUES(100,?,?,?)', ('conversation', 'assistant', 'begin rsa private key'))
@@ -116,7 +120,7 @@ def test_feed_rollback_preserves_active_label_and_nested_poison(tmp_path):
 
 def test_native_context_is_conversation_scoped_and_contains_no_body(tmp_path):
     store = tmp_path / 'state.db'
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('CREATE TABLE messages(id INTEGER PRIMARY KEY, session_id TEXT, role TEXT, content TEXT)')
         db.executemany('INSERT INTO messages VALUES(?,?,?,?)', [
             (1, 'conversation', 'assistant', 'BEGIN RSA PRIVATE KEY\nSYNTHETIC_BODY'),
@@ -137,7 +141,7 @@ def test_native_context_is_conversation_scoped_and_contains_no_body(tmp_path):
     # 'conversation' must not suppress it.
     LocalCockpit.native_archive(owner, 't', actor='operator')
     assert 'public-conversation' in str(archive.pending_capture(owner))
-    with sqlite3.connect(store) as db:
+    with closing(sqlite3.connect(store)) as db, db:
         db.execute('INSERT INTO messages VALUES(3,?,?,?)', ('conversation', 'assistant', 'SYNTHETIC_LATER\nEND EC PRIVATE KEY\nSYNTHETIC_MISMATCH'))
     before = [tuple(r) for r in owner.db.execute('SELECT * FROM native_archive_context ORDER BY run')]
     with patch.object(archive, 'CAPTURE_CAPACITY', 1):

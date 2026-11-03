@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 import hashlib
 from pathlib import Path
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -28,7 +29,7 @@ class CommitFault:
         return getattr(self.db, name)
 
     def commit(self):
-        with sqlite3.connect(self.work_path) as db:
+        with closing(sqlite3.connect(self.work_path)) as db, db:
             committed = db.execute('SELECT count(*) FROM external_work').fetchone()[0]
         if committed and not self.fired:
             self.fired = True
@@ -89,7 +90,7 @@ class Deep10Fix08Tests(unittest.TestCase):
                                  self.body if body is None else body)
 
     def rows(self):
-        with sqlite3.connect(self.work_path) as db:
+        with closing(sqlite3.connect(self.work_path)) as db, db:
             return db.execute('SELECT id FROM external_work').fetchall()
 
     def pending(self):
@@ -177,14 +178,14 @@ class Deep10Fix08Tests(unittest.TestCase):
         self.assertEqual(len(self.pending()), 1)
 
     def test_08_01_work_audit_failure_keeps_pending_intent_without_append(self):
-        with sqlite3.connect(self.work_path) as db:
+        with closing(sqlite3.connect(self.work_path)) as db, db:
             db.execute("CREATE TRIGGER reject_work_audit BEFORE INSERT ON external_work_audit BEGIN SELECT RAISE(ABORT,'fixture audit failure'); END")
         status, result = self.post()
         self.assertEqual(status, 503, result)
         self.reopen()
         self.assertEqual(self.rows(), [])
         self.assertEqual(len(self.pending()), 1)
-        with sqlite3.connect(self.work_path) as db:
+        with closing(sqlite3.connect(self.work_path)) as db, db:
             db.execute('DROP TRIGGER reject_work_audit')
         self.assertEqual(self.post(dict(self.body, submission_id=result['submission_id']))[0], 201)
         self.assertEqual(len(self.rows()), 1)

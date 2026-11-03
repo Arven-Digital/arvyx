@@ -5,6 +5,7 @@ import json
 import socket
 import sqlite3
 import time
+import os
 import unittest
 from pathlib import Path
 from unittest.mock import patch

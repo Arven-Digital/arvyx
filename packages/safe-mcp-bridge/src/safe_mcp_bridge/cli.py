@@ -253,7 +253,7 @@ def _handle_line(config: dict[str, Any], line: str) -> dict[str, Any] | None:
     try:
         # Retain only a sanitized client correlation for local failure output;
         # upstream response metadata never supplies failure attribution.
-        session.response_id = _redact_secret_shapes(_redact(config, {'id': request_id}))[0]['id']
+        session.response_id = _redact_shapes(_redact(config, {'id': request_id}))[0]['id']
         if session.audit_failed:
             return None if is_notification else _error(session.response_id, -32004,
                 'bridge audit unavailable; dispatch refused; nothing retried')
@@ -392,7 +392,7 @@ def _post_json(config: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any
             exc.close()
         detail = raw.decode("utf-8", errors="replace")
         detail = _redact(config, {"detail": detail})["detail"]
-        detail = bounded_secret_subn(detail, _secret_re())[0][:500]
+        detail = bounded_redaction_subn(detail, _shape_detector_re())[0][:500]
         raise BridgeError(f"upstream HTTP {exc.code}: {detail}") from None
     except URLError:
         raise BridgeError("upstream unreachable; nothing retried") from None
@@ -412,7 +412,7 @@ def _post_json(config: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any
 
 def _emit_response(config: dict[str, Any], response: dict[str, Any]) -> None:
     try:
-        response, redacted_spans = _redact_secret_shapes(response)
+        response, redacted_spans = _redact_shapes(response)
         if redacted_spans:
             _checked_audit(config, {"event": "secret_shape_redacted", "spans": redacted_spans})
         text = json.dumps(response, sort_keys=True)
@@ -526,7 +526,7 @@ def suppress_private_key_blocks(text):
     return ''.join(parts)
 
 
-def bounded_secret_subn(text, detector, replacement="[REDACTED-SECRET]"):
+def bounded_redaction_subn(text, detector, replacement="[REDACTED-SECRET]"):
     """Find email runs once; redact the union of all canonical secret spans.
 
     Overlapping detector spans are conservatively redacted together, never
@@ -567,7 +567,7 @@ def bounded_secret_subn(text, detector, replacement="[REDACTED-SECRET]"):
     return ''.join(parts), len(merged)
 
 
-def _redact_secret_shapes(value: Any) -> tuple[Any, int]:
+def _redact_shapes(value: Any) -> tuple[Any, int]:
     # Decode first, then establish PEM context across ordered strings/lists
     # and dictionary keys immediately followed by their values. Collection
     # and scrubbing must use the same traversal; never scan JSON escape syntax.
@@ -632,7 +632,7 @@ def _redact_individual_shapes(value: Any) -> tuple[Any, int]:
     recursively rather than trusting the vault to be clean.
     """
     if isinstance(value, str):
-        redacted, count = bounded_secret_subn(value, _secret_re())
+        redacted, count = bounded_redaction_subn(value, _shape_detector_re())
         return redacted, count
     if isinstance(value, list):
         total = 0
@@ -648,7 +648,7 @@ def _redact_individual_shapes(value: Any) -> tuple[Any, int]:
         for key, item in value.items():
             # redact keys too: an upstream can return a map keyed by a secret
             if isinstance(key, str):
-                key, key_count = bounded_secret_subn(key, _secret_re())
+                key, key_count = bounded_redaction_subn(key, _shape_detector_re())
                 total += key_count
             item, count = _redact_individual_shapes(item)
             total += count
@@ -659,7 +659,7 @@ def _redact_individual_shapes(value: Any) -> tuple[Any, int]:
     return value, 0
 
 
-def _secret_re() -> re.Pattern[str]:
+def _shape_detector_re() -> re.Pattern[str]:
     try:
         from arvyx_control.security import SECRET_RE
 
@@ -679,8 +679,8 @@ def _audit(config: dict[str, Any], event: dict[str, Any]) -> None:
     if audit.get("redact", True):
         safe_event = _redact(config, event)
         # Sanitize decoded metadata before JSON escaping can hide secret shapes.
-        safe_event, _ = _redact_secret_shapes(safe_event)
-    with path.open("a", encoding="utf-8") as handle:
+        safe_event, _ = _redact_shapes(safe_event)
+    with path.open("a", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(safe_event, sort_keys=True) + "\n")
 
 

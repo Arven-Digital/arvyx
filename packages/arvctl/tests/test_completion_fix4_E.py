@@ -2,10 +2,12 @@
 import hashlib
 import json
 import sqlite3
+from contextlib import closing
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
+import os
 import pytest
 
 from arvyx_control.external_api import ExternalAPI, Principal
@@ -13,6 +15,8 @@ from arvyx_control.external_grants import ExternalGrantStore
 from arvyx_control.external_presentation import load_presentation
 from arvyx_control.replica_authority import authority_context
 from test_local_onboarding_services import services
+
+pytestmark = pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 
 
 @pytest.fixture
@@ -155,7 +159,7 @@ def test_replacement_after_commit_validation_cannot_publish(services, action, re
             else:
                 profile.rename(root / 'old-profile')
                 profile.mkdir(mode=0o700)
-            with sqlite3.connect(profile / 'state.db') as db:
+            with closing(sqlite3.connect(profile / 'state.db')) as db, db:
                 db.executescript('CREATE TABLE sessions(id TEXT,title TEXT,started_at REAL);')
         return route(key, routed_owner, method, path, payload, **kwargs)
     with patch.object(api, '_route', side_effect=replace):
@@ -317,7 +321,7 @@ def test_complete_snapshot_contract_removes_connection_on_final_identity_failure
             if not owner.creation.db.in_transaction:
                 changed = True
                 (profile/'state.db').rename(profile/'old.db')
-                with sqlite3.connect(profile/'state.db') as db:
+                with closing(sqlite3.connect(profile/'state.db')) as db, db:
                     db.executescript('CREATE TABLE sessions(id TEXT,title TEXT,started_at REAL);')
         return validate(adapter)
     with patch.object(HermesHistory, 'validate_review', replace_at_publication), pytest.raises(ValueError):
@@ -436,7 +440,7 @@ def test_replaced_published_profile_cannot_supply_instructions(services, operati
     snapshot = complete_snapshot_fixture(api, profile, body)
     connected = api._route('local-owner', owner, 'POST', 'manual/connect', body, reviewed=True, review_snapshot=snapshot)[1]
     (profile/'state.db').rename(profile/'old.db')
-    with sqlite3.connect(profile/'state.db') as db:
+    with closing(sqlite3.connect(profile/'state.db')) as db, db:
         db.executescript('CREATE TABLE sessions(id TEXT,title TEXT,started_at REAL);')
     if operation == 'preview':
         request = dict(source_id=connected['instruction_source_id'], paths=['SOUL.md'], confirmed=True)
@@ -502,6 +506,7 @@ def test_reviewed_manifest_pages_and_mcp_chunk_recheck_original_grant(exports):
         close(p)
 
 
+@pytest.mark.skipif(os.name != 'posix', reason='host-shell execution policy (host_uid) and the PTY owner are POSIX-only')
 def test_failed_publication_cleanup_preserves_concurrent_new_connection(services):
     from arvyx_control.hermes_history import HermesHistory
     from arvyx_control.local_onboarding import local_composition

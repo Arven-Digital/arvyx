@@ -32,6 +32,11 @@ FORWARD_REQUEST = {
     "accept", "accept-encoding", "content-type", "idempotency-key",
     "if-none-match", "range", "user-agent",
 }
+# Upstream response headers are forwarded end to end (the control plane's security
+# headers included) except hop-by-hop and framing ones, and only when the name is a
+# token and the value is visible ASCII without line breaks.
+_HEADER_NAME_RE = re.compile(r"[!#$%&'*+.^_`|~0-9A-Za-z-]{1,256}")
+_HEADER_VALUE_RE = re.compile(r"[\t\x20-\x7e]{0,8192}")
 MAX_BODY = 2 * 1024 * 1024
 MAX_RESPONSE = 16 * 1024 * 1024
 _LOG = logging.getLogger("arvyx.control_plane_edge")
@@ -165,9 +170,18 @@ class ProxyHandler(BaseHTTPRequestHandler):
             self.send_response(response.status)
             response_started = True
             for key, value in response.getheaders():
-                if key.lower() not in HOP_BY_HOP and key.lower() != "content-length":
-                    self.send_header(key, value)
-            response_length = upstream_length if self.command == "HEAD" and upstream_length.isascii() and upstream_length.isdigit() else str(len(payload))
+                if key.lower() in HOP_BY_HOP or key.lower() == "content-length":
+                    continue
+                if not _HEADER_NAME_RE.fullmatch(key) or not _HEADER_VALUE_RE.fullmatch(value):
+                    raise http.client.HTTPException("invalid upstream header")
+                # The patterns above exclude line breaks; the replace is the form the
+                # header-injection analysis models.
+                self.send_header(key.replace("\n", "").replace("\r", ""),
+                                 value.replace("\n", "").replace("\r", ""))
+            if self.command == "HEAD" and upstream_length.isascii() and upstream_length.isdigit():
+                response_length = str(int(upstream_length))
+            else:
+                response_length = str(len(payload))
             self.send_header("Content-Length", response_length)
             self.send_header("Cache-Control", "no-store")
             self.end_headers()

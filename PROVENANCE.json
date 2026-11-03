@@ -1,7 +1,7 @@
 {
   "counts": {
-    "excluded": 261,
-    "exported": 1233,
+    "excluded": 263,
+    "exported": 1243,
     "overrides": 9
   },
   "destination_repository": "Arven-Digital/arvyx",
@@ -32,16 +32,16 @@
       ]
     },
     ".github/workflows/ci.yml": {
-      "exported_sha256": "79deabb43348776649dd9ce7f8b40c9005fb8d4273b6906bfe4a65ecbfad222b",
-      "source_sha256": "7898adda8e661db59efb2c6bab354b0e1efca1e96042a38c1065bf2b0c5a3d8f",
+      "exported_sha256": "eaf8777994b7c88d890941f1deb07a68ed6094351794b733daaba97235aade38",
+      "source_sha256": "a74eeeab9102e39e11423402bb5c47015195f698814c233cd434c741b7c304c9",
       "transforms": [
         "override:config/public-candidate/.github/workflows/ci.yml",
         "strip-private-notice"
       ]
     },
     ".github/workflows/release-provenance.yml": {
-      "exported_sha256": "7dd2446e7f87fc09d7a55ea20fe3d2c7acf55e63aaf3888161f376cc539f390c",
-      "source_sha256": "68c5ad0a5973ddedcd471e62f290cdf514b3dea33cfba37e50288fa025b0d54d",
+      "exported_sha256": "85dd76297f502c91eeacc5420d9c2c8a141eee50853a86a54434c9152c887abe",
+      "source_sha256": "b3157532d44a3c47332d6ffda7fe387c6896af519b373c08e620e54c9e1d5096",
       "transforms": [
         "override:config/public-candidate/.github/workflows/release-provenance.yml",
         "strip-private-notice"
@@ -93,16 +93,16 @@
       "transforms": []
     },
     "PUBLISHING.md": {
-      "exported_sha256": "a123aea639b774a2063483eca63b92eb6d289556f9dcc9c626937320cdc1f4df",
-      "source_sha256": "7d5a03d9f7e11a7709baa3dff6a13b56f4d81a0ce510894f381b21ea2d783a7e",
+      "exported_sha256": "fabbba7f954330dd96d277605668180071d1f637bfe5e3d2697e36f9d5ab6c53",
+      "source_sha256": "3a7197c587f45a21bf6e40593affd21faaf10f21263c7c9c56b76c145a1719bf",
       "transforms": [
         "override:config/public-candidate/PUBLISHING.md",
         "strip-private-notice"
       ]
     },
     "README.md": {
-      "exported_sha256": "6349388c32cc198e4a8867331be589ae8369677193a338bf4ef0a560e4e2e967",
-      "source_sha256": "5927f8bcd9dcccd618d19e3958b983a57dcb3c637aa0e3bb0007df126531d34f",
+      "exported_sha256": "581bf884326442eb86abd40900138a8726cbd0f7b393afe8b849bbf3ee8ee95a",
+      "source_sha256": "2372485bc12ccf5a9b4caaa4392f096d36d593afc277eb14816484b63543ae7d",
       "transforms": [
         "override:config/public-candidate/README.md",
         "strip-private-notice"
@@ -361,8 +361,8 @@
       "transforms": []
     },
     "docs/limitations.md": {
-      "exported_sha256": "5e2a2fdcae9c52019d31a7b42c9b44a26192a7ce1dee77f236c74f05fb8a8a42",
-      "source_sha256": "5e2a2fdcae9c52019d31a7b42c9b44a26192a7ce1dee77f236c74f05fb8a8a42",
+      "exported_sha256": "9ba75b82d01c56dcaada6f8476f4100b19810e899428a146cbf8f03eb8989e96",
+      "source_sha256": "9ba75b82d01c56dcaada6f8476f4100b19810e899428a146cbf8f03eb8989e96",
       "transforms": []
     },
     "docs/local-quickstart.md": {
@@ -646,8 +646,8 @@
       "transforms": []
     },
     "fixtures/secret-scan-allowlist.txt": {
-      "exported_sha256": "ba59406478dd302f8d8689e0de8ae40579e9efec42cce89f86fbbcd1584aa114",
-      "source_sha256": "4552cf7c7de78d12adbf975075ee50cb6f7564efb0626f80ae2bb165dcc5f308",
+      "exported_sha256": "7f28bddf1f1161c3d5c26404f9210b0b730cc8c28d7dc9424ae190e186cdd6ce",
+      "source_sha256": "598a35baf21f9c1c0cbeb7c3ac0ed2ea7f57fa98ff9f9dd68f9d9c4686926263",
       "transforms": [
         "prune-stale-fingerprints:12"
       ]
@@ -1378,8 +1378,8 @@
       "transforms": []
     },
     "frontends/paperclip/vendor/shared/app-definitions-url.test.ts": {
-      "exported_sha256": "e6ee9c5ce37bd987d57bb3a425f25ea2998e1ed34b77f26044e44418ddc82fcf",
-      "source_sha256": "e6ee9c5ce37bd987d57bb3a425f25ea2998e1ed34b77f26044e44418ddc82fcf",
+      "exported_sha256": "f96f72e2287d0b4ac0d5f3625ed5ab63a6e6325f7094de7e6d099392483fb288",
+      "source_sha256": "f96f72e2287d0b4ac0d5f3625ed5ab63a6e6325f7094de7e6d099392483fb288",
       "transforms": []
     },
     "frontends/paperclip/vendor/shared/app-definitions.generated.ts": {
@@ -3183,13 +3183,13 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/__init__.py": {
-      "exported_sha256": "96715e49aa63a9c4b86ec75226a99a2cc0eb8f00fbffc922ffa505260ec2dadf",
-      "source_sha256": "96715e49aa63a9c4b86ec75226a99a2cc0eb8f00fbffc922ffa505260ec2dadf",
+      "exported_sha256": "54f7e8bb64d7c770b27a08bb0de469fd9b2761730cc70f173ec815c6419f8fca",
+      "source_sha256": "54f7e8bb64d7c770b27a08bb0de469fd9b2761730cc70f173ec815c6419f8fca",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/agent_creation.py": {
-      "exported_sha256": "3a958150b491541c0eeef79b413ef370a3e173d25f6e6b507fef38d742303b06",
-      "source_sha256": "3a958150b491541c0eeef79b413ef370a3e173d25f6e6b507fef38d742303b06",
+      "exported_sha256": "ca732caba11c7cef838b0e7c046435f58ebd4014506f138aeb7c5e35bf6476eb",
+      "source_sha256": "ca732caba11c7cef838b0e7c046435f58ebd4014506f138aeb7c5e35bf6476eb",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/agent_delivery.py": {
@@ -3208,23 +3208,23 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/attestation.py": {
-      "exported_sha256": "5c9db2db6ec9af021df4959e3f071ccc6e3a876924c2c682d66b900133c5eadd",
-      "source_sha256": "5c9db2db6ec9af021df4959e3f071ccc6e3a876924c2c682d66b900133c5eadd",
+      "exported_sha256": "9f23618ac36cb7afd09cf790f2ce158e6f17da70b8e48648e4c0f4cb57370093",
+      "source_sha256": "9f23618ac36cb7afd09cf790f2ce158e6f17da70b8e48648e4c0f4cb57370093",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/audit.py": {
-      "exported_sha256": "4529fce9400e4c7461701034dd1caf6dc759401983abc6ce18d91665febbab29",
-      "source_sha256": "4529fce9400e4c7461701034dd1caf6dc759401983abc6ce18d91665febbab29",
+      "exported_sha256": "6b18ae51ed6093a36c422ba2743a7afd1bc14cc46ea88345f84e574f2578d16e",
+      "source_sha256": "6b18ae51ed6093a36c422ba2743a7afd1bc14cc46ea88345f84e574f2578d16e",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/audit_log.py": {
-      "exported_sha256": "116c7c09649616801509c862e174f8e080f16a00f39bfd1c07096b7ed1722293",
-      "source_sha256": "116c7c09649616801509c862e174f8e080f16a00f39bfd1c07096b7ed1722293",
+      "exported_sha256": "50e50cdae34354382e87b10bd95f56f48ba6de2dc8d8bf6299f5287c8d5868b1",
+      "source_sha256": "50e50cdae34354382e87b10bd95f56f48ba6de2dc8d8bf6299f5287c8d5868b1",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/auth.py": {
-      "exported_sha256": "86cf74c27fb3ead43b7f689b1d3b4d1797b450b8d0f69d81b904916a909ebcca",
-      "source_sha256": "86cf74c27fb3ead43b7f689b1d3b4d1797b450b8d0f69d81b904916a909ebcca",
+      "exported_sha256": "72a82ea847221d2f4bf3d6fbaac01fd43108d048f3aeb199ac5738c8701d4efe",
+      "source_sha256": "72a82ea847221d2f4bf3d6fbaac01fd43108d048f3aeb199ac5738c8701d4efe",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/authority_attempts.py": {
@@ -3238,8 +3238,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/bridge.py": {
-      "exported_sha256": "f2ec0604e7af1d54eae2cb0cd66076f05563a38e53737232f9f37b62e3f2e048",
-      "source_sha256": "f2ec0604e7af1d54eae2cb0cd66076f05563a38e53737232f9f37b62e3f2e048",
+      "exported_sha256": "b2a24aae7ee2c894a2b045327d1a6b11521d2be33332688d01a38ed0d9fb8401",
+      "source_sha256": "b2a24aae7ee2c894a2b045327d1a6b11521d2be33332688d01a38ed0d9fb8401",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/brokers.py": {
@@ -3248,8 +3248,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/capture_offload.py": {
-      "exported_sha256": "2435654836a0e690ca50c1d9d59f620d6a22c5983c689620b85af5192584c6c3",
-      "source_sha256": "2435654836a0e690ca50c1d9d59f620d6a22c5983c689620b85af5192584c6c3",
+      "exported_sha256": "72e9825e59c232747cbd96006465404d2b87db8cf4643556a224200e36ef5447",
+      "source_sha256": "72e9825e59c232747cbd96006465404d2b87db8cf4643556a224200e36ef5447",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/capture_offload_verify.py": {
@@ -3273,13 +3273,13 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cli.py": {
-      "exported_sha256": "76dfda81fa2f100e91828d2690e2d4b5df4bafc558399627bcd0dfb827f71e1c",
-      "source_sha256": "76dfda81fa2f100e91828d2690e2d4b5df4bafc558399627bcd0dfb827f71e1c",
+      "exported_sha256": "87f84a3655b07a6f46e06fe2b211cf55022db95446439c99961d99534f41e271",
+      "source_sha256": "87f84a3655b07a6f46e06fe2b211cf55022db95446439c99961d99534f41e271",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit.py": {
-      "exported_sha256": "841a145d6be4ed4c773884b53852f83d13cc88463870b3a905adb522952b4954",
-      "source_sha256": "841a145d6be4ed4c773884b53852f83d13cc88463870b3a905adb522952b4954",
+      "exported_sha256": "e4adbae8aa6082cccbecc501315b8948f9b6b0b0727556fedbc5648ca1981fa5",
+      "source_sha256": "e4adbae8aa6082cccbecc501315b8948f9b6b0b0727556fedbc5648ca1981fa5",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_adapters.py": {
@@ -3298,18 +3298,18 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_archive_authority.py": {
-      "exported_sha256": "92e948d82fbb3dd236a12e9cb18a83234ae8ea07b999f501c3398a785109baaf",
-      "source_sha256": "92e948d82fbb3dd236a12e9cb18a83234ae8ea07b999f501c3398a785109baaf",
+      "exported_sha256": "07bfb65f18606b2462d60d2b0680f04270ca52421f267b6027324dc020ef218b",
+      "source_sha256": "07bfb65f18606b2462d60d2b0680f04270ca52421f267b6027324dc020ef218b",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_arvyx.py": {
-      "exported_sha256": "49568a4d9d0677aaca9f7a0ec8934efc2e504cdc0f728d9df054cb96ea701d08",
-      "source_sha256": "49568a4d9d0677aaca9f7a0ec8934efc2e504cdc0f728d9df054cb96ea701d08",
+      "exported_sha256": "b3fd1bea283ade786296203748e8fea7f93738764d895af6ba603b98c64b4d77",
+      "source_sha256": "b3fd1bea283ade786296203748e8fea7f93738764d895af6ba603b98c64b4d77",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_client.py": {
-      "exported_sha256": "08aa02010ae38a17026b7440d62582dcf0497b63f52a8efd036c3278381849ae",
-      "source_sha256": "08aa02010ae38a17026b7440d62582dcf0497b63f52a8efd036c3278381849ae",
+      "exported_sha256": "d46d86d7b070ba5424a3f07aae23257ad8f7302383f1fb18e051a36ca7e43363",
+      "source_sha256": "d46d86d7b070ba5424a3f07aae23257ad8f7302383f1fb18e051a36ca7e43363",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_consent.py": {
@@ -3318,28 +3318,28 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_fleet.py": {
-      "exported_sha256": "70ca0ec25b2cdb03cb621cec2f7c1e9397f254d39c024ef1c8bc65029647b231",
-      "source_sha256": "70ca0ec25b2cdb03cb621cec2f7c1e9397f254d39c024ef1c8bc65029647b231",
+      "exported_sha256": "88ff96efe8696a2a358252a5bd741abf3f52cbaf70b8d3a15e09077e018cf744",
+      "source_sha256": "88ff96efe8696a2a358252a5bd741abf3f52cbaf70b8d3a15e09077e018cf744",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_human_binding.py": {
-      "exported_sha256": "269e54d39ac746b512778890ff7d8d9b432bea3a7a0ee41f99bcf44d111e8035",
-      "source_sha256": "269e54d39ac746b512778890ff7d8d9b432bea3a7a0ee41f99bcf44d111e8035",
+      "exported_sha256": "cec6b98919547eb7fb4da5bc65d1b94025c4bb2304c5dc14c2f12c0c7efa8941",
+      "source_sha256": "cec6b98919547eb7fb4da5bc65d1b94025c4bb2304c5dc14c2f12c0c7efa8941",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_local.py": {
-      "exported_sha256": "7fc95e37d1c6e60a68aca393cff14a7d4c8e4d84df7f49f7e9fea920c44255bf",
-      "source_sha256": "7fc95e37d1c6e60a68aca393cff14a7d4c8e4d84df7f49f7e9fea920c44255bf",
+      "exported_sha256": "81746d34401afe930a79670e8589611f6fd2c3382b34f1c7d36435d58977f4c2",
+      "source_sha256": "81746d34401afe930a79670e8589611f6fd2c3382b34f1c7d36435d58977f4c2",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_native_runtime.py": {
-      "exported_sha256": "0a99a3e6e7479fbdab2e5cbe5cf2094ca332199b4fdfdadc39f0af33d42bd29e",
-      "source_sha256": "0a99a3e6e7479fbdab2e5cbe5cf2094ca332199b4fdfdadc39f0af33d42bd29e",
+      "exported_sha256": "fb4e737e16b3d251a51f9f53f41dbeba82f15a91e2f3466c0a09ee96542e5d1d",
+      "source_sha256": "fb4e737e16b3d251a51f9f53f41dbeba82f15a91e2f3466c0a09ee96542e5d1d",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_paperclip.py": {
-      "exported_sha256": "ac57f20b0cd8bec4b9fbab831cdb9accf1626101790280f52d22f6ad2c9d2b06",
-      "source_sha256": "ac57f20b0cd8bec4b9fbab831cdb9accf1626101790280f52d22f6ad2c9d2b06",
+      "exported_sha256": "429ca60af604e28ebe9b6ffe7285ee0481715fcb6eb2ffe7f2f55f466d9f8aaa",
+      "source_sha256": "429ca60af604e28ebe9b6ffe7285ee0481715fcb6eb2ffe7f2f55f466d9f8aaa",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_primary.py": {
@@ -3348,13 +3348,13 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_restart.py": {
-      "exported_sha256": "322cb52acaca04249dd70339b7b61a288523f374fcbca9a246002c070a9e365a",
-      "source_sha256": "322cb52acaca04249dd70339b7b61a288523f374fcbca9a246002c070a9e365a",
+      "exported_sha256": "f38fe13f14e3023ec50c9f5ff4a19d0a78dbef59058ac7c6c68bda921a837575",
+      "source_sha256": "f38fe13f14e3023ec50c9f5ff4a19d0a78dbef59058ac7c6c68bda921a837575",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_surface.py": {
-      "exported_sha256": "15a8e7de2c614832ca66aba67299db237a2ba02321fa154da2cd926916456e9b",
-      "source_sha256": "15a8e7de2c614832ca66aba67299db237a2ba02321fa154da2cd926916456e9b",
+      "exported_sha256": "a91a355fb701256ada8c86c7bbd333f8657b8bcc990c2e274985835bb4736388",
+      "source_sha256": "a91a355fb701256ada8c86c7bbd333f8657b8bcc990c2e274985835bb4736388",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_team.py": {
@@ -3363,13 +3363,13 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_terminal_panels.py": {
-      "exported_sha256": "b1dc623d3aa28564987f8cbaa4ee8433514bef8c680b4c2afcfb870e958818ce",
-      "source_sha256": "b1dc623d3aa28564987f8cbaa4ee8433514bef8c680b4c2afcfb870e958818ce",
+      "exported_sha256": "cf39bd42d0404e85b2553506e1494971f35f6cbc768e72972feff0b3fec56635",
+      "source_sha256": "cf39bd42d0404e85b2553506e1494971f35f6cbc768e72972feff0b3fec56635",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_terminal_runner.py": {
-      "exported_sha256": "83c9f581c6cb8e6a8cf14e2ec54043420a26cf2394ba606e6a65469fa7f7a81b",
-      "source_sha256": "83c9f581c6cb8e6a8cf14e2ec54043420a26cf2394ba606e6a65469fa7f7a81b",
+      "exported_sha256": "2c0f3b51dc51c1b35a1107d4cc79c1f93d6f5eed94b2d2a28b12696155b7ef52",
+      "source_sha256": "2c0f3b51dc51c1b35a1107d4cc79c1f93d6f5eed94b2d2a28b12696155b7ef52",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_transport.py": {
@@ -3378,8 +3378,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/cockpit_web.py": {
-      "exported_sha256": "f5e16d81c6bd403347653ac118f2a7c6d7a5e6edc7db355def0e74b516296cb6",
-      "source_sha256": "f5e16d81c6bd403347653ac118f2a7c6d7a5e6edc7db355def0e74b516296cb6",
+      "exported_sha256": "b9e7147e1121a5e971dc3d1ea1f373645b350a631461d428ae14f6b42a623fda",
+      "source_sha256": "b9e7147e1121a5e971dc3d1ea1f373645b350a631461d428ae14f6b42a623fda",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/codex_history.py": {
@@ -3388,8 +3388,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/composition_recovery.py": {
-      "exported_sha256": "d0705b9ac5d01639ead8b6d1317b78268da6586c3174ad17d93bbf1878d01305",
-      "source_sha256": "d0705b9ac5d01639ead8b6d1317b78268da6586c3174ad17d93bbf1878d01305",
+      "exported_sha256": "7db552cca80378cbabdbeecc675006c4c13070dad35e33283ff34ccd245ba96a",
+      "source_sha256": "7db552cca80378cbabdbeecc675006c4c13070dad35e33283ff34ccd245ba96a",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/container_readiness.py": {
@@ -3398,8 +3398,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/control.py": {
-      "exported_sha256": "818446a18aeb33b62a886e7d89b89e6c50ec5155aec0aa4696317397c639cdbf",
-      "source_sha256": "818446a18aeb33b62a886e7d89b89e6c50ec5155aec0aa4696317397c639cdbf",
+      "exported_sha256": "aa9ac88fbda631c2ff8e47f28080f46581989947327228ec93f615c00a31682b",
+      "source_sha256": "aa9ac88fbda631c2ff8e47f28080f46581989947327228ec93f615c00a31682b",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/data/__init__.py": {
@@ -3418,8 +3418,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/defaults.py": {
-      "exported_sha256": "897b089a44b384c0c4c0545bea296c4be1d077586307080adf4f8df6e5bc1cab",
-      "source_sha256": "cca5a213667f95166c8174bd30fd7959d208f9211982ef947210ac8ced1d5dd5",
+      "exported_sha256": "773917c9ac8d595b86a0113b96426a251066a9f03632ee4c475c93fd0936e66f",
+      "source_sha256": "24b26bbea7e93cb98c7974710788f712d3c00132e69e01b70d656aebcdb35624",
       "transforms": [
         "replace:rule-2"
       ]
@@ -3440,8 +3440,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/diagnostics.py": {
-      "exported_sha256": "2099c6f6d8862be032f9239411c4013fa7a9a46cae79310c06100489f0e367d1",
-      "source_sha256": "2099c6f6d8862be032f9239411c4013fa7a9a46cae79310c06100489f0e367d1",
+      "exported_sha256": "90faaa3620eaa0a8f0e1c6818c7a498f103f492d0b44b1e0889198d7cdd76914",
+      "source_sha256": "90faaa3620eaa0a8f0e1c6818c7a498f103f492d0b44b1e0889198d7cdd76914",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/diagnostics_canary.py": {
@@ -3455,8 +3455,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/dispatcher.py": {
-      "exported_sha256": "8ee506c9ec4d0976dd247aaf9dc934dce626ad5c63a671b83421d066f8e6d4eb",
-      "source_sha256": "8ee506c9ec4d0976dd247aaf9dc934dce626ad5c63a671b83421d066f8e6d4eb",
+      "exported_sha256": "0158c3b3f11233df25dc5eccda489924b6720cfd18fa03319e6a0f2c5bcca18c",
+      "source_sha256": "0158c3b3f11233df25dc5eccda489924b6720cfd18fa03319e6a0f2c5bcca18c",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/doctor.py": {
@@ -3475,8 +3475,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/evidence.py": {
-      "exported_sha256": "0625c837a6e0c622d4f2a15f5bdf01575a98f9edcb03d946f3f99f0fb22d77e9",
-      "source_sha256": "0625c837a6e0c622d4f2a15f5bdf01575a98f9edcb03d946f3f99f0fb22d77e9",
+      "exported_sha256": "5b8a8c76d49d36184f3b1475b510252641b4b5cb09a9e386c70f2e44fad60225",
+      "source_sha256": "5b8a8c76d49d36184f3b1475b510252641b4b5cb09a9e386c70f2e44fad60225",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/exact_fences.py": {
@@ -3500,8 +3500,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/external_demo.py": {
-      "exported_sha256": "d17c4d7c9b857a1149d5d2347697e82c7088eeafaa31fc7f7231f70e7397799c",
-      "source_sha256": "d17c4d7c9b857a1149d5d2347697e82c7088eeafaa31fc7f7231f70e7397799c",
+      "exported_sha256": "c7b5e230e93cd05a08f407362bd9315a91cb053dd0e07371f08666c9194a3feb",
+      "source_sha256": "c7b5e230e93cd05a08f407362bd9315a91cb053dd0e07371f08666c9194a3feb",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/external_gateway.py": {
@@ -3520,8 +3520,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/external_presentation.py": {
-      "exported_sha256": "2d536f2d2b6f36fb3c4a10cde9d0eeb548fe06c78b9d88a16488c491d6a136fd",
-      "source_sha256": "2d536f2d2b6f36fb3c4a10cde9d0eeb548fe06c78b9d88a16488c491d6a136fd",
+      "exported_sha256": "3129836caa1913cd066fe386ae922a0bbb11e5970296a8cda15d823f0bf73968",
+      "source_sha256": "3129836caa1913cd066fe386ae922a0bbb11e5970296a8cda15d823f0bf73968",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/external_work.py": {
@@ -3530,33 +3530,33 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/external_workspace.py": {
-      "exported_sha256": "05f468691dc3f3ce965d8916cdaa80995055b685e4cd525b0f4faa17d6552e41",
-      "source_sha256": "05f468691dc3f3ce965d8916cdaa80995055b685e4cd525b0f4faa17d6552e41",
+      "exported_sha256": "8adfd4568895521d34b491921120b90e0ce3ebc2d1632f5461e91f3c62b62f3b",
+      "source_sha256": "8adfd4568895521d34b491921120b90e0ce3ebc2d1632f5461e91f3c62b62f3b",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/filesystem.py": {
-      "exported_sha256": "7fe4d7ffc7aff5280a7b70e5075dd9d38561d38b5c5c7d7616b85f401a605413",
-      "source_sha256": "7fe4d7ffc7aff5280a7b70e5075dd9d38561d38b5c5c7d7616b85f401a605413",
+      "exported_sha256": "396794fdaf67965f4c1e75054c403dc835f2faede1bda02136622b989022ea38",
+      "source_sha256": "396794fdaf67965f4c1e75054c403dc835f2faede1bda02136622b989022ea38",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/forget.py": {
-      "exported_sha256": "137ff530989e1e56427d30e3c032910b72c98acf7fd1215514bf3c74b8d45c1b",
-      "source_sha256": "137ff530989e1e56427d30e3c032910b72c98acf7fd1215514bf3c74b8d45c1b",
+      "exported_sha256": "81b421baaaee8281991df2cb971c8fd35331ece9bdb0af24c80d69b4e242bef9",
+      "source_sha256": "81b421baaaee8281991df2cb971c8fd35331ece9bdb0af24c80d69b4e242bef9",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/forget_guard.py": {
-      "exported_sha256": "59cbb67b2082f3a20abe84d0d2b8e0067564ebb255891d468571a0c3fed98e27",
-      "source_sha256": "59cbb67b2082f3a20abe84d0d2b8e0067564ebb255891d468571a0c3fed98e27",
+      "exported_sha256": "941fe3228772e068ce314c985bf9c8dfabb756c637ed7925f2d5a8bd38ed331a",
+      "source_sha256": "941fe3228772e068ce314c985bf9c8dfabb756c637ed7925f2d5a8bd38ed331a",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/harness_discovery.py": {
-      "exported_sha256": "f03fdbd84373f776174153f4e3eed7fac2243fd5b4c4d402d6bc7ae77ba3a527",
-      "source_sha256": "f03fdbd84373f776174153f4e3eed7fac2243fd5b4c4d402d6bc7ae77ba3a527",
+      "exported_sha256": "28d17083269620961d349ba249ab142981b385f80c1910345668474b6e925512",
+      "source_sha256": "28d17083269620961d349ba249ab142981b385f80c1910345668474b6e925512",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/harness_improvement.py": {
-      "exported_sha256": "9e3f6b77677ef5b19517cc8e78683bb36a4f3c4ab573ca4057caf73cda51553e",
-      "source_sha256": "9e3f6b77677ef5b19517cc8e78683bb36a4f3c4ab573ca4057caf73cda51553e",
+      "exported_sha256": "aa75a107495a2488a4f5358d34ecc04908beef8daca2b28f5d0c8178e78eb84a",
+      "source_sha256": "aa75a107495a2488a4f5358d34ecc04908beef8daca2b28f5d0c8178e78eb84a",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/health.py": {
@@ -3570,18 +3570,18 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/hermes_history.py": {
-      "exported_sha256": "5a6fc5c1108e26d3746c5fab2b81a604ba8c35ee15d6676258b1f49f52ba69af",
-      "source_sha256": "5a6fc5c1108e26d3746c5fab2b81a604ba8c35ee15d6676258b1f49f52ba69af",
+      "exported_sha256": "8323b01e4f3dfb95eef787f6d9192b38be0858d5c43e9816bfc9a996dd76dd55",
+      "source_sha256": "8323b01e4f3dfb95eef787f6d9192b38be0858d5c43e9816bfc9a996dd76dd55",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/hermes_profile.py": {
-      "exported_sha256": "e167ebbd806787baf48bccd3f1ae100f3788d4deaa1c8caaed05698d52d70dd6",
-      "source_sha256": "e167ebbd806787baf48bccd3f1ae100f3788d4deaa1c8caaed05698d52d70dd6",
+      "exported_sha256": "4f6bee9f0df116d6c3aec6f41b55af47839ab0661223124b923a8df477fe642a",
+      "source_sha256": "4f6bee9f0df116d6c3aec6f41b55af47839ab0661223124b923a8df477fe642a",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/hermes_profile_launch.py": {
-      "exported_sha256": "3af463480c38bbdd23a12378e8653b99da4384b70540207d0be0f6b7b3262549",
-      "source_sha256": "3af463480c38bbdd23a12378e8653b99da4384b70540207d0be0f6b7b3262549",
+      "exported_sha256": "6b3289b8a30223b7abf538ce1780f886ec3956b3727c4bbeb9f241694fbbf62b",
+      "source_sha256": "6b3289b8a30223b7abf538ce1780f886ec3956b3727c4bbeb9f241694fbbf62b",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/http_bounds.py": {
@@ -3590,33 +3590,33 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/import_publication.py": {
-      "exported_sha256": "6a8277146dd8d18e03811c7db691d847a011122fc6501bf16aa0e7767418b160",
-      "source_sha256": "6a8277146dd8d18e03811c7db691d847a011122fc6501bf16aa0e7767418b160",
+      "exported_sha256": "14ed9f376be059a96420cda039d31aee349295372538764f2ea5e75d0cf527f5",
+      "source_sha256": "14ed9f376be059a96420cda039d31aee349295372538764f2ea5e75d0cf527f5",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/importers.py": {
-      "exported_sha256": "6165b36c21e44bc90fc5f5718b683b6b640c1bf226155619eec2230963cf60ae",
-      "source_sha256": "6165b36c21e44bc90fc5f5718b683b6b640c1bf226155619eec2230963cf60ae",
+      "exported_sha256": "8fdeb69e1fca946708c9aca0720109f75aece84496f02e62fdc8c030d8cc90cc",
+      "source_sha256": "8fdeb69e1fca946708c9aca0720109f75aece84496f02e62fdc8c030d8cc90cc",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/index.py": {
-      "exported_sha256": "709660f7b11931c7d7bf08ab4e1cfa9c4748b69eaaf2f6fc266e994f129be7f2",
-      "source_sha256": "709660f7b11931c7d7bf08ab4e1cfa9c4748b69eaaf2f6fc266e994f129be7f2",
+      "exported_sha256": "7426f98aa57dc035a565ff1a43e162141ef521727cd38135ea5dd17a5b61527f",
+      "source_sha256": "7426f98aa57dc035a565ff1a43e162141ef521727cd38135ea5dd17a5b61527f",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/liveness.py": {
-      "exported_sha256": "3e76be3ea58cc32df802d1639cbadfc9cd583725d1b25634e7e387af30303608",
-      "source_sha256": "3e76be3ea58cc32df802d1639cbadfc9cd583725d1b25634e7e387af30303608",
+      "exported_sha256": "68d50e51a96ac38eade07601f59a452c13aa81c82ec64db292f0b9e1e39fcf64",
+      "source_sha256": "68d50e51a96ac38eade07601f59a452c13aa81c82ec64db292f0b9e1e39fcf64",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/local_executor.py": {
-      "exported_sha256": "c10a5f1bc63c0d3b41e7e8b9875648375ad22f18648a23bf06c9dc0b1916ea0a",
-      "source_sha256": "c10a5f1bc63c0d3b41e7e8b9875648375ad22f18648a23bf06c9dc0b1916ea0a",
+      "exported_sha256": "3e57536115ead896f0104370324f76260836975d0d598bb0536f107f5af168a4",
+      "source_sha256": "3e57536115ead896f0104370324f76260836975d0d598bb0536f107f5af168a4",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/local_executor_service.py": {
-      "exported_sha256": "95a5cfbde3f7ab7a4fa727058903ed248b438929be4b0ca4fb2931c4ee29aada",
-      "source_sha256": "95a5cfbde3f7ab7a4fa727058903ed248b438929be4b0ca4fb2931c4ee29aada",
+      "exported_sha256": "3279adc817637a6673123f8636d5a3fc0c00e5c7ada23fbb3d2ee8c3b831d32d",
+      "source_sha256": "3279adc817637a6673123f8636d5a3fc0c00e5c7ada23fbb3d2ee8c3b831d32d",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/local_exploration.py": {
@@ -3630,13 +3630,13 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/locks.py": {
-      "exported_sha256": "63c11fdff19da65da97ffdbf847c7a226d47694c42268f6c65697a028a33c899",
-      "source_sha256": "63c11fdff19da65da97ffdbf847c7a226d47694c42268f6c65697a028a33c899",
+      "exported_sha256": "31c1ff4d0850535843fc2e7d3d9b4691c62274e212dcfcd6bfb22d5ca5496bff",
+      "source_sha256": "31c1ff4d0850535843fc2e7d3d9b4691c62274e212dcfcd6bfb22d5ca5496bff",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/machine_enrollment.py": {
-      "exported_sha256": "f3183f44e0ab4297cc136e0fb2405944247aa5ada1c11ad4c79bfb468d9592d7",
-      "source_sha256": "f3183f44e0ab4297cc136e0fb2405944247aa5ada1c11ad4c79bfb468d9592d7",
+      "exported_sha256": "8f604700c8aadc90dde67bb1dcc3919586b51a4dc208d9218654a4a6f75f6bf8",
+      "source_sha256": "8f604700c8aadc90dde67bb1dcc3919586b51a4dc208d9218654a4a6f75f6bf8",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/machine_pairing.py": {
@@ -3650,18 +3650,18 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/machine_pairing_transport.py": {
-      "exported_sha256": "7b1ef995df35a360ebec6da5f35440601c223186a6dcb8873815c80bf0ea1b2d",
-      "source_sha256": "7b1ef995df35a360ebec6da5f35440601c223186a6dcb8873815c80bf0ea1b2d",
+      "exported_sha256": "d65d9ec62987a5c89c05a5b2d740985ff133cc91ee077a67d03c10d3318ef618",
+      "source_sha256": "d65d9ec62987a5c89c05a5b2d740985ff133cc91ee077a67d03c10d3318ef618",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/mcp.py": {
-      "exported_sha256": "d1847a25e1ecefe74076339c831b1fa759f5837b7ce51f78dbd87d287c829104",
-      "source_sha256": "d1847a25e1ecefe74076339c831b1fa759f5837b7ce51f78dbd87d287c829104",
+      "exported_sha256": "2a72aa840326a5cf96a588e93be95aaa360869e36a01c777ed8b140601917491",
+      "source_sha256": "2a72aa840326a5cf96a588e93be95aaa360869e36a01c777ed8b140601917491",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/mcp_client_evidence.py": {
-      "exported_sha256": "4bcf6ddc22c6e165f5e9d18c007c6e27061544d71087ee75092622c51d6d12c0",
-      "source_sha256": "4bcf6ddc22c6e165f5e9d18c007c6e27061544d71087ee75092622c51d6d12c0",
+      "exported_sha256": "bc7f1a31fe09ed9b7af2f452eea774c37ba60c5b7201c897642a556c01c8a9a1",
+      "source_sha256": "bc7f1a31fe09ed9b7af2f452eea774c37ba60c5b7201c897642a556c01c8a9a1",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/memory_frontmatter.py": {
@@ -3680,18 +3680,18 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/native_artifact_policy.py": {
-      "exported_sha256": "5bb924c265cbb9b5be6022f99eeabd57f5dd99e5dd149812a76626e0e00fb357",
-      "source_sha256": "5bb924c265cbb9b5be6022f99eeabd57f5dd99e5dd149812a76626e0e00fb357",
+      "exported_sha256": "3ca29a09b9d6ca30d0ca1efd96984df7ed6508c5f011c3d1429c12b2bcf5da4c",
+      "source_sha256": "3ca29a09b9d6ca30d0ca1efd96984df7ed6508c5f011c3d1429c12b2bcf5da4c",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/native_install.py": {
-      "exported_sha256": "4da2d7ccd1365528acd1a97b9cb4264bbd565238a43cc29f2ce8e2878d2b3ea9",
-      "source_sha256": "4da2d7ccd1365528acd1a97b9cb4264bbd565238a43cc29f2ce8e2878d2b3ea9",
+      "exported_sha256": "f9a737fd78968f003f6d1cc3414b9ac07f3f42eedfe081991953141ebf364879",
+      "source_sha256": "f9a737fd78968f003f6d1cc3414b9ac07f3f42eedfe081991953141ebf364879",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/native_lifecycle.py": {
-      "exported_sha256": "d73251ce5a3bf19a8ae924896935c1cfe00d65e5317f0ccf9cc00a0c2c029882",
-      "source_sha256": "d73251ce5a3bf19a8ae924896935c1cfe00d65e5317f0ccf9cc00a0c2c029882",
+      "exported_sha256": "2f742aa4543e667036eb9eb16546e0a781321dbc6739159c3a3497f724372b2d",
+      "source_sha256": "2f742aa4543e667036eb9eb16546e0a781321dbc6739159c3a3497f724372b2d",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/native_presentation.py": {
@@ -3700,13 +3700,13 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/notifiers.py": {
-      "exported_sha256": "5fafd0f77024b38484544d49dc8fd78350cc94da59faa72549b1d1e77a0a2045",
-      "source_sha256": "5fafd0f77024b38484544d49dc8fd78350cc94da59faa72549b1d1e77a0a2045",
+      "exported_sha256": "72637974048bb1d65d8ce49e51b30cbcd3c2ceb2597a01adbba1e07480a6a0a4",
+      "source_sha256": "72637974048bb1d65d8ce49e51b30cbcd3c2ceb2597a01adbba1e07480a6a0a4",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/onboarding_cli.py": {
-      "exported_sha256": "2c2e426874dc49b45872bb5201c92401a01dffdfe7c8c637a1a570896dbe58fd",
-      "source_sha256": "2c2e426874dc49b45872bb5201c92401a01dffdfe7c8c637a1a570896dbe58fd",
+      "exported_sha256": "04cb7e59a92a48183137a0ce55507397dbdeffaf2dc2a6038dad7964accb610c",
+      "source_sha256": "04cb7e59a92a48183137a0ce55507397dbdeffaf2dc2a6038dad7964accb610c",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/operation_journal.py": {
@@ -3735,8 +3735,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/organizer_durable.py": {
-      "exported_sha256": "4d1df86fd2f17573f35e72a1cffb8fe4e85618893c1afd3b55b4e3d21f7c3e51",
-      "source_sha256": "4d1df86fd2f17573f35e72a1cffb8fe4e85618893c1afd3b55b4e3d21f7c3e51",
+      "exported_sha256": "b6471fdd032cdba904ba35b8fde85cf3fe3f7e9a67e22b2f827b9ddb5c5dbf83",
+      "source_sha256": "b6471fdd032cdba904ba35b8fde85cf3fe3f7e9a67e22b2f827b9ddb5c5dbf83",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/outbox.py": {
@@ -3744,24 +3744,34 @@
       "source_sha256": "eb9504efda41e82347a61dd49b5e0282611a5e9e3468482826b193c0adc77226",
       "transforms": []
     },
+    "packages/arvctl/src/arvyx_control/owner_endpoint.py": {
+      "exported_sha256": "ac72050c30f5bd08461d430cb8dfabe211e1da28e61d744332c54a1595311b5b",
+      "source_sha256": "ac72050c30f5bd08461d430cb8dfabe211e1da28e61d744332c54a1595311b5b",
+      "transforms": []
+    },
     "packages/arvctl/src/arvyx_control/paths.py": {
-      "exported_sha256": "49549f575df388a2532a2d898516b7e0ca2be830f24d8ac5a5a59211e43e30a4",
-      "source_sha256": "49549f575df388a2532a2d898516b7e0ca2be830f24d8ac5a5a59211e43e30a4",
+      "exported_sha256": "6e03679fe58d15d5489ee13116d3768b7394662eb9845a1feef452cf1ca14f43",
+      "source_sha256": "6e03679fe58d15d5489ee13116d3768b7394662eb9845a1feef452cf1ca14f43",
+      "transforms": []
+    },
+    "packages/arvctl/src/arvyx_control/private_paths.py": {
+      "exported_sha256": "8762887f8dc004308399d90729adc38451b5b7ecc4643bf9b5da84c022f0adba",
+      "source_sha256": "8762887f8dc004308399d90729adc38451b5b7ecc4643bf9b5da84c022f0adba",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/projection_cache.py": {
-      "exported_sha256": "122fdde292660bcf7b92942cc9146a65eff19da190c547f33875f551d258cde7",
-      "source_sha256": "122fdde292660bcf7b92942cc9146a65eff19da190c547f33875f551d258cde7",
+      "exported_sha256": "eeb6c8c5b013d6bed590567a1aa5738c9965067ed830770b1a8b958b5f554d75",
+      "source_sha256": "eeb6c8c5b013d6bed590567a1aa5738c9965067ed830770b1a8b958b5f554d75",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/promotion_transaction.py": {
-      "exported_sha256": "b68aa3ef92f78e313174107fa7b16360d8f36907af2e58d88b450716a7a2fbe3",
-      "source_sha256": "b68aa3ef92f78e313174107fa7b16360d8f36907af2e58d88b450716a7a2fbe3",
+      "exported_sha256": "34bd78f6d444edfd40eb25e178eaba5b64a99c35258668d87807ccbf1cc6fdd5",
+      "source_sha256": "34bd78f6d444edfd40eb25e178eaba5b64a99c35258668d87807ccbf1cc6fdd5",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/public_onboarding_api.py": {
-      "exported_sha256": "887927a2c2427891abb854127b338c5ef3e66b1610ab797ae96a1a00f283a2c3",
-      "source_sha256": "887927a2c2427891abb854127b338c5ef3e66b1610ab797ae96a1a00f283a2c3",
+      "exported_sha256": "c3cfac17ba5dd10d26de6b72b57a6f0231f59ad63aa3456a5793dfe49f8e701a",
+      "source_sha256": "c3cfac17ba5dd10d26de6b72b57a6f0231f59ad63aa3456a5793dfe49f8e701a",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/readiness.py": {
@@ -3770,8 +3780,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/recall.py": {
-      "exported_sha256": "edc04db496b897d671d6b0d59e849ed01ad6a63de1bd0827d93a4cceb2a2f737",
-      "source_sha256": "edc04db496b897d671d6b0d59e849ed01ad6a63de1bd0827d93a4cceb2a2f737",
+      "exported_sha256": "66948fb9cdf7b59265f7273d1e83341e1a4df5114e171cda5c9b41a764542182",
+      "source_sha256": "66948fb9cdf7b59265f7273d1e83341e1a4df5114e171cda5c9b41a764542182",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/receipts.py": {
@@ -3780,8 +3790,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/registry_enrollment.py": {
-      "exported_sha256": "ed99b21329913bf7780584574dfcf783a7a0bfb5d2283a3effd908ea74488e60",
-      "source_sha256": "ed99b21329913bf7780584574dfcf783a7a0bfb5d2283a3effd908ea74488e60",
+      "exported_sha256": "ba3d576c15cdbfbf2d1a066d7445ebe4d5c0a98c4781c3eead8b54a25ac02683",
+      "source_sha256": "ba3d576c15cdbfbf2d1a066d7445ebe4d5c0a98c4781c3eead8b54a25ac02683",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/release_candidate.py": {
@@ -3810,13 +3820,13 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/remote_effect_fence.py": {
-      "exported_sha256": "621b741e79728c884865558b2d7871c9c772a4d9b5748c5bbea102e579fa39b5",
-      "source_sha256": "621b741e79728c884865558b2d7871c9c772a4d9b5748c5bbea102e579fa39b5",
+      "exported_sha256": "df6cfa910ac78a9f749729c40e8e9b40443e27f3717c5d263442d84a63ba74c2",
+      "source_sha256": "df6cfa910ac78a9f749729c40e8e9b40443e27f3717c5d263442d84a63ba74c2",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/replica.py": {
-      "exported_sha256": "6803be10b3e9b514e0c08f12808cf3c82eecfbeb1de21ebcfe40dc589e0d2a30",
-      "source_sha256": "6803be10b3e9b514e0c08f12808cf3c82eecfbeb1de21ebcfe40dc589e0d2a30",
+      "exported_sha256": "a5bacfa33220c3b0a28ee8ef54546e3d82123ae94796324f626b844ff74445e4",
+      "source_sha256": "a5bacfa33220c3b0a28ee8ef54546e3d82123ae94796324f626b844ff74445e4",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/replica_authority.py": {
@@ -3839,6 +3849,11 @@
       "source_sha256": "ff1043ceebe3401d6f5b14b79ac32b201ba1e432c2b613f7119352bed289c58d",
       "transforms": []
     },
+    "packages/arvctl/src/arvyx_control/safe_open.py": {
+      "exported_sha256": "73bef18f11b429fba8be48a4965526e6d3531c136f911a095537079c472e29d4",
+      "source_sha256": "73bef18f11b429fba8be48a4965526e6d3531c136f911a095537079c472e29d4",
+      "transforms": []
+    },
     "packages/arvctl/src/arvyx_control/secret_delivery.py": {
       "exported_sha256": "853db2b63e273c45686a12ea35ec37e395023f0075cd940af3bf87b28d725d53",
       "source_sha256": "853db2b63e273c45686a12ea35ec37e395023f0075cd940af3bf87b28d725d53",
@@ -3850,8 +3865,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/secret_delivery_protocol.py": {
-      "exported_sha256": "939760c879716a6c88c06711bd8d203445cbeee227487d049e812ef5cc78f110",
-      "source_sha256": "939760c879716a6c88c06711bd8d203445cbeee227487d049e812ef5cc78f110",
+      "exported_sha256": "0aa7c40e6a07cbc2fcf03df8ff5821c9530c94d0c938c55614e953eb5fd9c6c5",
+      "source_sha256": "0aa7c40e6a07cbc2fcf03df8ff5821c9530c94d0c938c55614e953eb5fd9c6c5",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/secret_delivery_receiver.py": {
@@ -3865,23 +3880,23 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/secret_delivery_writer.py": {
-      "exported_sha256": "0d4e163c2daa5060957ee3a2fcf10a9b2ca5e1966b129c66871de4084574b07a",
-      "source_sha256": "0d4e163c2daa5060957ee3a2fcf10a9b2ca5e1966b129c66871de4084574b07a",
+      "exported_sha256": "abd95599d844325367c2eb1e252dbf31c39c0b3c7a6e00c6cce57a3f67e9a103",
+      "source_sha256": "abd95599d844325367c2eb1e252dbf31c39c0b3c7a6e00c6cce57a3f67e9a103",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/security.py": {
-      "exported_sha256": "33f9d53d250711a1d61e2aefa521b4134fb2a973afcda694b5fd2df651ffa25a",
-      "source_sha256": "33f9d53d250711a1d61e2aefa521b4134fb2a973afcda694b5fd2df651ffa25a",
+      "exported_sha256": "0b35dfbf63db9fd27a9fe4ac7fc67621ef8add787fbb509983b78e60c90ec822",
+      "source_sha256": "0b35dfbf63db9fd27a9fe4ac7fc67621ef8add787fbb509983b78e60c90ec822",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/session.py": {
-      "exported_sha256": "93c129e71257906185c540ed428fe88582c6621a46dc051e87dc572ed5549342",
-      "source_sha256": "93c129e71257906185c540ed428fe88582c6621a46dc051e87dc572ed5549342",
+      "exported_sha256": "fbe49d894bd85f830b74af5f35b020d1068d2d22d1fb23ca8a6b1cf10cefd3cc",
+      "source_sha256": "fbe49d894bd85f830b74af5f35b020d1068d2d22d1fb23ca8a6b1cf10cefd3cc",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/session_file_store.py": {
-      "exported_sha256": "26858e9b0b43486a812ff2a05e7d34c913e847258c965bc2e49d3827c0f7b9a6",
-      "source_sha256": "26858e9b0b43486a812ff2a05e7d34c913e847258c965bc2e49d3827c0f7b9a6",
+      "exported_sha256": "582d1b1c475a4a0b07d4cfc2b3a54f34e4155534b9d23d78451fb4309389e1cb",
+      "source_sha256": "582d1b1c475a4a0b07d4cfc2b3a54f34e4155534b9d23d78451fb4309389e1cb",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/session_return.py": {
@@ -3890,8 +3905,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/session_workspaces.py": {
-      "exported_sha256": "1c406bf260d2b634c0defcb129a2088fba1714f4d5a628d6a1e244e65a317870",
-      "source_sha256": "1c406bf260d2b634c0defcb129a2088fba1714f4d5a628d6a1e244e65a317870",
+      "exported_sha256": "c19454882d0243b9bdc21d8a85fb2c50ecc3957a84e2af3c5dae7dcae543f4a5",
+      "source_sha256": "c19454882d0243b9bdc21d8a85fb2c50ecc3957a84e2af3c5dae7dcae543f4a5",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/shared_onboarding_cli.py": {
@@ -3940,8 +3955,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/vault.py": {
-      "exported_sha256": "b1ea5bdbef886731f6859dbce50627b1f5d99a8d09c130f295d1f8756f195412",
-      "source_sha256": "b1ea5bdbef886731f6859dbce50627b1f5d99a8d09c130f295d1f8756f195412",
+      "exported_sha256": "2272b8bd4a6eb1b7009a6ef3077927eceb9fddd74f255203f02998676350d330",
+      "source_sha256": "2272b8bd4a6eb1b7009a6ef3077927eceb9fddd74f255203f02998676350d330",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/watchdog.py": {
@@ -3954,9 +3969,14 @@
       "source_sha256": "65922f8c9876c315656bbf81ddae9451602a9dff3591f73ed7df7700410c003f",
       "transforms": []
     },
+    "packages/arvctl/src/arvyx_control/windows_acl.py": {
+      "exported_sha256": "dc8d3c183aae1984dccf891e5df17f914fc4d5264125f5b566e9b66434bee74d",
+      "source_sha256": "dc8d3c183aae1984dccf891e5df17f914fc4d5264125f5b566e9b66434bee74d",
+      "transforms": []
+    },
     "packages/arvctl/src/arvyx_control/writes.py": {
-      "exported_sha256": "ab21ae7ed8da53c3cc5bc7d4c65fc0b98ee6ef9b0de6680d67d8f8c4e8d8f156",
-      "source_sha256": "ab21ae7ed8da53c3cc5bc7d4c65fc0b98ee6ef9b0de6680d67d8f8c4e8d8f156",
+      "exported_sha256": "feab9e971ec03ad1cc26a8433c3bb4f2f8fb0abc56650461b4b93241edc963a8",
+      "source_sha256": "feab9e971ec03ad1cc26a8433c3bb4f2f8fb0abc56650461b4b93241edc963a8",
       "transforms": []
     },
     "packages/arvctl/tests/dashboard_desk_behavior.mjs": {
@@ -3990,8 +4010,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_agent_creation.py": {
-      "exported_sha256": "3e75402d23d451719dd6923e9fa68b07211ce72618b5ebddacf0bd42fb9e5c8d",
-      "source_sha256": "3e75402d23d451719dd6923e9fa68b07211ce72618b5ebddacf0bd42fb9e5c8d",
+      "exported_sha256": "cc01b418157f0702cf9b60df39747f50ab9984ae6da48e199a81d19dd72da16c",
+      "source_sha256": "cc01b418157f0702cf9b60df39747f50ab9984ae6da48e199a81d19dd72da16c",
       "transforms": []
     },
     "packages/arvctl/tests/test_agent_delivery.py": {
@@ -4030,8 +4050,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_backup_restore.py": {
-      "exported_sha256": "741bfa5fe8681db99966ef9224d5dc6e84bc343759c8aba6dae51569ac9231b8",
-      "source_sha256": "741bfa5fe8681db99966ef9224d5dc6e84bc343759c8aba6dae51569ac9231b8",
+      "exported_sha256": "b1cd9647f6285f77b44df2877c362867ccefb5f2c114934c5acc43537de2e0d2",
+      "source_sha256": "b1cd9647f6285f77b44df2877c362867ccefb5f2c114934c5acc43537de2e0d2",
       "transforms": []
     },
     "packages/arvctl/tests/test_baseline_resume_t9b.py": {
@@ -4055,8 +4075,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_brokers.py": {
-      "exported_sha256": "e874e8324e709b0edcfd1ebf8336fb3b60db3ff1d3a0cb5814ba19c772158e6b",
-      "source_sha256": "e874e8324e709b0edcfd1ebf8336fb3b60db3ff1d3a0cb5814ba19c772158e6b",
+      "exported_sha256": "8d950811c16bc27137e76360c6198dc763e9c0f38be5a2a623ff1ca705e2adfd",
+      "source_sha256": "8d950811c16bc27137e76360c6198dc763e9c0f38be5a2a623ff1ca705e2adfd",
       "transforms": []
     },
     "packages/arvctl/tests/test_canonical_runner_review.py": {
@@ -4085,28 +4105,28 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit.py": {
-      "exported_sha256": "556abbf31801a72751286f8d1267cc51afc559175e3587166645ce9bb77627bf",
-      "source_sha256": "556abbf31801a72751286f8d1267cc51afc559175e3587166645ce9bb77627bf",
+      "exported_sha256": "8b3b562f84b2e2a3c698baa64ccff7b903de81baf2e57bdf2f98855ec47a1ac0",
+      "source_sha256": "8b3b562f84b2e2a3c698baa64ccff7b903de81baf2e57bdf2f98855ec47a1ac0",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_adapters.py": {
-      "exported_sha256": "ca029f473f1380c30dbb97663f33e44e6490b157969c83469257267a46da824b",
-      "source_sha256": "ca029f473f1380c30dbb97663f33e44e6490b157969c83469257267a46da824b",
+      "exported_sha256": "3db2c4feee78e954ccaa5a4150d38918f557c8aa33b96f51c93d8875d9913bf6",
+      "source_sha256": "3db2c4feee78e954ccaa5a4150d38918f557c8aa33b96f51c93d8875d9913bf6",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_adapters_organizer.py": {
-      "exported_sha256": "ab6036ead666121568e7f895e2e6df4f1fa36d3340c9df9fc4e2f559cb80c0b7",
-      "source_sha256": "ab6036ead666121568e7f895e2e6df4f1fa36d3340c9df9fc4e2f559cb80c0b7",
+      "exported_sha256": "0eb3c81b52ec322d85fc72ab00328f80c925af857429b0d092386c9bcc44360f",
+      "source_sha256": "0eb3c81b52ec322d85fc72ab00328f80c925af857429b0d092386c9bcc44360f",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_arvyx.py": {
-      "exported_sha256": "f9512aafe4644aab70f6f97f938ce902dced02e46b807bd0755a053b335aba23",
-      "source_sha256": "f9512aafe4644aab70f6f97f938ce902dced02e46b807bd0755a053b335aba23",
+      "exported_sha256": "a0d9ef5a1ec528d510b05f0787feb744f2003b33430c6900881a690be36b1748",
+      "source_sha256": "a0d9ef5a1ec528d510b05f0787feb744f2003b33430c6900881a690be36b1748",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_capture.py": {
-      "exported_sha256": "1bd596f8000c1eb48ae7a2f84bd287406883a4c1caa40f37359918e4ecbab8d8",
-      "source_sha256": "1bd596f8000c1eb48ae7a2f84bd287406883a4c1caa40f37359918e4ecbab8d8",
+      "exported_sha256": "aeddb6cae4569d03ccccd8e5ce0bb8b620b3ab78dfabc8431696fb12fb75c544",
+      "source_sha256": "aeddb6cae4569d03ccccd8e5ce0bb8b620b3ab78dfabc8431696fb12fb75c544",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_client.py": {
@@ -4115,33 +4135,33 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_consent.py": {
-      "exported_sha256": "6a87a31b5b5a38ea1aa16069372c0eb73a33e9b336f050a165564a817f09604e",
-      "source_sha256": "6a87a31b5b5a38ea1aa16069372c0eb73a33e9b336f050a165564a817f09604e",
+      "exported_sha256": "d2fccaa81787b1857a1b0d542c640c333da839bb09a1f3d505e4872c147e5580",
+      "source_sha256": "d2fccaa81787b1857a1b0d542c640c333da839bb09a1f3d505e4872c147e5580",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_delegation.py": {
-      "exported_sha256": "811ceaf06fc6933e835cdb4266eeb48f5cc5c36bfc80a2046149b05025a55160",
-      "source_sha256": "811ceaf06fc6933e835cdb4266eeb48f5cc5c36bfc80a2046149b05025a55160",
+      "exported_sha256": "fd40274022cf724869b400fee2e1bc33771714f0807a8847c4a2313e331ae8e9",
+      "source_sha256": "fd40274022cf724869b400fee2e1bc33771714f0807a8847c4a2313e331ae8e9",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_fleet.py": {
-      "exported_sha256": "198baada37e249f5b9c82f4ff9fbf9afe1adb958164d7e03c87234d0d71147d4",
-      "source_sha256": "198baada37e249f5b9c82f4ff9fbf9afe1adb958164d7e03c87234d0d71147d4",
+      "exported_sha256": "f909e929f76950d9c0aeeefe6c898a10766494183eff5d315922fdc560a9db58",
+      "source_sha256": "f909e929f76950d9c0aeeefe6c898a10766494183eff5d315922fdc560a9db58",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_human_binding.py": {
-      "exported_sha256": "10587a523f9e6d2614fd2f7cad1b3b7a1fa9f9581b3d3491896e6f81ce4a052e",
-      "source_sha256": "10587a523f9e6d2614fd2f7cad1b3b7a1fa9f9581b3d3491896e6f81ce4a052e",
+      "exported_sha256": "fa2f18351fb90b8e37c4a8596f6e3ee1dec2a8f4920b400259f4cac190ddd96e",
+      "source_sha256": "fa2f18351fb90b8e37c4a8596f6e3ee1dec2a8f4920b400259f4cac190ddd96e",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_identity.py": {
-      "exported_sha256": "17dfb5e2a0cd4d3717faf05c4b859ed3bcb573762782444839da4951ef1995a5",
-      "source_sha256": "17dfb5e2a0cd4d3717faf05c4b859ed3bcb573762782444839da4951ef1995a5",
+      "exported_sha256": "f236eef44bf774c1beaf39c8b55e6dda5e75b16ab5b2d4a04694b5ff4e1564fb",
+      "source_sha256": "f236eef44bf774c1beaf39c8b55e6dda5e75b16ab5b2d4a04694b5ff4e1564fb",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_layout.py": {
-      "exported_sha256": "2911d9246f1f7a9b3b6c69ab3cf0a4bcf7cad2ebd19ed64293d60cad624d1c79",
-      "source_sha256": "2911d9246f1f7a9b3b6c69ab3cf0a4bcf7cad2ebd19ed64293d60cad624d1c79",
+      "exported_sha256": "c753d8a63f239b56618f501e6d1a30af28f10fdda4a0f0caf1a6e6e869a44ff5",
+      "source_sha256": "c753d8a63f239b56618f501e6d1a30af28f10fdda4a0f0caf1a6e6e869a44ff5",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_leases.py": {
@@ -4150,23 +4170,23 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_local.py": {
-      "exported_sha256": "0d3894de952286df10f20ef3cd5baf54d59c19043d64a0163aaf75e886a0e395",
-      "source_sha256": "0d3894de952286df10f20ef3cd5baf54d59c19043d64a0163aaf75e886a0e395",
+      "exported_sha256": "caf6283dcbf19575645144dcb15c1ce7512cca829f64ad0c59b6893526421f07",
+      "source_sha256": "caf6283dcbf19575645144dcb15c1ce7512cca829f64ad0c59b6893526421f07",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_native_runtime.py": {
-      "exported_sha256": "559f6beb3af73686e859b52b6cb1da5f67be1ce14dc9f1b3ef21ed464663d165",
-      "source_sha256": "559f6beb3af73686e859b52b6cb1da5f67be1ce14dc9f1b3ef21ed464663d165",
+      "exported_sha256": "7de1471c5894bf6d9f0ecd5ed1b20fadfdc13265ab504131a53ab66bd9de0ea8",
+      "source_sha256": "7de1471c5894bf6d9f0ecd5ed1b20fadfdc13265ab504131a53ab66bd9de0ea8",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_paperclip.py": {
-      "exported_sha256": "9bc1b30ba0a7d130c331d8ff5d56fb94f28f51d0f5d6e2f06695770e55e51645",
-      "source_sha256": "9bc1b30ba0a7d130c331d8ff5d56fb94f28f51d0f5d6e2f06695770e55e51645",
+      "exported_sha256": "6bab7ddf21837a7d17b2ff3556a427cbd00b6abc6131f3fa442bf31ab52529b8",
+      "source_sha256": "6bab7ddf21837a7d17b2ff3556a427cbd00b6abc6131f3fa442bf31ab52529b8",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_portable_end.py": {
-      "exported_sha256": "dd645e3206881bd1f8ec99bdc5c60826a9d43611eafa5d91605837773f5c5171",
-      "source_sha256": "dd645e3206881bd1f8ec99bdc5c60826a9d43611eafa5d91605837773f5c5171",
+      "exported_sha256": "fd7acd43865b9bcbf25760e034e0eef6857c0b59d63f3b44bafe21c1fd69a7c9",
+      "source_sha256": "fd7acd43865b9bcbf25760e034e0eef6857c0b59d63f3b44bafe21c1fd69a7c9",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_primary.py": {
@@ -4175,8 +4195,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_surface.py": {
-      "exported_sha256": "e7efe4b03353eef0a0f5d276666648017bd43cc66ae265a256902d6c29222a85",
-      "source_sha256": "e7efe4b03353eef0a0f5d276666648017bd43cc66ae265a256902d6c29222a85",
+      "exported_sha256": "930d91f0ef150f77bc7b55fe2a5aaf00eab8169ac96614ee8978721587630335",
+      "source_sha256": "930d91f0ef150f77bc7b55fe2a5aaf00eab8169ac96614ee8978721587630335",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_team.py": {
@@ -4185,18 +4205,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_terminal_panels.py": {
-      "exported_sha256": "7bd641dd5b8c208d4e6ffdc4d94001715886089cb4259d68446f113e8530b43b",
-      "source_sha256": "7bd641dd5b8c208d4e6ffdc4d94001715886089cb4259d68446f113e8530b43b",
+      "exported_sha256": "953c13a836e956b94b45789f1d52b58578d41d2a2a28d7f222cb7963940b3bcf",
+      "source_sha256": "953c13a836e956b94b45789f1d52b58578d41d2a2a28d7f222cb7963940b3bcf",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_terminal_runner.py": {
-      "exported_sha256": "cb9503c52796b258abd5938046b70287507d516373ea7cab41054ac3cf317ecf",
-      "source_sha256": "cb9503c52796b258abd5938046b70287507d516373ea7cab41054ac3cf317ecf",
+      "exported_sha256": "7bd0ca10d4a4879b2e71548d5e42f3882fd8c40c3b500ff9e059b6465220d725",
+      "source_sha256": "7bd0ca10d4a4879b2e71548d5e42f3882fd8c40c3b500ff9e059b6465220d725",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_transport.py": {
-      "exported_sha256": "4d33aa5100f1ce1278cb5b33a3ab57b644f7ff12fe0a9bb5bd9367101b3d47b2",
-      "source_sha256": "4d33aa5100f1ce1278cb5b33a3ab57b644f7ff12fe0a9bb5bd9367101b3d47b2",
+      "exported_sha256": "e374ab0540acde0009d6979b22b2b24e6df3f50d81a60aa90a4900d988f8d76d",
+      "source_sha256": "e374ab0540acde0009d6979b22b2b24e6df3f50d81a60aa90a4900d988f8d76d",
       "transforms": []
     },
     "packages/arvctl/tests/test_cockpit_ui_navigation.py": {
@@ -4215,28 +4235,28 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix4_A.py": {
-      "exported_sha256": "8b96163973d4b2d0d0e47673beeb6938c45d733857ea17f118592644c2bd7d61",
-      "source_sha256": "8b96163973d4b2d0d0e47673beeb6938c45d733857ea17f118592644c2bd7d61",
+      "exported_sha256": "45bd30d08291526e53c4b7809760f8e77ee96368a06a9d81ce06df0953b3e90b",
+      "source_sha256": "45bd30d08291526e53c4b7809760f8e77ee96368a06a9d81ce06df0953b3e90b",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix4_B.py": {
-      "exported_sha256": "960eedb6221ad56bad0ff153c4ae202ca58618aa90a2cb397f38e2ef342d829a",
-      "source_sha256": "960eedb6221ad56bad0ff153c4ae202ca58618aa90a2cb397f38e2ef342d829a",
+      "exported_sha256": "c070d10c0670bf2c9b0ff25457de16cc6470d809e6be303b812ce6ce6e8820b3",
+      "source_sha256": "c070d10c0670bf2c9b0ff25457de16cc6470d809e6be303b812ce6ce6e8820b3",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix4_C.py": {
-      "exported_sha256": "4f49b5760a06b95a476e5f979223f0948a11430e4699db0bfad8a79a3ff504a9",
-      "source_sha256": "4f49b5760a06b95a476e5f979223f0948a11430e4699db0bfad8a79a3ff504a9",
+      "exported_sha256": "7afe9a4c394a4870450008d455e9774b3c9565e4ebfb29724785ac5e9938447e",
+      "source_sha256": "7afe9a4c394a4870450008d455e9774b3c9565e4ebfb29724785ac5e9938447e",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix4_D.py": {
-      "exported_sha256": "0cb6e3a706e1785ad9ae2ecd12018c17ade4e2aac894a760a8518790cb93634b",
-      "source_sha256": "0cb6e3a706e1785ad9ae2ecd12018c17ade4e2aac894a760a8518790cb93634b",
+      "exported_sha256": "86dca6e9218639a7e06eb00ab5010192f96d76d3706215862da9c2d33ee57a3c",
+      "source_sha256": "86dca6e9218639a7e06eb00ab5010192f96d76d3706215862da9c2d33ee57a3c",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix4_E.py": {
-      "exported_sha256": "d67221590c53a5accf6c98a7d0e0db3466f84f6dbef6ec31850f1da7496742fb",
-      "source_sha256": "d67221590c53a5accf6c98a7d0e0db3466f84f6dbef6ec31850f1da7496742fb",
+      "exported_sha256": "86ce5dc3326677cfd19f6f7df6b26206c8f0b2ea7743c9f2dbd838c2035f473d",
+      "source_sha256": "86ce5dc3326677cfd19f6f7df6b26206c8f0b2ea7743c9f2dbd838c2035f473d",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix4_auth_ordering.py": {
@@ -4250,33 +4270,33 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_B.py": {
-      "exported_sha256": "52f6978ac24d809267704e81191ea639d2407b744ae5d5d2ce0cebe37bcca3c5",
-      "source_sha256": "52f6978ac24d809267704e81191ea639d2407b744ae5d5d2ce0cebe37bcca3c5",
+      "exported_sha256": "5d02e8519bec3dacef3330730e5a798c61b7732d644630f2e0444e7b88013d0e",
+      "source_sha256": "5d02e8519bec3dacef3330730e5a798c61b7732d644630f2e0444e7b88013d0e",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_C.py": {
-      "exported_sha256": "d64d864eb892c54f611a8e61a2bc6884d079c457e91eb2a711eee271dbbd9b86",
-      "source_sha256": "d64d864eb892c54f611a8e61a2bc6884d079c457e91eb2a711eee271dbbd9b86",
+      "exported_sha256": "26618e7c370d4914c0baf0b4d2a2431c615e66a4fa47b268f993e5b962983868",
+      "source_sha256": "26618e7c370d4914c0baf0b4d2a2431c615e66a4fa47b268f993e5b962983868",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_D.py": {
-      "exported_sha256": "bb90caa195c2f40911422b6d3a8bdb59f961f86f358166e5057999783731e0e7",
-      "source_sha256": "bb90caa195c2f40911422b6d3a8bdb59f961f86f358166e5057999783731e0e7",
+      "exported_sha256": "85ab3ece02e2fea4b4183f612b6625f787aa3a8619eedb5de40e05ad45ab115d",
+      "source_sha256": "85ab3ece02e2fea4b4183f612b6625f787aa3a8619eedb5de40e05ad45ab115d",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_E.py": {
-      "exported_sha256": "c668dd05d7092c93e3490fdf388e8ffe9cc5ccba0ecefea2b41dab568da4c3dd",
-      "source_sha256": "c668dd05d7092c93e3490fdf388e8ffe9cc5ccba0ecefea2b41dab568da4c3dd",
+      "exported_sha256": "772de5b872e558be5dbaf7dc0e2ffccfc4bae03f397a93d03cbfe74f66ef5c7c",
+      "source_sha256": "772de5b872e558be5dbaf7dc0e2ffccfc4bae03f397a93d03cbfe74f66ef5c7c",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_F.py": {
-      "exported_sha256": "7bf22b63933bc5e5eafd13f1d13aa3842964377e0adff2bfab1316db5e0f4abe",
-      "source_sha256": "7bf22b63933bc5e5eafd13f1d13aa3842964377e0adff2bfab1316db5e0f4abe",
+      "exported_sha256": "5ffad4176bf0cefb1dd69a3b8a861fc25cf1d24705f243ea594c1dd2c10a718e",
+      "source_sha256": "5ffad4176bf0cefb1dd69a3b8a861fc25cf1d24705f243ea594c1dd2c10a718e",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_additional.py": {
-      "exported_sha256": "263b8f2f20a765404e77a4ab6ad94b9bd2c65dc469280856c416733e7d7a5c3c",
-      "source_sha256": "263b8f2f20a765404e77a4ab6ad94b9bd2c65dc469280856c416733e7d7a5c3c",
+      "exported_sha256": "9e4bab833bc4196623502a3f92c4a8d6a222ca64afa0be00190fb3cf50bb72d1",
+      "source_sha256": "9e4bab833bc4196623502a3f92c4a8d6a222ca64afa0be00190fb3cf50bb72d1",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_audit_integration.py": {
@@ -4285,18 +4305,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_integration.py": {
-      "exported_sha256": "10cfcaa1e8c11f8a78954e62f32b564d60e5153d42dde669c8d65bc8aed60bf6",
-      "source_sha256": "10cfcaa1e8c11f8a78954e62f32b564d60e5153d42dde669c8d65bc8aed60bf6",
+      "exported_sha256": "e91042404900d766c364afb7dc07ff72558135f9eae3aec2c6b01c83e75d03d6",
+      "source_sha256": "e91042404900d766c364afb7dc07ff72558135f9eae3aec2c6b01c83e75d03d6",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_owner_rpc.py": {
-      "exported_sha256": "81ce97c6fc9015749f5742e6ea817c4041e2f8d16c24582549189974bd131a64",
-      "source_sha256": "81ce97c6fc9015749f5742e6ea817c4041e2f8d16c24582549189974bd131a64",
+      "exported_sha256": "b53bb2f2c75c64944b4e3933b2b8dc7d845a0690a1c1715937caddc6a235370b",
+      "source_sha256": "b53bb2f2c75c64944b4e3933b2b8dc7d845a0690a1c1715937caddc6a235370b",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_remote_fence.py": {
-      "exported_sha256": "8c975f67f64f9dfd431fd4bad2bfc9e3902833226c49b4e844084fda1f08f4b1",
-      "source_sha256": "8c975f67f64f9dfd431fd4bad2bfc9e3902833226c49b4e844084fda1f08f4b1",
+      "exported_sha256": "2188f2d23ce645cced7b3cccabe165bad8ab9c149190e1f01e3bd929ac79db3c",
+      "source_sha256": "2188f2d23ce645cced7b3cccabe165bad8ab9c149190e1f01e3bd929ac79db3c",
       "transforms": []
     },
     "packages/arvctl/tests/test_completion_fix5_tls.py": {
@@ -4310,18 +4330,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_consolidated_election.py": {
-      "exported_sha256": "6ae51642365920f637c01a0af34c3f8277b768bc0f1e9ed660d7b22bd9785dfe",
-      "source_sha256": "6ae51642365920f637c01a0af34c3f8277b768bc0f1e9ed660d7b22bd9785dfe",
+      "exported_sha256": "34d9afe75c6f4057d068db80d172cd2c812156148c0c44dc7eedcf7af617bfb0",
+      "source_sha256": "34d9afe75c6f4057d068db80d172cd2c812156148c0c44dc7eedcf7af617bfb0",
       "transforms": []
     },
     "packages/arvctl/tests/test_consolidated_election_endpoints.py": {
-      "exported_sha256": "eb49427a97a59effda2415a8ad355ec1d034de2c8109185cac1f8935e34a6a7f",
-      "source_sha256": "eb49427a97a59effda2415a8ad355ec1d034de2c8109185cac1f8935e34a6a7f",
+      "exported_sha256": "c9d3f08ff97bf095a3b83104937faedf0789b8d2cd5e68cd9fb03b83de71ab35",
+      "source_sha256": "c9d3f08ff97bf095a3b83104937faedf0789b8d2cd5e68cd9fb03b83de71ab35",
       "transforms": []
     },
     "packages/arvctl/tests/test_consolidated_onboarding.py": {
-      "exported_sha256": "ee2dd6f6aec52219c68594a66f920751e55130b914a8196dcfd933192de01600",
-      "source_sha256": "ee2dd6f6aec52219c68594a66f920751e55130b914a8196dcfd933192de01600",
+      "exported_sha256": "f2a929e225f5af6e392052450e1261867504d5a04aa5042442c23742ea02b525",
+      "source_sha256": "f2a929e225f5af6e392052450e1261867504d5a04aa5042442c23742ea02b525",
       "transforms": []
     },
     "packages/arvctl/tests/test_container_readiness.py": {
@@ -4365,23 +4385,23 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_01.py": {
-      "exported_sha256": "ccf01b4a017905fd01f3ebefb0e93e78db1d9b404d23cd1da7cee607e6f634b0",
-      "source_sha256": "ccf01b4a017905fd01f3ebefb0e93e78db1d9b404d23cd1da7cee607e6f634b0",
+      "exported_sha256": "fb0d6a8413c0df8d4d123638b25783ef401ae9a58f701438d683fd6232dc6119",
+      "source_sha256": "fb0d6a8413c0df8d4d123638b25783ef401ae9a58f701438d683fd6232dc6119",
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_02.py": {
-      "exported_sha256": "0390d64a659af0573a6b4b892daadae71fa643f923819e8c077d0bc674aa0e10",
-      "source_sha256": "0390d64a659af0573a6b4b892daadae71fa643f923819e8c077d0bc674aa0e10",
+      "exported_sha256": "0a8392946b329f594e3b0855ed11c64d99ec9a7ac44b8fe1cc4fcf506a056652",
+      "source_sha256": "0a8392946b329f594e3b0855ed11c64d99ec9a7ac44b8fe1cc4fcf506a056652",
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_03.py": {
-      "exported_sha256": "9e8d95edc0b63edaea958f79e7c33eb3b9ca63fc8b68028120c470afe3fd2560",
-      "source_sha256": "9e8d95edc0b63edaea958f79e7c33eb3b9ca63fc8b68028120c470afe3fd2560",
+      "exported_sha256": "3cdbc8f9f74b0a135497c9f41137c7dd8845bc277797bed1bdccb7c548c1bdb9",
+      "source_sha256": "3cdbc8f9f74b0a135497c9f41137c7dd8845bc277797bed1bdccb7c548c1bdb9",
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_04.py": {
-      "exported_sha256": "237b7b7084a2416d4b8acdeac1eb42cc4bb0e7ea660f1349d5fab40a6a82c665",
-      "source_sha256": "237b7b7084a2416d4b8acdeac1eb42cc4bb0e7ea660f1349d5fab40a6a82c665",
+      "exported_sha256": "2912df4e79aae3f7089fd536529911a37fb65d0d458d224e07cf08c814cd900d",
+      "source_sha256": "2912df4e79aae3f7089fd536529911a37fb65d0d458d224e07cf08c814cd900d",
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_05.py": {
@@ -4390,18 +4410,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_06.py": {
-      "exported_sha256": "d27a73b1e51c2ef7a0de5df37eb860b79123d0b9ca13ae40ee15e9265b0a8dc9",
-      "source_sha256": "d27a73b1e51c2ef7a0de5df37eb860b79123d0b9ca13ae40ee15e9265b0a8dc9",
+      "exported_sha256": "81ddd0b45c0b8afb0eb81239c88d49302aa5152eb314e6e0c3474bc63f546fc5",
+      "source_sha256": "81ddd0b45c0b8afb0eb81239c88d49302aa5152eb314e6e0c3474bc63f546fc5",
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_07.py": {
-      "exported_sha256": "cc0dd73e922ffdb57a9f31416a71afc5bb0d17d91f80cdee2c2ad23d5c2511d3",
-      "source_sha256": "cc0dd73e922ffdb57a9f31416a71afc5bb0d17d91f80cdee2c2ad23d5c2511d3",
+      "exported_sha256": "bea835a317b8a7823a8b315e2a6e6d91cfac2cef9e020a08a85a997871347b4d",
+      "source_sha256": "bea835a317b8a7823a8b315e2a6e6d91cfac2cef9e020a08a85a997871347b4d",
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_08.py": {
-      "exported_sha256": "e36aa659a024e44f3ade4fec41c9cf5a7e6c2f34bb94bcba343f7a2adf8f85cf",
-      "source_sha256": "e36aa659a024e44f3ade4fec41c9cf5a7e6c2f34bb94bcba343f7a2adf8f85cf",
+      "exported_sha256": "cc068f3eacf65b117a391c4453e0d1ceeb3d41c68cc2d2eeaa15ae7b71a4221c",
+      "source_sha256": "cc068f3eacf65b117a391c4453e0d1ceeb3d41c68cc2d2eeaa15ae7b71a4221c",
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_09.py": {
@@ -4410,13 +4430,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_10.py": {
-      "exported_sha256": "df3aca91713f5caf9949342c823af982e05b7197267112d6f9c924b07765f92f",
-      "source_sha256": "df3aca91713f5caf9949342c823af982e05b7197267112d6f9c924b07765f92f",
+      "exported_sha256": "8e3d659b73f291b85bfd53c4c312260df79a19baee4b570e115e0e681b3866e5",
+      "source_sha256": "8e3d659b73f291b85bfd53c4c312260df79a19baee4b570e115e0e681b3866e5",
       "transforms": []
     },
     "packages/arvctl/tests/test_deep10fix_integration.py": {
-      "exported_sha256": "09f4febf869f7d10bc6a54897d0c478dfca2e43f7387bbf6a877f0136df99159",
-      "source_sha256": "09f4febf869f7d10bc6a54897d0c478dfca2e43f7387bbf6a877f0136df99159",
+      "exported_sha256": "4805b716b962bfe7b00103b80956ebac4b733f43e1fcbb83ee7bf34e055b5e25",
+      "source_sha256": "4805b716b962bfe7b00103b80956ebac4b733f43e1fcbb83ee7bf34e055b5e25",
       "transforms": []
     },
     "packages/arvctl/tests/test_delivery_canary.py": {
@@ -4430,8 +4450,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_delivery_probe.py": {
-      "exported_sha256": "f1393d3c4dd50dc776827f5db4fc1c5568f13250022c663cdf5455e63ac1703e",
-      "source_sha256": "f1393d3c4dd50dc776827f5db4fc1c5568f13250022c663cdf5455e63ac1703e",
+      "exported_sha256": "9d6dc50f1c793a8d51c09d9a81c188984116d578ee1c9d1e8073a108255d4d51",
+      "source_sha256": "9d6dc50f1c793a8d51c09d9a81c188984116d578ee1c9d1e8073a108255d4d51",
       "transforms": []
     },
     "packages/arvctl/tests/test_delivery_surfaces.py": {
@@ -4450,8 +4470,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_dependency_security_metadata.py": {
-      "exported_sha256": "42430c41aa0dc2ebdcf3cd1e78101bbab3bb8f5088f6fedf99aca21fadfc7056",
-      "source_sha256": "42430c41aa0dc2ebdcf3cd1e78101bbab3bb8f5088f6fedf99aca21fadfc7056",
+      "exported_sha256": "27695e332d2b3b75e8e17b207bb13fe08782edde00b813079b546254dc3f78d8",
+      "source_sha256": "27695e332d2b3b75e8e17b207bb13fe08782edde00b813079b546254dc3f78d8",
       "transforms": []
     },
     "packages/arvctl/tests/test_depth10_outbox_return.py": {
@@ -4480,8 +4500,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_depth20_control_history.py": {
-      "exported_sha256": "5e061485e3308068e7ab141c3582b84bead7df39050294d81a86cf3bdba99b05",
-      "source_sha256": "5e061485e3308068e7ab141c3582b84bead7df39050294d81a86cf3bdba99b05",
+      "exported_sha256": "d8056bc89e39248ddd1883994c91a5b8f8ae2600762c06c0c2d162a77876dad2",
+      "source_sha256": "d8056bc89e39248ddd1883994c91a5b8f8ae2600762c06c0c2d162a77876dad2",
       "transforms": []
     },
     "packages/arvctl/tests/test_depth20_delivery_recovery.py": {
@@ -4495,13 +4515,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_depth20_import_recovery.py": {
-      "exported_sha256": "90493e6b1c2e12b4ef54ed3c8d01672681aa35dd32094a5cf51482c9c163bc9a",
-      "source_sha256": "90493e6b1c2e12b4ef54ed3c8d01672681aa35dd32094a5cf51482c9c163bc9a",
+      "exported_sha256": "de10f8902028723a4687aa3acc4537d6e6a48cb753c90a55a532a2f93719571e",
+      "source_sha256": "de10f8902028723a4687aa3acc4537d6e6a48cb753c90a55a532a2f93719571e",
       "transforms": []
     },
     "packages/arvctl/tests/test_depth20_native_integrity.py": {
-      "exported_sha256": "ce554376cd75da7058d9b8d1bc445a66b392eccce231ed00c69e0868c830d20c",
-      "source_sha256": "ce554376cd75da7058d9b8d1bc445a66b392eccce231ed00c69e0868c830d20c",
+      "exported_sha256": "eb42314ac4cb23b838a88dace21234bd9b2f5e708fe991b1e1af136734d3e14b",
+      "source_sha256": "eb42314ac4cb23b838a88dace21234bd9b2f5e708fe991b1e1af136734d3e14b",
       "transforms": []
     },
     "packages/arvctl/tests/test_depth20_replica_restore.py": {
@@ -4510,8 +4530,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_depth20_retrieval_cache.py": {
-      "exported_sha256": "643258c0ab62f9c44be93797be17e845c24e7976545d5702e73a495c05441a5a",
-      "source_sha256": "643258c0ab62f9c44be93797be17e845c24e7976545d5702e73a495c05441a5a",
+      "exported_sha256": "5e7224af981ca47391b9251e1a5ef277fff6ceeb4d2797498d3ebaa786facc67",
+      "source_sha256": "5e7224af981ca47391b9251e1a5ef277fff6ceeb4d2797498d3ebaa786facc67",
       "transforms": []
     },
     "packages/arvctl/tests/test_depth20_retrieval_integration.py": {
@@ -4530,8 +4550,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_diagnostics.py": {
-      "exported_sha256": "42493a15aacdcde0b9ad9126df80d9f39b0abb8394b25a8ec454a73e01e48370",
-      "source_sha256": "42493a15aacdcde0b9ad9126df80d9f39b0abb8394b25a8ec454a73e01e48370",
+      "exported_sha256": "4865abc6cfa79b2398ad530326a41952965a5d7d2450df26aeaf980c5eedf668",
+      "source_sha256": "4865abc6cfa79b2398ad530326a41952965a5d7d2450df26aeaf980c5eedf668",
       "transforms": []
     },
     "packages/arvctl/tests/test_digest.py": {
@@ -4570,23 +4590,23 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_engineering_native_reservation.py": {
-      "exported_sha256": "a4349fc5c8387500a949a0aaf841612097c0fdb73550e48501dfca1d3a76ae64",
-      "source_sha256": "a4349fc5c8387500a949a0aaf841612097c0fdb73550e48501dfca1d3a76ae64",
+      "exported_sha256": "1491b81d3e474880ee70865de8babd377edc83a648605cc1fda8b8e680fb7a6f",
+      "source_sha256": "1491b81d3e474880ee70865de8babd377edc83a648605cc1fda8b8e680fb7a6f",
       "transforms": []
     },
     "packages/arvctl/tests/test_engineering_team_deadline.py": {
-      "exported_sha256": "2058e260dc5f7d0bba5f4ea9ef69f3a868c53c0a050201ed4f05d04f60d29aa8",
-      "source_sha256": "2058e260dc5f7d0bba5f4ea9ef69f3a868c53c0a050201ed4f05d04f60d29aa8",
+      "exported_sha256": "9ee01d86a3443de50b80f4682b12b5aaf15818647a164bcb31677d654b85576a",
+      "source_sha256": "9ee01d86a3443de50b80f4682b12b5aaf15818647a164bcb31677d654b85576a",
       "transforms": []
     },
     "packages/arvctl/tests/test_engineering_transcript_recovery.py": {
-      "exported_sha256": "5e32df43f96167430f376a3291221d207a1947d9e1b7ef2ed7707175db7b3b3e",
-      "source_sha256": "5e32df43f96167430f376a3291221d207a1947d9e1b7ef2ed7707175db7b3b3e",
+      "exported_sha256": "9c161c7568c22307a8ce1e788c22cfd4f34d453d57c13cea36bfe884e1ffb7ce",
+      "source_sha256": "9c161c7568c22307a8ce1e788c22cfd4f34d453d57c13cea36bfe884e1ffb7ce",
       "transforms": []
     },
     "packages/arvctl/tests/test_enrollment_recovery.py": {
-      "exported_sha256": "19c476d52565613e06a397e5723a425de76f3856d2410a1c5fc01d0f01ed8da2",
-      "source_sha256": "19c476d52565613e06a397e5723a425de76f3856d2410a1c5fc01d0f01ed8da2",
+      "exported_sha256": "4997d39bd9a4b2fb417e278317ff0f460c9d01cb9c2e9ce5277fefadf5e541b2",
+      "source_sha256": "4997d39bd9a4b2fb417e278317ff0f460c9d01cb9c2e9ce5277fefadf5e541b2",
       "transforms": []
     },
     "packages/arvctl/tests/test_event_read_cache.py": {
@@ -4660,13 +4680,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_external_work.py": {
-      "exported_sha256": "9a6a3ddf671d81f9f3bdbfb72391c452d51e965be940496f377e2eb3b2091309",
-      "source_sha256": "9a6a3ddf671d81f9f3bdbfb72391c452d51e965be940496f377e2eb3b2091309",
+      "exported_sha256": "19b8cf4887605f591855d638f5bda9aa6fb4dc40eab551ed23cb5719d94d2491",
+      "source_sha256": "19b8cf4887605f591855d638f5bda9aa6fb4dc40eab551ed23cb5719d94d2491",
       "transforms": []
     },
     "packages/arvctl/tests/test_external_workspace.py": {
-      "exported_sha256": "314c8fa53937bca2e926818750e3b74fac4a20c07305b2c999bc0ae36b6b991c",
-      "source_sha256": "314c8fa53937bca2e926818750e3b74fac4a20c07305b2c999bc0ae36b6b991c",
+      "exported_sha256": "1f1c8ec6dca27a3be79e9c534957a239e61ee6851676306f018bf6e4212c96c7",
+      "source_sha256": "1f1c8ec6dca27a3be79e9c534957a239e61ee6851676306f018bf6e4212c96c7",
       "transforms": []
     },
     "packages/arvctl/tests/test_final_audit_identity.py": {
@@ -4690,8 +4710,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_final_team_budget.py": {
-      "exported_sha256": "9709bf4c77175bba18cd1cd3d766fff445378f82e3e4f1377c3e2f199621c080",
-      "source_sha256": "9709bf4c77175bba18cd1cd3d766fff445378f82e3e4f1377c3e2f199621c080",
+      "exported_sha256": "23bd5b43cf67fcdcf89f75cc03e932a31ef8f016857ba359f89fb92c385813d9",
+      "source_sha256": "23bd5b43cf67fcdcf89f75cc03e932a31ef8f016857ba359f89fb92c385813d9",
       "transforms": []
     },
     "packages/arvctl/tests/test_final_transcript_integration.py": {
@@ -4700,13 +4720,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_fix50_memory.py": {
-      "exported_sha256": "f3cc46b8cbd67b6d20187a536bc313ade2134acf5694442b5fd0f62e663f2f80",
-      "source_sha256": "f3cc46b8cbd67b6d20187a536bc313ade2134acf5694442b5fd0f62e663f2f80",
+      "exported_sha256": "88cc36ba62c36ae07303388a91f017e0ae867f5d88b9279edf3823f54356f1ed",
+      "source_sha256": "88cc36ba62c36ae07303388a91f017e0ae867f5d88b9279edf3823f54356f1ed",
       "transforms": []
     },
     "packages/arvctl/tests/test_focus75_agent03_NOT_EXECUTED.py": {
-      "exported_sha256": "bdf8eb3127b93dfc9952c2e2e13b4e2af502f860d9251225823fbda58a23debd",
-      "source_sha256": "bdf8eb3127b93dfc9952c2e2e13b4e2af502f860d9251225823fbda58a23debd",
+      "exported_sha256": "1d56397fbe725509a0374d7ebeb86c3327d86c9c94b7f3cbd6a6122d45bd4c0c",
+      "source_sha256": "1d56397fbe725509a0374d7ebeb86c3327d86c9c94b7f3cbd6a6122d45bd4c0c",
       "transforms": []
     },
     "packages/arvctl/tests/test_focus75_agent08_NOT_EXECUTED.py": {
@@ -4725,8 +4745,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_focus75_agent15.py": {
-      "exported_sha256": "001a6e357b91c3d4b41d525623d23dad70835bdd6a376ba7d9ae1cea7178e7ab",
-      "source_sha256": "001a6e357b91c3d4b41d525623d23dad70835bdd6a376ba7d9ae1cea7178e7ab",
+      "exported_sha256": "0ce8ceca93d935ae62c4ec6b192aa3360c9ae1e641d08dd81150de02ded403ef",
+      "source_sha256": "0ce8ceca93d935ae62c4ec6b192aa3360c9ae1e641d08dd81150de02ded403ef",
       "transforms": []
     },
     "packages/arvctl/tests/test_focus75_autopilot_help.py": {
@@ -4750,18 +4770,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_hardening.py": {
-      "exported_sha256": "dc18a61a8cfd931d8f6b0d3347eb09d3aefd9454a8bee010618ca2040f0cec18",
-      "source_sha256": "dc18a61a8cfd931d8f6b0d3347eb09d3aefd9454a8bee010618ca2040f0cec18",
+      "exported_sha256": "163335adb04984d6d92235771cebf8b7ed42d7e32f97600a181d0f81d7490acd",
+      "source_sha256": "163335adb04984d6d92235771cebf8b7ed42d7e32f97600a181d0f81d7490acd",
       "transforms": []
     },
     "packages/arvctl/tests/test_harness_discovery.py": {
-      "exported_sha256": "5d6baf60afb79e72398ffc9b2e2bd19b78ac4d9170d1c84321494f6928bc05f9",
-      "source_sha256": "5d6baf60afb79e72398ffc9b2e2bd19b78ac4d9170d1c84321494f6928bc05f9",
+      "exported_sha256": "710370b8cd9818db852f4c60a02d39e1d765c6da3f07e5dfa2d6b4dfe3a92c49",
+      "source_sha256": "710370b8cd9818db852f4c60a02d39e1d765c6da3f07e5dfa2d6b4dfe3a92c49",
       "transforms": []
     },
     "packages/arvctl/tests/test_harness_improvement.py": {
-      "exported_sha256": "14728bddaebf8decc34881b74cba59ab40d01099507b5b1b9de5c91948792105",
-      "source_sha256": "14728bddaebf8decc34881b74cba59ab40d01099507b5b1b9de5c91948792105",
+      "exported_sha256": "33f301a83056b955bb7de0be543ccd2387d5b81f06be42b1fbaced6e4a15336a",
+      "source_sha256": "33f301a83056b955bb7de0be543ccd2387d5b81f06be42b1fbaced6e4a15336a",
       "transforms": []
     },
     "packages/arvctl/tests/test_health_ops.py": {
@@ -4770,8 +4790,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_hermes_history.py": {
-      "exported_sha256": "a3162a9dbc65055d4469267e2e9647582c4ff4d9533ddc072ccfd86634afbbf9",
-      "source_sha256": "a3162a9dbc65055d4469267e2e9647582c4ff4d9533ddc072ccfd86634afbbf9",
+      "exported_sha256": "e2f07e78c87b96527c6cca6f81ad228a9380f15eb124b833b9ab1a27c26ef87e",
+      "source_sha256": "e2f07e78c87b96527c6cca6f81ad228a9380f15eb124b833b9ab1a27c26ef87e",
       "transforms": []
     },
     "packages/arvctl/tests/test_hermes_profile_launch.py": {
@@ -4780,8 +4800,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_index_migration.py": {
-      "exported_sha256": "68f4613cb2ae21fdcf33a8a93c440071157994c0e40fb514ec618856590ac682",
-      "source_sha256": "68f4613cb2ae21fdcf33a8a93c440071157994c0e40fb514ec618856590ac682",
+      "exported_sha256": "18b4ee186f9a61d7837ab99e8f03111844913cc46b67075d790172b406eec252",
+      "source_sha256": "18b4ee186f9a61d7837ab99e8f03111844913cc46b67075d790172b406eec252",
       "transforms": []
     },
     "packages/arvctl/tests/test_json_nesting_bound.py": {
@@ -4820,8 +4840,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_latest15_native_lifecycle.py": {
-      "exported_sha256": "4d7466fcf54e0fda40b6d318a1888c080a7058194693244920d64620e98af627",
-      "source_sha256": "4d7466fcf54e0fda40b6d318a1888c080a7058194693244920d64620e98af627",
+      "exported_sha256": "c4c007450ec24be194fc6101fd8e413d3b6a73ee73cc84fb5aae3fbdc345e91f",
+      "source_sha256": "c4c007450ec24be194fc6101fd8e413d3b6a73ee73cc84fb5aae3fbdc345e91f",
       "transforms": []
     },
     "packages/arvctl/tests/test_latest15_replica_alias.py": {
@@ -4830,8 +4850,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_latest15_retrieval.py": {
-      "exported_sha256": "1dbb98abda38056e4371ad6937f921f2b437d37067cdbfa5c3a4038fc71ef6f7",
-      "source_sha256": "1dbb98abda38056e4371ad6937f921f2b437d37067cdbfa5c3a4038fc71ef6f7",
+      "exported_sha256": "1fb572d5f3c56ee5ce4eeccaee1f5a9249f4d198ffd42d9ca51e0406f2f3631b",
+      "source_sha256": "1fb572d5f3c56ee5ce4eeccaee1f5a9249f4d198ffd42d9ca51e0406f2f3631b",
       "transforms": []
     },
     "packages/arvctl/tests/test_ledger_lane03.py": {
@@ -4845,8 +4865,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_ledger_memory_index.py": {
-      "exported_sha256": "7c60a65319e3eae158b2723d03a6f598432b97cfa269a19280d269736204cbb8",
-      "source_sha256": "7c60a65319e3eae158b2723d03a6f598432b97cfa269a19280d269736204cbb8",
+      "exported_sha256": "809c3bc3b7c3d0bc83d0fb7160b787311a4d9be934f1cf9126794dc4ac2b88dc",
+      "source_sha256": "809c3bc3b7c3d0bc83d0fb7160b787311a4d9be934f1cf9126794dc4ac2b88dc",
       "transforms": []
     },
     "packages/arvctl/tests/test_legacy_author_delivery.py": {
@@ -4870,13 +4890,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_local_onboarding_services.py": {
-      "exported_sha256": "0abedf7f027a869ccafc6ab29f00066f1f285360198628a53c55761cdc80cbad",
-      "source_sha256": "0abedf7f027a869ccafc6ab29f00066f1f285360198628a53c55761cdc80cbad",
+      "exported_sha256": "1a9ee265ac23de63a711f70964a9fc18013b88498cad94eb0d19a36fb15e0626",
+      "source_sha256": "1a9ee265ac23de63a711f70964a9fc18013b88498cad94eb0d19a36fb15e0626",
       "transforms": []
     },
     "packages/arvctl/tests/test_machine_pairing.py": {
-      "exported_sha256": "76b92d34fc1dda117633abc9511a7c5a54c3f5ba6a4e9d4673da615f8318557c",
-      "source_sha256": "76b92d34fc1dda117633abc9511a7c5a54c3f5ba6a4e9d4673da615f8318557c",
+      "exported_sha256": "0133d7ab405a2a2793ca19153f91774f2b2f1469d6a5e538a0201aa7af0523f0",
+      "source_sha256": "0133d7ab405a2a2793ca19153f91774f2b2f1469d6a5e538a0201aa7af0523f0",
       "transforms": []
     },
     "packages/arvctl/tests/test_machine_pairing_direction.py": {
@@ -4900,13 +4920,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_masterledger_lane01_archive.py": {
-      "exported_sha256": "7c824f951e247d856991c814b436a7d8990233753ba0df30cfc84700e9cac874",
-      "source_sha256": "7c824f951e247d856991c814b436a7d8990233753ba0df30cfc84700e9cac874",
+      "exported_sha256": "9a14d7fa74c2975230b97fb3514ffd0e3d1cff1c912caf038a2f295c8e100190",
+      "source_sha256": "9a14d7fa74c2975230b97fb3514ffd0e3d1cff1c912caf038a2f295c8e100190",
       "transforms": []
     },
     "packages/arvctl/tests/test_masterledger_lane04_native.py": {
-      "exported_sha256": "29a939b8e45ea4bdb522395eff997150a529115d9a2f1d0ab3f1f991b47bd24b",
-      "source_sha256": "29a939b8e45ea4bdb522395eff997150a529115d9a2f1d0ab3f1f991b47bd24b",
+      "exported_sha256": "f63e2fd7455972a9905930d623a10c3bc8f9ac005f9585ebcd5a79df78f1353d",
+      "source_sha256": "f63e2fd7455972a9905930d623a10c3bc8f9ac005f9585ebcd5a79df78f1353d",
       "transforms": []
     },
     "packages/arvctl/tests/test_mcp_boundary_admission.py": {
@@ -4925,8 +4945,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_mcp_client_real_evidence.py": {
-      "exported_sha256": "4af8c05e032e635f22fd02c0be99daf41cc3ea64b6717e00292547957e0b8065",
-      "source_sha256": "4af8c05e032e635f22fd02c0be99daf41cc3ea64b6717e00292547957e0b8065",
+      "exported_sha256": "eb66f91e2ac5149aa4eacfcd51f8394827bda5ae6bdb9e18a0466d7673b4083b",
+      "source_sha256": "eb66f91e2ac5149aa4eacfcd51f8394827bda5ae6bdb9e18a0466d7673b4083b",
       "transforms": []
     },
     "packages/arvctl/tests/test_mcp_hardening.py": {
@@ -4940,8 +4960,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_memory_relations.py": {
-      "exported_sha256": "41150688e377b46224f453cdb05613fbce384b59debccd4927d7cf2e1e27c56f",
-      "source_sha256": "41150688e377b46224f453cdb05613fbce384b59debccd4927d7cf2e1e27c56f",
+      "exported_sha256": "b5c01b8bb66287da14dd79855ef61d76f0b71ff67154c092c9974cc2260ad75d",
+      "source_sha256": "b5c01b8bb66287da14dd79855ef61d76f0b71ff67154c092c9974cc2260ad75d",
       "transforms": []
     },
     "packages/arvctl/tests/test_memory_relations_rollback.py": {
@@ -4960,8 +4980,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_native_election_event.py": {
-      "exported_sha256": "985e88327187d19444cc0375af5c3dec16e2a43e5625c17da32a19b1752c0a1d",
-      "source_sha256": "985e88327187d19444cc0375af5c3dec16e2a43e5625c17da32a19b1752c0a1d",
+      "exported_sha256": "f1b478f6828a4611592d119646e3fd4b3a6871938493f24f727f4bd7deca3647",
+      "source_sha256": "f1b478f6828a4611592d119646e3fd4b3a6871938493f24f727f4bd7deca3647",
       "transforms": []
     },
     "packages/arvctl/tests/test_native_fleet_lane.py": {
@@ -4970,8 +4990,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_native_profile_review.py": {
-      "exported_sha256": "b083566e574b48c104761d833f91d21db8b78cb8b5f9195cc5a88039ef30550d",
-      "source_sha256": "b083566e574b48c104761d833f91d21db8b78cb8b5f9195cc5a88039ef30550d",
+      "exported_sha256": "ece6e8325345fe44cf3b67c89cf1b646249e08bf68f3a8902dbe056cd84fc31e",
+      "source_sha256": "ece6e8325345fe44cf3b67c89cf1b646249e08bf68f3a8902dbe056cd84fc31e",
       "transforms": []
     },
     "packages/arvctl/tests/test_native_provisioning.py": {
@@ -5000,8 +5020,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_npm_package_smoke.py": {
-      "exported_sha256": "b07b90a9440072cd9cefcf08fffedfaf96c9edbeedbdd10af5f3589b29849fdd",
-      "source_sha256": "b07b90a9440072cd9cefcf08fffedfaf96c9edbeedbdd10af5f3589b29849fdd",
+      "exported_sha256": "e6bcefcce362edbc3d441988e54ed9a19ae4e578163ad54fc9f3709a35040366",
+      "source_sha256": "e6bcefcce362edbc3d441988e54ed9a19ae4e578163ad54fc9f3709a35040366",
       "transforms": []
     },
     "packages/arvctl/tests/test_onboarding_cli.py": {
@@ -5020,18 +5040,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_operator_alert_dismissal.py": {
-      "exported_sha256": "fe703978d3ce9341b78d2b19c44be6627440aea25876a3cef2ebc76c01d1edfd",
-      "source_sha256": "fe703978d3ce9341b78d2b19c44be6627440aea25876a3cef2ebc76c01d1edfd",
+      "exported_sha256": "ed8986bdf3f5ac42cf5a89406ed151f3352a2cc4e742a2120df33e8cc47d2a2a",
+      "source_sha256": "ed8986bdf3f5ac42cf5a89406ed151f3352a2cc4e742a2120df33e8cc47d2a2a",
       "transforms": []
     },
     "packages/arvctl/tests/test_operator_archive.py": {
-      "exported_sha256": "173478ee71dc1ab38de8525077552cbd5e8fbf12b0b0e31537cd6d513adcc3cf",
-      "source_sha256": "173478ee71dc1ab38de8525077552cbd5e8fbf12b0b0e31537cd6d513adcc3cf",
+      "exported_sha256": "1f0fb34e1de4d54fbcd812039953f8b47c2752181669111e157b42b08d1d383f",
+      "source_sha256": "1f0fb34e1de4d54fbcd812039953f8b47c2752181669111e157b42b08d1d383f",
       "transforms": []
     },
     "packages/arvctl/tests/test_ops_static_boundaries.py": {
-      "exported_sha256": "bd96949423241728e75a013e17d4fea67a6d175af87a12d5b367900e4cdaa555",
-      "source_sha256": "bd96949423241728e75a013e17d4fea67a6d175af87a12d5b367900e4cdaa555",
+      "exported_sha256": "26a172c343c6f6aea4f8455a7fb213433a9ca4182b9f48e1be429a6ac9e53156",
+      "source_sha256": "26a172c343c6f6aea4f8455a7fb213433a9ca4182b9f48e1be429a6ac9e53156",
       "transforms": []
     },
     "packages/arvctl/tests/test_organizer_authority.py": {
@@ -5044,14 +5064,19 @@
       "source_sha256": "fee2f64aa4330833cb94fc83277e3f759672686fb5a9ac760e43eae1e7b461e9",
       "transforms": []
     },
+    "packages/arvctl/tests/test_owner_endpoint.py": {
+      "exported_sha256": "d0bca4659fe80646003cd6ff1c7649d2950f3d3d6d238a22c175e132b095d1c1",
+      "source_sha256": "d0bca4659fe80646003cd6ff1c7649d2950f3d3d6d238a22c175e132b095d1c1",
+      "transforms": []
+    },
     "packages/arvctl/tests/test_pass2_audit_budget.py": {
       "exported_sha256": "913d6e17809f33b5fb995a85ad8de49e68dd752177ca4f7b491880cd496bcd94",
       "source_sha256": "913d6e17809f33b5fb995a85ad8de49e68dd752177ca4f7b491880cd496bcd94",
       "transforms": []
     },
     "packages/arvctl/tests/test_pass2_bounded_delegation.py": {
-      "exported_sha256": "0e0e22856c2b8bdfa254a3dff520998a679ab85d857e3af39a8781ccecdd02a2",
-      "source_sha256": "0e0e22856c2b8bdfa254a3dff520998a679ab85d857e3af39a8781ccecdd02a2",
+      "exported_sha256": "4e4bf0e2fa6b09b83b9689c0fe37e5ded9f425d7e764816d1d84aa494cf66b82",
+      "source_sha256": "4e4bf0e2fa6b09b83b9689c0fe37e5ded9f425d7e764816d1d84aa494cf66b82",
       "transforms": []
     },
     "packages/arvctl/tests/test_pass2_executor_modes.py": {
@@ -5070,18 +5095,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_pass2_native_provenance.py": {
-      "exported_sha256": "e37f22d20ffb5c6adb9c73ad18f9b27d725f21e3e13857e3e09e0dbd5cbff48b",
-      "source_sha256": "e37f22d20ffb5c6adb9c73ad18f9b27d725f21e3e13857e3e09e0dbd5cbff48b",
+      "exported_sha256": "0a8fe17a704c309eb35f7d88d7ec1242cc090c322b20a47b44acbb033824c4fb",
+      "source_sha256": "0a8fe17a704c309eb35f7d88d7ec1242cc090c322b20a47b44acbb033824c4fb",
       "transforms": []
     },
     "packages/arvctl/tests/test_pass2_registry_identity.py": {
-      "exported_sha256": "b2bad7c7d43756499bea4c92f8bde49b161558c9f3beafa0e593f652c4b1735d",
-      "source_sha256": "b2bad7c7d43756499bea4c92f8bde49b161558c9f3beafa0e593f652c4b1735d",
+      "exported_sha256": "adc308da5703b5aa401d52697920db685dbef0a3c157db788ab35a63099cd1da",
+      "source_sha256": "adc308da5703b5aa401d52697920db685dbef0a3c157db788ab35a63099cd1da",
       "transforms": []
     },
     "packages/arvctl/tests/test_pass2_reviewed_actions.py": {
-      "exported_sha256": "5adb29a72c550faec5af3f00c6416c29344b3dc1802ac469f4712226048c5438",
-      "source_sha256": "5adb29a72c550faec5af3f00c6416c29344b3dc1802ac469f4712226048c5438",
+      "exported_sha256": "4b11a2417b1b967a7f1ac3e4f2dff284ed1fef4c283c62b5d7f263bf00822eb4",
+      "source_sha256": "4b11a2417b1b967a7f1ac3e4f2dff284ed1fef4c283c62b5d7f263bf00822eb4",
       "transforms": []
     },
     "packages/arvctl/tests/test_pass3_attempt_migration.py": {
@@ -5100,8 +5125,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_pass3_composition_recovery.py": {
-      "exported_sha256": "420040447a154fe899a7a98373106d292e24211263ff803b80068c4f296e93c6",
-      "source_sha256": "420040447a154fe899a7a98373106d292e24211263ff803b80068c4f296e93c6",
+      "exported_sha256": "b8b6c987d8b1c23ef194629a8288e0b3f568c8a4f910d80ea63ff7908823037a",
+      "source_sha256": "b8b6c987d8b1c23ef194629a8288e0b3f568c8a4f910d80ea63ff7908823037a",
       "transforms": []
     },
     "packages/arvctl/tests/test_pass3_external_composition.py": {
@@ -5125,8 +5150,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_pass3_native_lifecycle.py": {
-      "exported_sha256": "314a70cfb1216a90c6e145bed39a022c6e2a2d58d68fba91d35df5cfbd116c86",
-      "source_sha256": "314a70cfb1216a90c6e145bed39a022c6e2a2d58d68fba91d35df5cfbd116c86",
+      "exported_sha256": "84e7905af254e4410bc3428fe7f2f6d6874be3b8d5683cae9dc10d3b1f9db0a5",
+      "source_sha256": "84e7905af254e4410bc3428fe7f2f6d6874be3b8d5683cae9dc10d3b1f9db0a5",
       "transforms": []
     },
     "packages/arvctl/tests/test_pass3_native_presentation.py": {
@@ -5145,8 +5170,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_pass3_restart_lease.py": {
-      "exported_sha256": "7af7e561e0dd998c15f602c5ee8e77fc69ef91daf32672e1c590528c5702dba6",
-      "source_sha256": "7af7e561e0dd998c15f602c5ee8e77fc69ef91daf32672e1c590528c5702dba6",
+      "exported_sha256": "c0bc5ca0e3419e0bd26ba89ceeb3249bdaaf05a51de724faaa9b750070b12bdf",
+      "source_sha256": "c0bc5ca0e3419e0bd26ba89ceeb3249bdaaf05a51de724faaa9b750070b12bdf",
       "transforms": []
     },
     "packages/arvctl/tests/test_primary_integration.py": {
@@ -5160,18 +5185,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_production_launcher.py": {
-      "exported_sha256": "13a2f99b541dcf00f0d318f55a2f440d6ba5a8c80e13cd0d9540cd670941ff2d",
-      "source_sha256": "13a2f99b541dcf00f0d318f55a2f440d6ba5a8c80e13cd0d9540cd670941ff2d",
+      "exported_sha256": "b8d4b3bf742fed75045e68148e10e3f63b9de92ca00d6db06a61a399945c33dc",
+      "source_sha256": "b8d4b3bf742fed75045e68148e10e3f63b9de92ca00d6db06a61a399945c33dc",
       "transforms": []
     },
     "packages/arvctl/tests/test_profile_identity_registration.py": {
-      "exported_sha256": "5ebc0c2d332d49d4a796f28c71ee8d377a5b9e2988fbf3eaa28a8eee0629af10",
-      "source_sha256": "5ebc0c2d332d49d4a796f28c71ee8d377a5b9e2988fbf3eaa28a8eee0629af10",
+      "exported_sha256": "c3ccc13a298801c7da7d09d9bc6e9988ec0e7a9e3b9cf097d86f7ac1499266d2",
+      "source_sha256": "c3ccc13a298801c7da7d09d9bc6e9988ec0e7a9e3b9cf097d86f7ac1499266d2",
       "transforms": []
     },
     "packages/arvctl/tests/test_projection_cache.py": {
-      "exported_sha256": "4114c1240bb68341f00f12244712a07c64915d1ddaf00137066f82ac53eea15e",
-      "source_sha256": "4114c1240bb68341f00f12244712a07c64915d1ddaf00137066f82ac53eea15e",
+      "exported_sha256": "719bba2e89d0a302d45c0787ce0897fe8a41bf1ea6f31392e2e8bc2c7df7fa05",
+      "source_sha256": "719bba2e89d0a302d45c0787ce0897fe8a41bf1ea6f31392e2e8bc2c7df7fa05",
       "transforms": []
     },
     "packages/arvctl/tests/test_promotion_atomic_review.py": {
@@ -5185,8 +5210,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_recall.py": {
-      "exported_sha256": "e263d6b56d2692e0b3ac529c11b27f4c9b57a91452af103bafc2b033a8802bae",
-      "source_sha256": "e263d6b56d2692e0b3ac529c11b27f4c9b57a91452af103bafc2b033a8802bae",
+      "exported_sha256": "b74bbce878d68d6d96d32b77cfb0ba19dd907a5ab26d6132996dacb6c4d59c31",
+      "source_sha256": "b74bbce878d68d6d96d32b77cfb0ba19dd907a5ab26d6132996dacb6c4d59c31",
       "transforms": []
     },
     "packages/arvctl/tests/test_recall_requires_question.py": {
@@ -5200,8 +5225,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_regression_agent10.py": {
-      "exported_sha256": "5fd74c18483192be17d3a4aec20571f4e4673f3124d5aa4427c06b67994c5870",
-      "source_sha256": "5fd74c18483192be17d3a4aec20571f4e4673f3124d5aa4427c06b67994c5870",
+      "exported_sha256": "4ebff11ca8326c069d0750af9d5194b9ccfb0b42938b19e1a72a875f6b4419ae",
+      "source_sha256": "4ebff11ca8326c069d0750af9d5194b9ccfb0b42938b19e1a72a875f6b4419ae",
       "transforms": []
     },
     "packages/arvctl/tests/test_release_grade_signers.py": {
@@ -5235,8 +5260,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_remote_delegation_journey.py": {
-      "exported_sha256": "40768512480fcd551b86869b555f15a2900cb7d909d854e10d95ddc45b9e6c41",
-      "source_sha256": "40768512480fcd551b86869b555f15a2900cb7d909d854e10d95ddc45b9e6c41",
+      "exported_sha256": "cc24477410ff2349821c2b45af857f9799dc28d74bc76072cc3b20af9011d06a",
+      "source_sha256": "cc24477410ff2349821c2b45af857f9799dc28d74bc76072cc3b20af9011d06a",
       "transforms": []
     },
     "packages/arvctl/tests/test_replication.py": {
@@ -5265,8 +5290,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_rev0533_legacy_context_recovery.py": {
-      "exported_sha256": "973acaa107117f0063b967681f4304c47f1133731c8f952c028663e22afa8414",
-      "source_sha256": "973acaa107117f0063b967681f4304c47f1133731c8f952c028663e22afa8414",
+      "exported_sha256": "6dc8a7d28eba9b469f27984423a5ff01dd47c8fc2f784ed1446ffe40ecac5923",
+      "source_sha256": "6dc8a7d28eba9b469f27984423a5ff01dd47c8fc2f784ed1446ffe40ecac5923",
       "transforms": []
     },
     "packages/arvctl/tests/test_rev0535_http_mcp_admission_wire.py": {
@@ -5275,8 +5300,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_rev0560_secret_reservation_contention.py": {
-      "exported_sha256": "759efe80e804a780d1d048e25b6dd1dcfdb36f930061fd10cb2325b495e72d17",
-      "source_sha256": "759efe80e804a780d1d048e25b6dd1dcfdb36f930061fd10cb2325b495e72d17",
+      "exported_sha256": "cdfe7c1877da6f8cae0a1ef98f27d2785401de950a823246491f9eb03a46da18",
+      "source_sha256": "cdfe7c1877da6f8cae0a1ef98f27d2785401de950a823246491f9eb03a46da18",
       "transforms": []
     },
     "packages/arvctl/tests/test_review50_bridge_NOT_EXECUTED.py": {
@@ -5285,8 +5310,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_review50_external_regressions.py": {
-      "exported_sha256": "ea529eb64eabe03d92ab909bc1c9181da0b001121d1cda18e673b6523c756bfd",
-      "source_sha256": "ea529eb64eabe03d92ab909bc1c9181da0b001121d1cda18e673b6523c756bfd",
+      "exported_sha256": "6153a0dd4faf224e1997ce76e48c6878a0ee13a80f9c5fe701f51f5dd6949969",
+      "source_sha256": "6153a0dd4faf224e1997ce76e48c6878a0ee13a80f9c5fe701f51f5dd6949969",
       "transforms": []
     },
     "packages/arvctl/tests/test_review50_mcp_boundaries.py": {
@@ -5300,8 +5325,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_review50_packaging.py": {
-      "exported_sha256": "3a256b4e415bd96e1b8911a1d8ed5db36368cdef993f9c3b40c2020ed87f9a2c",
-      "source_sha256": "3a256b4e415bd96e1b8911a1d8ed5db36368cdef993f9c3b40c2020ed87f9a2c",
+      "exported_sha256": "202b3950a1fafe7d97a3f1b55bc9c91329f2bf4275d13a5a04b3dc7a0839ddb3",
+      "source_sha256": "202b3950a1fafe7d97a3f1b55bc9c91329f2bf4275d13a5a04b3dc7a0839ddb3",
       "transforms": []
     },
     "packages/arvctl/tests/test_review50_release_assurance.py": {
@@ -5325,43 +5350,53 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_round3_review_fixes.py": {
-      "exported_sha256": "1026b7d31671aca0ffc989193b2f78dc756aa755cf1799bdfefc5072bea12a0e",
-      "source_sha256": "1026b7d31671aca0ffc989193b2f78dc756aa755cf1799bdfefc5072bea12a0e",
+      "exported_sha256": "701bf661caf39a521fb821102caaf29677192d5a8f5e82498d252f4d8126c792",
+      "source_sha256": "701bf661caf39a521fb821102caaf29677192d5a8f5e82498d252f4d8126c792",
       "transforms": []
     },
     "packages/arvctl/tests/test_round5_review_fixes.py": {
-      "exported_sha256": "612fb7605b8b78b3aef5bb403a7c8c4950da43e51c8ecd9d035548dfaee9831b",
-      "source_sha256": "612fb7605b8b78b3aef5bb403a7c8c4950da43e51c8ecd9d035548dfaee9831b",
+      "exported_sha256": "c095c6a4742eac12752a5c2e748b09cc57e2b3db353cb6fe7b6e16d1ae6ac1d1",
+      "source_sha256": "c095c6a4742eac12752a5c2e748b09cc57e2b3db353cb6fe7b6e16d1ae6ac1d1",
       "transforms": []
     },
     "packages/arvctl/tests/test_route_document.py": {
-      "exported_sha256": "a5b08ae341feed9e0c89305e35f8f0876dfa09c3e101cb61fed1447895a9ed3b",
-      "source_sha256": "a5b08ae341feed9e0c89305e35f8f0876dfa09c3e101cb61fed1447895a9ed3b",
+      "exported_sha256": "5d393a78a278dd16356102c2ba0e2c5f393a946beb3db5a20c3107356a12bc2c",
+      "source_sha256": "5d393a78a278dd16356102c2ba0e2c5f393a946beb3db5a20c3107356a12bc2c",
+      "transforms": []
+    },
+    "packages/arvctl/tests/test_safe_open.py": {
+      "exported_sha256": "b0e88bc19b6fad8dd564f82e20e9e01388db25a08d016337580627faca188045",
+      "source_sha256": "b0e88bc19b6fad8dd564f82e20e9e01388db25a08d016337580627faca188045",
+      "transforms": []
+    },
+    "packages/arvctl/tests/test_scandir_streaming.py": {
+      "exported_sha256": "f05a914c1fc339c575708f1df711e5d20cf14df0229483828863803bbf04beef",
+      "source_sha256": "f05a914c1fc339c575708f1df711e5d20cf14df0229483828863803bbf04beef",
       "transforms": []
     },
     "packages/arvctl/tests/test_scanner_scaling.py": {
-      "exported_sha256": "5939b03a32d679e356fb9ddb32a2d68ed9cbd849f6e699112597f55f76154c83",
-      "source_sha256": "5939b03a32d679e356fb9ddb32a2d68ed9cbd849f6e699112597f55f76154c83",
+      "exported_sha256": "8dc1be88d5ee170713ef052e7f434f4aae0d0ee7119de955074e3abf2d3adade",
+      "source_sha256": "8dc1be88d5ee170713ef052e7f434f4aae0d0ee7119de955074e3abf2d3adade",
       "transforms": []
     },
     "packages/arvctl/tests/test_secret_delivery.py": {
-      "exported_sha256": "77b9cf935c9847764ccaf6fbe19e577cd39d6ce9fe818ae39f0cb89be7becff7",
-      "source_sha256": "77b9cf935c9847764ccaf6fbe19e577cd39d6ce9fe818ae39f0cb89be7becff7",
+      "exported_sha256": "692da4e0a4e19d8f3a402f99ab6f95aeb184ea91d2db93683eb46ef0f59d8758",
+      "source_sha256": "692da4e0a4e19d8f3a402f99ab6f95aeb184ea91d2db93683eb46ef0f59d8758",
       "transforms": []
     },
     "packages/arvctl/tests/test_secret_delivery_access.py": {
-      "exported_sha256": "f67ad9c4fc709df4ffa286e26b3fa384244bdef25373a20460e238704394257f",
-      "source_sha256": "f67ad9c4fc709df4ffa286e26b3fa384244bdef25373a20460e238704394257f",
+      "exported_sha256": "8a426546f90aeef88834edc4ea774df89ce08a05ba9881d5b5cfddfe599365fd",
+      "source_sha256": "8a426546f90aeef88834edc4ea774df89ce08a05ba9881d5b5cfddfe599365fd",
       "transforms": []
     },
     "packages/arvctl/tests/test_secret_delivery_jwks_https.py": {
-      "exported_sha256": "49407dcf6f6ceaed7627005b5c222baa58c77cfa9f699d89689e217848a46f3b",
-      "source_sha256": "49407dcf6f6ceaed7627005b5c222baa58c77cfa9f699d89689e217848a46f3b",
+      "exported_sha256": "94f3ce472b93f3e638ab4419694e14fcc9fce80b6e470bd44319d4f29e6f549e",
+      "source_sha256": "94f3ce472b93f3e638ab4419694e14fcc9fce80b6e470bd44319d4f29e6f549e",
       "transforms": []
     },
     "packages/arvctl/tests/test_secret_delivery_review.py": {
-      "exported_sha256": "22791836d48d573c8a12571794e6d24c60806c298fe3f8c16327aefeb48db08b",
-      "source_sha256": "22791836d48d573c8a12571794e6d24c60806c298fe3f8c16327aefeb48db08b",
+      "exported_sha256": "8e29f70c00201efa477391d6f92e527089cbf22996758e03ae6877d2c7711473",
+      "source_sha256": "8e29f70c00201efa477391d6f92e527089cbf22996758e03ae6877d2c7711473",
       "transforms": []
     },
     "packages/arvctl/tests/test_secret_inspection.py": {
@@ -5375,8 +5410,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_secret_tunnel_artifact.py": {
-      "exported_sha256": "deba15c7d5c22c6398641ea99bdd566c84c5c9ec91aeab3a14fbd3459b19d8e9",
-      "source_sha256": "deba15c7d5c22c6398641ea99bdd566c84c5c9ec91aeab3a14fbd3459b19d8e9",
+      "exported_sha256": "fbe9ec517381b2c3b35d4b4e831c182723e1909ef004c4b927f629c1f6253d99",
+      "source_sha256": "fbe9ec517381b2c3b35d4b4e831c182723e1909ef004c4b927f629c1f6253d99",
       "transforms": []
     },
     "packages/arvctl/tests/test_security_posture.py": {
@@ -5385,8 +5420,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_session.py": {
-      "exported_sha256": "c7eac615dec4d99ee46a6e72c439d056376cf3be92c0e934f902a627a077a5a5",
-      "source_sha256": "c7eac615dec4d99ee46a6e72c439d056376cf3be92c0e934f902a627a077a5a5",
+      "exported_sha256": "71001c739c5da024aad76a9cf5f6f9bf3e647b22b802e279a880f2f67b452186",
+      "source_sha256": "71001c739c5da024aad76a9cf5f6f9bf3e647b22b802e279a880f2f67b452186",
       "transforms": []
     },
     "packages/arvctl/tests/test_session_return.py": {
@@ -5395,8 +5430,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_session_workspace_journey.py": {
-      "exported_sha256": "4b2e803f02396e315937bdba9abdd41e4611ca93fad354c6a402674a7a6c2d42",
-      "source_sha256": "4b2e803f02396e315937bdba9abdd41e4611ca93fad354c6a402674a7a6c2d42",
+      "exported_sha256": "7737b977d524ec310839188fb8eafc4c271d75a48e632f6d4e77c285ee3d270f",
+      "source_sha256": "7737b977d524ec310839188fb8eafc4c271d75a48e632f6d4e77c285ee3d270f",
       "transforms": []
     },
     "packages/arvctl/tests/test_single_suggestion_metadata.py": {
@@ -5405,8 +5440,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_snapshot_restore_drill.py": {
-      "exported_sha256": "5b3f074abb5213d2fef829dcb7892761396e881aa18c0532b86905e2f6d1a994",
-      "source_sha256": "5b3f074abb5213d2fef829dcb7892761396e881aa18c0532b86905e2f6d1a994",
+      "exported_sha256": "69627106681fd71c983d19f9719be67b8f2b14daae00819fd773ae058d8de45b",
+      "source_sha256": "69627106681fd71c983d19f9719be67b8f2b14daae00819fd773ae058d8de45b",
       "transforms": []
     },
     "packages/arvctl/tests/test_soft_forget.py": {
@@ -5420,18 +5455,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol13_bridge.py": {
-      "exported_sha256": "d809afd5fc75fb2fdad6b2f625c5fd7d607f941f26c7fdec3c8a52e83e642371",
-      "source_sha256": "d809afd5fc75fb2fdad6b2f625c5fd7d607f941f26c7fdec3c8a52e83e642371",
+      "exported_sha256": "4eee236e1f0a41a9d7991cdd17fdfa3c7660273125ab9ef671ed3c1927e57776",
+      "source_sha256": "4eee236e1f0a41a9d7991cdd17fdfa3c7660273125ab9ef671ed3c1927e57776",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol13_security.py": {
-      "exported_sha256": "c4a76666e433cc641b79c6911359a0b12a5a79b3dc24ec36f1806025a47c5978",
-      "source_sha256": "c4a76666e433cc641b79c6911359a0b12a5a79b3dc24ec36f1806025a47c5978",
+      "exported_sha256": "5bc921aeb67a7f8305b154718c5c4857ef234b9b64d0e10099f6d9e3fa8b4cbe",
+      "source_sha256": "5bc921aeb67a7f8305b154718c5c4857ef234b9b64d0e10099f6d9e3fa8b4cbe",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol16_auth.py": {
-      "exported_sha256": "e8aae53ea700c03e4b9ccf04c84fab4f68eb3003f963281d39577c9b69f2e806",
-      "source_sha256": "e8aae53ea700c03e4b9ccf04c84fab4f68eb3003f963281d39577c9b69f2e806",
+      "exported_sha256": "3f4f4bd3631bd7b6f68ea6580104e8b5cbadda66b2fd8117f054e7d4554e7689",
+      "source_sha256": "3f4f4bd3631bd7b6f68ea6580104e8b5cbadda66b2fd8117f054e7d4554e7689",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol16_recall.py": {
@@ -5440,8 +5475,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol16_transport.py": {
-      "exported_sha256": "ef841f4a92c2975f26717da16abe4fcc2288c098cd69f42405ae894b90a8958e",
-      "source_sha256": "ef841f4a92c2975f26717da16abe4fcc2288c098cd69f42405ae894b90a8958e",
+      "exported_sha256": "314387b6bee9cff993281990ab62546928308c1e152a64cd4f5ac880a732f761",
+      "source_sha256": "314387b6bee9cff993281990ab62546928308c1e152a64cd4f5ac880a732f761",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol17_edge.py": {
@@ -5455,13 +5490,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol17_pairing.py": {
-      "exported_sha256": "445b6957405a68bf0051228091a1f8524620028d85b0064ad4bc0ce64b5797a8",
-      "source_sha256": "445b6957405a68bf0051228091a1f8524620028d85b0064ad4bc0ce64b5797a8",
+      "exported_sha256": "f2df71a3e2f1fe38b96fc98e0dd4f964abd25c5b94fa8e99cdfa36a55cc9db99",
+      "source_sha256": "f2df71a3e2f1fe38b96fc98e0dd4f964abd25c5b94fa8e99cdfa36a55cc9db99",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol17_scanner.py": {
-      "exported_sha256": "b6e4d0ea622f3c44db35a27d4998cb178c836bd28ffa0f08733234fdd562beb3",
-      "source_sha256": "b6e4d0ea622f3c44db35a27d4998cb178c836bd28ffa0f08733234fdd562beb3",
+      "exported_sha256": "202422d42955d0a36646db2b49478bfc4a38848751979ce16665100484a03061",
+      "source_sha256": "202422d42955d0a36646db2b49478bfc4a38848751979ce16665100484a03061",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol22_archive.py": {
@@ -5475,8 +5510,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol22_onboarding.py": {
-      "exported_sha256": "e2cf251449280c12397a6a1bcdacb76a40dfcbec866a48f27d2f69a34adcd08b",
-      "source_sha256": "e2cf251449280c12397a6a1bcdacb76a40dfcbec866a48f27d2f69a34adcd08b",
+      "exported_sha256": "03c76e0db7743c4ea5432a75700a603100bcfbfaeefe801a4d5efda58c287ed2",
+      "source_sha256": "03c76e0db7743c4ea5432a75700a603100bcfbfaeefe801a4d5efda58c287ed2",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol22_transport.py": {
@@ -5485,8 +5520,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol24_archive.py": {
-      "exported_sha256": "7e2d624d3695287d0465d707f7604114bbc6fac9493462e5dcb3e06b160708cc",
-      "source_sha256": "7e2d624d3695287d0465d707f7604114bbc6fac9493462e5dcb3e06b160708cc",
+      "exported_sha256": "e21d5a7e601941c862894eac813b0d344682e3a130cd676aebd52d73e9bf7728",
+      "source_sha256": "e21d5a7e601941c862894eac813b0d344682e3a130cd676aebd52d73e9bf7728",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol24_contracts.py": {
@@ -5495,28 +5530,28 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol24_intake.py": {
-      "exported_sha256": "1dc6094c7d011335c3efd66c4b0a13c360860747c826bafc11fdf94a5ae966ca",
-      "source_sha256": "1dc6094c7d011335c3efd66c4b0a13c360860747c826bafc11fdf94a5ae966ca",
+      "exported_sha256": "bbd463d9954a80b0c45b45377bb3fa29d74e3ef46f4598ec108cf2f2caad7997",
+      "source_sha256": "bbd463d9954a80b0c45b45377bb3fa29d74e3ef46f4598ec108cf2f2caad7997",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol24_transport.py": {
-      "exported_sha256": "1c14030e6c21b60888319d21af69b3e09c3fcece07a47d5f38734e364ceb2065",
-      "source_sha256": "1c14030e6c21b60888319d21af69b3e09c3fcece07a47d5f38734e364ceb2065",
+      "exported_sha256": "8463e5494339079ddd4f96fb32e11bc1c4d986f15fc0db6035df307070609524",
+      "source_sha256": "8463e5494339079ddd4f96fb32e11bc1c4d986f15fc0db6035df307070609524",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol26_pem.py": {
-      "exported_sha256": "f9403507bb91f6a66be288bde28e2fde33418c4ba9a63e027deaf101ced1df3c",
-      "source_sha256": "f9403507bb91f6a66be288bde28e2fde33418c4ba9a63e027deaf101ced1df3c",
+      "exported_sha256": "5024c1fb40df7f11f88d04f05ce57e77a7ebb39b54a8a2187b2ac4f0ccdfce6d",
+      "source_sha256": "5024c1fb40df7f11f88d04f05ce57e77a7ebb39b54a8a2187b2ac4f0ccdfce6d",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol27_archive_pem.py": {
-      "exported_sha256": "7f91d57ac7231591f0dbd447b20097a6262e7037eb0d4b060e405f1cd20ca114",
-      "source_sha256": "7f91d57ac7231591f0dbd447b20097a6262e7037eb0d4b060e405f1cd20ca114",
+      "exported_sha256": "733026ba1f7f4d4ed38957618a1d80fc04a2cdab42a65f6176ba9c32a96c53e9",
+      "source_sha256": "733026ba1f7f4d4ed38957618a1d80fc04a2cdab42a65f6176ba9c32a96c53e9",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol27_bridge_keys.py": {
-      "exported_sha256": "5cb21ba7144891723f03edd0ba9c8ea52177fe6ba0b36614a7fd07db478deb4a",
-      "source_sha256": "5cb21ba7144891723f03edd0ba9c8ea52177fe6ba0b36614a7fd07db478deb4a",
+      "exported_sha256": "ad82ba6793d492af7d88d006c77d717a70a548bbf32d8e298a41177828dce686",
+      "source_sha256": "ad82ba6793d492af7d88d006c77d717a70a548bbf32d8e298a41177828dce686",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol27_embeddings.py": {
@@ -5525,8 +5560,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol27_owner_deadlines.py": {
-      "exported_sha256": "c9dddd1fb03a07c88e5b59b7f368654da24a37a0545ee09cc51aab2c4d1cf325",
-      "source_sha256": "c9dddd1fb03a07c88e5b59b7f368654da24a37a0545ee09cc51aab2c4d1cf325",
+      "exported_sha256": "555df1fa00c127b52516550dd36285e6a6925e13b0e7ffd4b555948fde72ab88",
+      "source_sha256": "555df1fa00c127b52516550dd36285e6a6925e13b0e7ffd4b555948fde72ab88",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol30_brokers.py": {
@@ -5540,13 +5575,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol30_selection.py": {
-      "exported_sha256": "10ee1331d7ce5989852705cc13e5ab2e8c93606da486bda292fad0906ccbd9a9",
-      "source_sha256": "10ee1331d7ce5989852705cc13e5ab2e8c93606da486bda292fad0906ccbd9a9",
+      "exported_sha256": "44e2e4af3e7cea66736f00d8ed47c7cb82ca2c8936c16f2f12a6683ca1020d69",
+      "source_sha256": "44e2e4af3e7cea66736f00d8ed47c7cb82ca2c8936c16f2f12a6683ca1020d69",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol30_session_expiry.py": {
-      "exported_sha256": "b337e0083c9c0ffe6a5d2f9f27a87d886a1a82c2c98774ff380b9ae6405155ed",
-      "source_sha256": "b337e0083c9c0ffe6a5d2f9f27a87d886a1a82c2c98774ff380b9ae6405155ed",
+      "exported_sha256": "efc265c1fbf8cdae7880a36fb3a22140dddf7826bce55becd3c7c38b7996d77e",
+      "source_sha256": "efc265c1fbf8cdae7880a36fb3a22140dddf7826bce55becd3c7c38b7996d77e",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol32_mcp_notifications.py": {
@@ -5555,23 +5590,23 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol32_native_budgets.py": {
-      "exported_sha256": "fb90e492a3bc9abb38d0734d9fdac85364ec5a1e993da2cd68adfa60d94f6d80",
-      "source_sha256": "fb90e492a3bc9abb38d0734d9fdac85364ec5a1e993da2cd68adfa60d94f6d80",
+      "exported_sha256": "28f193f69290d171c17ceaa25850dcaa61fe2f1b5b9e46be2626271df2ff9327",
+      "source_sha256": "28f193f69290d171c17ceaa25850dcaa61fe2f1b5b9e46be2626271df2ff9327",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol32_writer_lock.py": {
-      "exported_sha256": "6899a10b8ce78f0ecf3c269a9623d7e51bb1be40c53744582a70175cec8eace3",
-      "source_sha256": "6899a10b8ce78f0ecf3c269a9623d7e51bb1be40c53744582a70175cec8eace3",
+      "exported_sha256": "895ca3b82b6739a6779fe38aee25b20a6a47d4801c21483852c0b5c1249a058f",
+      "source_sha256": "895ca3b82b6739a6779fe38aee25b20a6a47d4801c21483852c0b5c1249a058f",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol34_access_clock.py": {
-      "exported_sha256": "4e2abfecd23886389e2348ff5fd7df9f4743506b2774297c649397083ed79324",
-      "source_sha256": "4e2abfecd23886389e2348ff5fd7df9f4743506b2774297c649397083ed79324",
+      "exported_sha256": "c8709def66865009448c96ad73bf647ef2eed03b4aa8ee4a136c3277340be497",
+      "source_sha256": "c8709def66865009448c96ad73bf647ef2eed03b4aa8ee4a136c3277340be497",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol34_archive_progress.py": {
-      "exported_sha256": "edef3c9b06e994e085bacac4eb9a10199e5cdc1e07439dccccaddd1bc4eddbd8",
-      "source_sha256": "edef3c9b06e994e085bacac4eb9a10199e5cdc1e07439dccccaddd1bc4eddbd8",
+      "exported_sha256": "8c04c4c9c8428e5f8da076b6cc4249c272acdb6805791330bc47c8d2169c0ac6",
+      "source_sha256": "8c04c4c9c8428e5f8da076b6cc4249c272acdb6805791330bc47c8d2169c0ac6",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol34_contract_annotations.py": {
@@ -5590,8 +5625,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol35_broker_bounds.py": {
-      "exported_sha256": "b769bbf9924ca0ceb297ef18836cd69345d911b8c3a2c8dd25d0b907938aa10f",
-      "source_sha256": "b769bbf9924ca0ceb297ef18836cd69345d911b8c3a2c8dd25d0b907938aa10f",
+      "exported_sha256": "a98568ec7ad4af612019f65446306f587f0d8e486129b075b2ede4810e6cc1ce",
+      "source_sha256": "a98568ec7ad4af612019f65446306f587f0d8e486129b075b2ede4810e6cc1ce",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol35_cosine.py": {
@@ -5605,8 +5640,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol40_checkpoint_artifacts.py": {
-      "exported_sha256": "dde787c91a470c0c64d15891d28bf1451828f7592dbd26b1d9561978babe4187",
-      "source_sha256": "dde787c91a470c0c64d15891d28bf1451828f7592dbd26b1d9561978babe4187",
+      "exported_sha256": "62ae52f438bc82ab1827f33a52c1acc8a785234fd4050938c266b404d816f6af",
+      "source_sha256": "62ae52f438bc82ab1827f33a52c1acc8a785234fd4050938c266b404d816f6af",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol40_execution_capabilities.py": {
@@ -5620,8 +5655,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol41_cache_decoder.py": {
-      "exported_sha256": "69cc78c9ffcb19a001b26fdfb05a56112f1c2143556522f29ac919d8054fcce6",
-      "source_sha256": "69cc78c9ffcb19a001b26fdfb05a56112f1c2143556522f29ac919d8054fcce6",
+      "exported_sha256": "b39206b9475ca3030e6cad91ae0be8b9f9c2c340684858f460340ba84558b44f",
+      "source_sha256": "b39206b9475ca3030e6cad91ae0be8b9f9c2c340684858f460340ba84558b44f",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol41_durability_snapshot.py": {
@@ -5635,8 +5670,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol42_checkpoint_publication.py": {
-      "exported_sha256": "a035f2e16b7ea706cdd1e44027132265c7f33ad663e283fd4e57ede3b73c9260",
-      "source_sha256": "a035f2e16b7ea706cdd1e44027132265c7f33ad663e283fd4e57ede3b73c9260",
+      "exported_sha256": "e6acb17e2faa220807a3a3bc1fde4d9c24d9fda79eafc2c133e04f3ac66a6098",
+      "source_sha256": "e6acb17e2faa220807a3a3bc1fde4d9c24d9fda79eafc2c133e04f3ac66a6098",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol42_metadata.py": {
@@ -5655,18 +5690,18 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol43_storage_lifecycle.py": {
-      "exported_sha256": "570bc786d63c73b3401f0c0c0af37b8ad86ad2a6baf379742f9152487610d22c",
-      "source_sha256": "570bc786d63c73b3401f0c0c0af37b8ad86ad2a6baf379742f9152487610d22c",
+      "exported_sha256": "5b83a2b314abc7db084537efe0a71acbb0ca8636dc013acbd3f5799cb4a2bfdd",
+      "source_sha256": "5b83a2b314abc7db084537efe0a71acbb0ca8636dc013acbd3f5799cb4a2bfdd",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol44_bridge_audit.py": {
-      "exported_sha256": "44b578749ec29cf1a535b521b267b6ef5991f58d276bebdb508270f6dd0a6daf",
-      "source_sha256": "44b578749ec29cf1a535b521b267b6ef5991f58d276bebdb508270f6dd0a6daf",
+      "exported_sha256": "6f770274992dbfe913e3be5cf3994df9a6f3b905a589a9af23efac37062164a1",
+      "source_sha256": "6f770274992dbfe913e3be5cf3994df9a6f3b905a589a9af23efac37062164a1",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol44_cache_publication.py": {
-      "exported_sha256": "97ba85e735c8cf288b7df98a930c5c32dc1f2195c910a5aa426d60279306a805",
-      "source_sha256": "97ba85e735c8cf288b7df98a930c5c32dc1f2195c910a5aa426d60279306a805",
+      "exported_sha256": "ad541f5de1254d57ef8463fe052770e6955fabee6822aaf48d9582b0446c4027",
+      "source_sha256": "ad541f5de1254d57ef8463fe052770e6955fabee6822aaf48d9582b0446c4027",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol44_replica_transcripts.py": {
@@ -5680,8 +5715,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol44_snapshot_audit.py": {
-      "exported_sha256": "a21dbe6be02c65f7ab177b0dea08b9e6bb55ac888adfb603d3aebfa3996b87c7",
-      "source_sha256": "a21dbe6be02c65f7ab177b0dea08b9e6bb55ac888adfb603d3aebfa3996b87c7",
+      "exported_sha256": "c0a9a8ca5b42505a913466b03671a6ccdb97f57418031bc0862733fce38e07c1",
+      "source_sha256": "c0a9a8ca5b42505a913466b03671a6ccdb97f57418031bc0862733fce38e07c1",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol44_thread_history.py": {
@@ -5715,13 +5750,13 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_sol_loop_regressions.py": {
-      "exported_sha256": "f935e80a0bb7244b32f98a0d8320cdcd78c3456a840a16ac9fce48403ed70c0d",
-      "source_sha256": "f935e80a0bb7244b32f98a0d8320cdcd78c3456a840a16ac9fce48403ed70c0d",
+      "exported_sha256": "15e067c79e9166590d9d96c90afdb7a0e70709bdd457545aee145d9fc63df8ae",
+      "source_sha256": "15e067c79e9166590d9d96c90afdb7a0e70709bdd457545aee145d9fc63df8ae",
       "transforms": []
     },
     "packages/arvctl/tests/test_sol_verified_fixes.py": {
-      "exported_sha256": "10f286fc66a1e38194e609d2bc61b44772ebe5399546bc82c51626a2836293ae",
-      "source_sha256": "10f286fc66a1e38194e609d2bc61b44772ebe5399546bc82c51626a2836293ae",
+      "exported_sha256": "dbb3ef89c1528b3eb360775b63f6f1e292bb101427fca19e929e136e6ff6dbc8",
+      "source_sha256": "dbb3ef89c1528b3eb360775b63f6f1e292bb101427fca19e929e136e6ff6dbc8",
       "transforms": []
     },
     "packages/arvctl/tests/test_strict_memory_suggestions.py": {
@@ -5745,8 +5780,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_terminal_sessions.py": {
-      "exported_sha256": "dd6ee77ac921fefe83b8756dd631373b030855292fb0964b9144d1e789954405",
-      "source_sha256": "dd6ee77ac921fefe83b8756dd631373b030855292fb0964b9144d1e789954405",
+      "exported_sha256": "eddf3944b25ddec4b20791441afce6633f472005d5fda9f9991b195f810f9df9",
+      "source_sha256": "eddf3944b25ddec4b20791441afce6633f472005d5fda9f9991b195f810f9df9",
       "transforms": []
     },
     "packages/arvctl/tests/test_thread_surfaces.py": {
@@ -5765,28 +5800,43 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_verified_private_bytes.py": {
-      "exported_sha256": "a8339da9090bd83b3697f8955b09f0ce4c57ccc1411c3e4df2a776b4fa81f2b3",
-      "source_sha256": "a8339da9090bd83b3697f8955b09f0ce4c57ccc1411c3e4df2a776b4fa81f2b3",
+      "exported_sha256": "b349a7cbdceefa143dd196788d2f0468888c6816c7ba6f67283f18ac6daf038f",
+      "source_sha256": "b349a7cbdceefa143dd196788d2f0468888c6816c7ba6f67283f18ac6daf038f",
       "transforms": []
     },
     "packages/arvctl/tests/test_w1l5_capture_offload_liveness.py": {
-      "exported_sha256": "a0412fd84c3e98e9b106b5dfc6f1c431ccbf3bc304de966f2702755bae7044ff",
-      "source_sha256": "a0412fd84c3e98e9b106b5dfc6f1c431ccbf3bc304de966f2702755bae7044ff",
+      "exported_sha256": "f4c1b053073db5e2cbf3b6296ad9e25a33c312b02f560c395561a39537f97728",
+      "source_sha256": "f4c1b053073db5e2cbf3b6296ad9e25a33c312b02f560c395561a39537f97728",
       "transforms": []
     },
     "packages/arvctl/tests/test_watchdog.py": {
-      "exported_sha256": "efe5c0af40f508497e12e0510b0607c55f391b9123c19af4643ce89a719e12a9",
-      "source_sha256": "efe5c0af40f508497e12e0510b0607c55f391b9123c19af4643ce89a719e12a9",
+      "exported_sha256": "1db7fff61eb4b0eb76bdc8ff39bd7b80e26cbe63ffdf73578a6c8037e14f26ea",
+      "source_sha256": "1db7fff61eb4b0eb76bdc8ff39bd7b80e26cbe63ffdf73578a6c8037e14f26ea",
       "transforms": []
     },
     "packages/arvctl/tests/test_wave1_lane2_delegation.py": {
-      "exported_sha256": "b6ef37f7455919c9f2c6c5e638d5f492ccc9f12850f1162597fa6cabd9563ff7",
-      "source_sha256": "b6ef37f7455919c9f2c6c5e638d5f492ccc9f12850f1162597fa6cabd9563ff7",
+      "exported_sha256": "8cedaa852ffcc7d498122fa8603fce65c2f972c66a86c67db84266402af79b7c",
+      "source_sha256": "8cedaa852ffcc7d498122fa8603fce65c2f972c66a86c67db84266402af79b7c",
       "transforms": []
     },
     "packages/arvctl/tests/test_wave1_lane4_native_history.py": {
-      "exported_sha256": "a9310e102cdfbba66a881cee155f15881195362bfc98642f44e6c326e5c99bdd",
-      "source_sha256": "a9310e102cdfbba66a881cee155f15881195362bfc98642f44e6c326e5c99bdd",
+      "exported_sha256": "f8e5ff6195713c26deef23a7611718dbd58a164c86e8bd669cb1be04a44eed99",
+      "source_sha256": "f8e5ff6195713c26deef23a7611718dbd58a164c86e8bd669cb1be04a44eed99",
+      "transforms": []
+    },
+    "packages/arvctl/tests/test_windows_acl.py": {
+      "exported_sha256": "8a6de4dcce64d3e86acfee47e075f21dcdf463a6d9f4f39690a5037f85e89278",
+      "source_sha256": "8a6de4dcce64d3e86acfee47e075f21dcdf463a6d9f4f39690a5037f85e89278",
+      "transforms": []
+    },
+    "packages/arvctl/tests/test_windows_crt_binary_mode.py": {
+      "exported_sha256": "1e416c82e3cd1980c1890ad05a865e2d2e4cf0d651de0644e1369ca1d530bfe5",
+      "source_sha256": "1e416c82e3cd1980c1890ad05a865e2d2e4cf0d651de0644e1369ca1d530bfe5",
+      "transforms": []
+    },
+    "packages/arvctl/tests/test_windows_workspace_stream_paths.py": {
+      "exported_sha256": "0c0f89295de265ada285a46e6e3302602f9a6ca08897bfc53b845d45c0edf4f7",
+      "source_sha256": "0c0f89295de265ada285a46e6e3302602f9a6ca08897bfc53b845d45c0edf4f7",
       "transforms": []
     },
     "packages/arvctl/tests/test_workspace_cli.py": {
@@ -5825,8 +5875,8 @@
       "transforms": []
     },
     "packages/safe-mcp-bridge/src/safe_mcp_bridge/cli.py": {
-      "exported_sha256": "df9f33abaece1f974cb748dbef48e02ac1ea2d1e52a7126b77e802b81f3fe0df",
-      "source_sha256": "df9f33abaece1f974cb748dbef48e02ac1ea2d1e52a7126b77e802b81f3fe0df",
+      "exported_sha256": "9c560b40d7e545f7d04bf93ea1e1e466d2412b94acdd7cb4d0aaaab166df1d37",
+      "source_sha256": "9c560b40d7e545f7d04bf93ea1e1e466d2412b94acdd7cb4d0aaaab166df1d37",
       "transforms": []
     },
     "packages/safe-mcp-bridge/src/safe_mcp_bridge/http_bounds.py": {
@@ -5848,8 +5898,8 @@
       ]
     },
     "packaging/npm/bin/arvyx.mjs": {
-      "exported_sha256": "bc9aa3966d255dfe85a6dcde4d73dad9d28a65e71adb08614fada19956b1bd5f",
-      "source_sha256": "bc9aa3966d255dfe85a6dcde4d73dad9d28a65e71adb08614fada19956b1bd5f",
+      "exported_sha256": "28c2b5031f3d53162d1904ff5ba4ebfb805358a7006bdf383a61e19a98e0aff3",
+      "source_sha256": "28c2b5031f3d53162d1904ff5ba4ebfb805358a7006bdf383a61e19a98e0aff3",
       "transforms": []
     },
     "packaging/npm/package.json": {
@@ -5980,8 +6030,8 @@
       "transforms": []
     },
     "scripts/build_arvyx_npm.py": {
-      "exported_sha256": "7f8039105265cef6ee9902fc1be9ed2d8aa12e83863c908b8b342b48f08d324d",
-      "source_sha256": "7f8039105265cef6ee9902fc1be9ed2d8aa12e83863c908b8b342b48f08d324d",
+      "exported_sha256": "a156b66a6dca168bb46aeb6452b5d5f8ec7445f496dea59d9b312ef47436e9d5",
+      "source_sha256": "a156b66a6dca168bb46aeb6452b5d5f8ec7445f496dea59d9b312ef47436e9d5",
       "transforms": []
     },
     "scripts/ci_test_shard.py": {
@@ -6030,8 +6080,8 @@
       "transforms": []
     },
     "scripts/control_plane_edge_proxy.py": {
-      "exported_sha256": "ea15d4aee78b313d9448c2556dd4de423aab6411e13906526c00eabe4076cf00",
-      "source_sha256": "ea15d4aee78b313d9448c2556dd4de423aab6411e13906526c00eabe4076cf00",
+      "exported_sha256": "2af58577dd02e195e10465a94c7e9a21cd835ac1dd2242927c61b5079ad6e94d",
+      "source_sha256": "2af58577dd02e195e10465a94c7e9a21cd835ac1dd2242927c61b5079ad6e94d",
       "transforms": []
     },
     "scripts/create_secret_file.py": {
@@ -6062,8 +6112,8 @@
       "transforms": []
     },
     "scripts/generate_external_contracts.py": {
-      "exported_sha256": "945af1ecd246217d8d3d119b3f13202f4c59dd3384c7276e357c183696940716",
-      "source_sha256": "945af1ecd246217d8d3d119b3f13202f4c59dd3384c7276e357c183696940716",
+      "exported_sha256": "f89f4cfd4b7fcdaee5dc6a9d99b9175995987cf68e5411552ae97f500b534850",
+      "source_sha256": "f89f4cfd4b7fcdaee5dc6a9d99b9175995987cf68e5411552ae97f500b534850",
       "transforms": []
     },
     "scripts/license_notice_check.py": {
@@ -6102,8 +6152,8 @@
       "transforms": []
     },
     "scripts/npm_package_smoke.py": {
-      "exported_sha256": "dc1fb7398e1b6e707e512919f1e4984aea05fce65137dc96fefb3783db85c83a",
-      "source_sha256": "dc1fb7398e1b6e707e512919f1e4984aea05fce65137dc96fefb3783db85c83a",
+      "exported_sha256": "ea858bd129374024be5370d2b1791a545d9075576307a2e5c5bfbd1bcab81f74",
+      "source_sha256": "ea858bd129374024be5370d2b1791a545d9075576307a2e5c5bfbd1bcab81f74",
       "transforms": []
     },
     "scripts/package_install_smoke.py": {
@@ -6127,8 +6177,8 @@
       "transforms": []
     },
     "scripts/private_context_scan.py": {
-      "exported_sha256": "d5d0768407d9b6905070dabb44a9959a62e30c29c64e072ab7b837c2f9aefd86",
-      "source_sha256": "d5d0768407d9b6905070dabb44a9959a62e30c29c64e072ab7b837c2f9aefd86",
+      "exported_sha256": "48487139f21a7ade26fbf60689378f7dc313b1b01217de9b4ef304281eb71b37",
+      "source_sha256": "48487139f21a7ade26fbf60689378f7dc313b1b01217de9b4ef304281eb71b37",
       "transforms": []
     },
     "scripts/projection_checkpoint_benchmark.py": {
@@ -6137,8 +6187,8 @@
       "transforms": []
     },
     "scripts/public_onboarding_demo.py": {
-      "exported_sha256": "8580602b394a1ccf0652fe2bde48f15b7a3a229ad9e4a67f4b2a5ecb44b4dc09",
-      "source_sha256": "8580602b394a1ccf0652fe2bde48f15b7a3a229ad9e4a67f4b2a5ecb44b4dc09",
+      "exported_sha256": "804c4defc55738eb76e0c0da2c7e22574c7a1cfb20e24cfb2f647a33f05b781f",
+      "source_sha256": "804c4defc55738eb76e0c0da2c7e22574c7a1cfb20e24cfb2f647a33f05b781f",
       "transforms": []
     },
     "scripts/public_onboarding_demo_acceptance.py": {
@@ -6208,8 +6258,8 @@
       "transforms": []
     },
     "scripts/verified_private_bytes.py": {
-      "exported_sha256": "98c4490cd77cf5474d4d2a1a254a62524a5de0390bd9a425113937c27a7356af",
-      "source_sha256": "98c4490cd77cf5474d4d2a1a254a62524a5de0390bd9a425113937c27a7356af",
+      "exported_sha256": "8978548069972c4f7112e9d07f87af38d84677f37d5366683bd0c195e380c721",
+      "source_sha256": "8978548069972c4f7112e9d07f87af38d84677f37d5366683bd0c195e380c721",
       "transforms": []
     },
     "templates/demo-squad/README.md": {
@@ -6228,8 +6278,8 @@
       "transforms": []
     },
     "tests/test_focus75_agent04.py": {
-      "exported_sha256": "b262d12375b51d2a01bf62df4a77abd703bbcc9fb8689c2aec2184128f9f9c51",
-      "source_sha256": "b262d12375b51d2a01bf62df4a77abd703bbcc9fb8689c2aec2184128f9f9c51",
+      "exported_sha256": "6d08419fac29c2bbccca42f36bd57499b613abf1ccd40e75d2d5de8fb4655f0b",
+      "source_sha256": "6d08419fac29c2bbccca42f36bd57499b613abf1ccd40e75d2d5de8fb4655f0b",
       "transforms": []
     },
     "tests/test_focus75_agent05_contract.py": {
@@ -6238,11 +6288,11 @@
       "transforms": []
     },
     "tests/test_secret_delivery_writer.py": {
-      "exported_sha256": "86d8a92fd2f930c38ae155c84bc73e57daa2e8c82733bcff1b5913d4e73ca931",
-      "source_sha256": "86d8a92fd2f930c38ae155c84bc73e57daa2e8c82733bcff1b5913d4e73ca931",
+      "exported_sha256": "df1d3702428df7a68fa7803a84ad636c6e78fcb937354fa2492b69ea4865dd4e",
+      "source_sha256": "df1d3702428df7a68fa7803a84ad636c6e78fcb937354fa2492b69ea4865dd4e",
       "transforms": []
     }
   },
-  "source_tree": "abfcc309cc26c8c7c1e87971d349d407c70355b5",
+  "source_tree": "329384d3dada16595501e094a080455c4bb8093c",
   "version": 1
 }

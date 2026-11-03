@@ -19,6 +19,7 @@ path under observation (see ``docs/runbooks/delivery-liveness.md``).
 
 from __future__ import annotations
 
+from . import safe_open
 from .diagnostics import capture
 
 from dataclasses import dataclass
@@ -127,7 +128,7 @@ def _atomic_write_json(path: Path, payload: Mapping[str, object]) -> None:
     try:
         with os.fdopen(fd, "wb") as handle:
             handle.write(data)
-        os.replace(temporary, path)
+        safe_open.replace_path(temporary, path)
     except BaseException:
         try:
             os.unlink(temporary)

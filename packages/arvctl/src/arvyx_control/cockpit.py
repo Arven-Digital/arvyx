@@ -5,8 +5,8 @@ import hashlib
 import argparse
 import base64
 import binascii
-import fcntl
 import json
+from . import private_paths
 from .security import bounded_json_loads
 import os
 from pathlib import Path
@@ -24,6 +24,8 @@ from .control import list_tasks, _locked_state
 
 from .replica_authority import owner_entry
 from .cockpit_client import checkpoint, deadline_lock
+from .locks import try_exclusive_lock
+from . import owner_endpoint
 
 class LocalCockpit:
     """One same-UID PTY owner per private state directory, not a sandbox."""
@@ -35,17 +37,16 @@ class LocalCockpit:
         self.delegation_remote_recovery=None
         self.delegation_authority_database=(None if delegation_authority_database is None else Path(delegation_authority_database).absolute())
         self.root = root.resolve()
-        self.root.mkdir(mode=0o700, parents=True, exist_ok=True)
-        if root.is_symlink() or self.root.stat().st_mode & 0o077:
+        self.root.parent.mkdir(parents=True, exist_ok=True)
+        private_paths.ensure_private_directory(self.root, mode=0o700)
+        if root.is_symlink() or not private_paths.is_private(self.root.stat(), path=self.root):
             raise ValueError("cockpit directory must be private and not a symlink")
         authority = state.resolve()
         authority.parent.mkdir(parents=True, exist_ok=True)
-        self.owner = authority.with_name(authority.name + ".cockpit-owner.lock").open("a+")
-        try:
-            fcntl.flock(self.owner, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
+        self.owner = authority.with_name(authority.name + ".cockpit-owner.lock").open("a+", newline="\n")
+        if not try_exclusive_lock(self.owner):
             self.owner.close()
-            raise ValueError("cockpit directory already owned") from None
+            raise ValueError("cockpit directory already owned")
         self.vault, self.state, self.host = vault.resolve(), state.resolve(), host
         self.lock = threading.RLock()
         self.live = {}
@@ -62,7 +63,7 @@ class LocalCockpit:
         self.operator_drivers = dict(driver or {})
         self.organizer_bindings = dict(organizers or {})
         self.db = sqlite3.connect(self.root / "sessions.sqlite", check_same_thread=False)
-        os.chmod(self.root / "sessions.sqlite", 0o600)
+        private_paths.apply_mode(path=self.root / "sessions.sqlite", mode=0o600)
         self.db.row_factory = sqlite3.Row
         self.db.execute("CREATE TABLE IF NOT EXISTS identity (host TEXT, state TEXT, vault TEXT)")
         identity = self.db.execute("SELECT * FROM identity").fetchone()
@@ -594,9 +595,9 @@ class LocalCockpit:
         policy=self.execution_policy
         current['environments']=([] if policy is None else
             [mode for mode,available in (
-                ('sandbox',policy.sandbox_launcher is not None and policy.sandbox_fd_protocol=='arvyx-directory-fd-v1' and os.geteuid()!=0),
-                ('host',policy.allow_host and os.geteuid()==policy.host_uid and os.geteuid()!=0),
-                ('root',policy.allow_root and os.geteuid()==0)) if available])
+                ('sandbox',policy.sandbox_launcher is not None and policy.sandbox_fd_protocol=='arvyx-directory-fd-v1' and not private_paths.is_root()),
+                ('host',policy.allow_host and private_paths.effective_user()==policy.host_uid and not private_paths.is_root()),
+                ('root',policy.allow_root and private_paths.is_root())) if available])
         current['native_protocols']=[name for name,runtime in self.native_runtimes.items() if getattr(runtime,'new_protocol',None)=='hermes-titled-create-v1']
         return current
 
@@ -1284,6 +1285,7 @@ class LocalCockpit:
         self._human(actor)
         if any(type(value) is not int or not 1 <= value <= 1000 for value in (rows, columns)):
             raise ValueError("terminal dimensions must be integers from 1 to 1000")
+        import fcntl
         import struct
         import termios
         with self.lock:
@@ -1519,7 +1521,7 @@ def configured_team(vault, state, operator_credential_file=None):
         if not path.is_absolute():
             raise ValueError('operator credential file must be an absolute path')
         raw, identity, _ = _read(path.parent, (path.name,), 4096)
-        if identity[2] & 0o077:
+        if not private_paths.is_private_mode(identity[2], path=path):
             raise ValueError('operator credential must be private')
         secret = raw.decode('utf-8').strip()
         if not secret or any(ord(c) < 32 or ord(c) == 127 for c in secret):
@@ -1536,11 +1538,12 @@ def configured_team(vault, state, operator_credential_file=None):
 OWNER_TIMEOUT = 2
 
 
-def handle_connection(client, service, dispatcher):
+def handle_connection(client, service, dispatcher, *, listener=None):
     """One bounded exchange; forwarded sockets inherit the same total budget.
 
     Synchronous local operations are not forcibly cancelled or replayed after
     timeout: a lost acknowledgement always requires explicit reconciliation.
+    ``listener`` (the owner's endpoint) checks the endpoint token on Windows.
     """
     import time
     from .cockpit_client import (exchange_deadline, absolute_deadline, validate_budget,
@@ -1552,6 +1555,10 @@ def handle_connection(client, service, dispatcher):
             request = bounded_json_loads(raw)
             if not isinstance(request, dict):
                 raise ValueError("request must be an object")
+            if listener is not None:
+                listener.authorize(request)
+            else:
+                request.pop(owner_endpoint.TOKEN_FIELD, None)
             budget = validate_budget(request.pop('_budget_seconds', OWNER_TIMEOUT))
             # Charge frame receipt too; old clients get the existing owner cap.
             end = min(end, started + budget)
@@ -1607,7 +1614,7 @@ def main():
         from .cockpit_native_runtime import NativeRuntime
         from .cockpit_terminal_runner import JsonOperator
         config = args.runtime_config
-        if config.is_symlink() or config.stat().st_mode & 0o077 or config.stat().st_size > 65536:
+        if config.is_symlink() or not private_paths.is_private(config.stat(), path=config) or config.stat().st_size > 65536:
             raise ValueError('runtime configuration must be private, bounded and not a symlink')
         specification = json.loads(config.read_text())
         if set(specification) not in ({'native', 'operators'}, {'native', 'operators', 'organizers'}):
@@ -1622,7 +1629,7 @@ def main():
     if args.execution_policy:
         from .local_executor import ExecutionPolicy
         config=args.execution_policy
-        if config.is_symlink() or config.stat().st_mode&0o077 or config.stat().st_size>4096:
+        if config.is_symlink() or not private_paths.is_private(config.stat(), path=config) or config.stat().st_size>4096:
             raise ValueError('private bounded executor policy required')
         policy=ExecutionPolicy(**json.loads(config.read_text()))
     service = LocalCockpit(args.root, args.vault, args.state, args.host, team=team,
@@ -1640,7 +1647,7 @@ def main():
         from .cockpit_fleet import FleetCockpit
         from .cockpit_transport import Endpoint
         config = args.fleet_config
-        if config.is_symlink() or config.stat().st_mode & 0o077 or config.stat().st_size > 65536:
+        if config.is_symlink() or not private_paths.is_private(config.stat(), path=config) or config.stat().st_size > 65536:
             service.close()
             raise ValueError('fleet endpoint configuration must be private, bounded and not a symlink')
         mapping = json.loads(config.read_text())
@@ -1650,19 +1657,14 @@ def main():
                 raise ValueError('exact fleet root/state endpoint fields required')
             endpoints[host] = Endpoint(Path(record['root']), host, record['state'])
         dispatcher = FleetCockpit(service, endpoints)
-    server = socket.socket(socket.AF_UNIX)
+    listener = owner_endpoint.listen(endpoint)
     try:
-        Path(endpoint).unlink(missing_ok=True)
-        server.bind(endpoint)
-        os.chmod(endpoint, 0o600)
-        server.listen(8)
         while True:
-            client, _ = server.accept()
+            client, _ = listener.accept()
             with client:
-                handle_connection(client, service, dispatcher)
+                handle_connection(client, service, dispatcher, listener=listener)
     finally:
-        server.close()
-        Path(endpoint).unlink(missing_ok=True)
+        listener.close()
         service.close()
 
 

@@ -32,6 +32,7 @@ SNAPSHOT_SERVICE = ROOT / "deploy" / "systemd" / "arvyx-v2-snapshot.service"
 SNAPSHOT_TIMER = ROOT / "deploy" / "systemd" / "arvyx-v2-snapshot.timer"
 
 
+@unittest.skipUnless(os.name == 'posix', 'deployment kit tests use pwd and POSIX ownership')
 class ProductionLauncherContractTests(unittest.TestCase):
     def test_launcher_is_valid_shell_and_overrides_image_readiness_contract(self) -> None:
         self.assertTrue(os.access(LAUNCHER, os.X_OK), "launcher must be executable")

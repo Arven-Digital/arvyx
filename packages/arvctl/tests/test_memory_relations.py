@@ -55,7 +55,7 @@ class MemoryRelationTests(unittest.TestCase):
             suggest_memory(self.vault, self.project, 'a' * (MAX_SUGGESTION_TITLE_CHARS + 1), 'ordinary', 'demobot')
         result = suggest_memory(self.vault, self.project, '\u0130' * 128, 'ordinary', 'demobot')
         self.assertLessEqual(len(Path(result.path).name.encode('utf-8')), 255)
-        self.assertIn('\u0130' * 128, (self.vault / result.path).read_text())
+        self.assertIn('\u0130' * 128, (self.vault / result.path).read_text(encoding='utf-8'))
 
     def test_storage_refine_source_secret_refused_without_rewrite(self):
         from arvyx_control.writes import refine_memory

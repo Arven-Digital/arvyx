@@ -1,6 +1,7 @@
 """Private local frontend adapter tests; Arvyx never becomes task authority."""
 import hashlib
 import tempfile
+import os
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -29,6 +30,7 @@ def _authority_fixture(view=None):
     return request
 
 
+@unittest.skipUnless(os.name == 'posix', 'the native runtime (Linux x86_64 artifact, host-shell policies) is POSIX-only')
 class ArvyxFrontendTests(unittest.TestCase):
     def test_environment_does_not_inherit_provider_or_ssh_credentials(self):
         with tempfile.TemporaryDirectory() as directory:

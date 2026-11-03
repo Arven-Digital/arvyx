@@ -11,6 +11,8 @@ from test_completion_fix5_D import owner,capture_row,acknowledge
 from arvyx_control import cockpit,cockpit_client,capture_offload
 from retention_fixture_helpers import retention_receipt
 
+pytestmark = pytest.mark.skipif(not hasattr(socket, 'AF_UNIX'), reason='raw Unix-socket owner transport; Windows uses the loopback endpoint (test_owner_endpoint)')
+
 
 def pure_request(owner,body):
     responses=[]
