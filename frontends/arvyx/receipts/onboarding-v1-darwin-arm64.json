@@ -1,5 +1,5 @@
 {
-  "admission": "Efe authorized Kitty on 2026-11-03 to make Arvyx functional on this Mac, including admitting the on-machine Darwin build. This receipt is provenance, not a memfd seal.",
+  "admission": "On-machine darwin-arm64 admission 2026-11-03. Provenance only, not a memfd seal. Digest pinned in native_artifact_policy.",
   "admitted_on": "2026-11-03",
   "artifact": "arvyx-darwin-arm64",
   "binary_sha256": "4e27756cb8353506b1b0de35a313cddc4b94480f975a53cb1ece7c8b3f3fa3b3",
