@@ -580,7 +580,7 @@ def _require_single_line(label: str, value: str) -> None:
 
 
 def _unique_target_reserved(root: Path, stem: str, reserved: set[Path]) -> Path:
-    stem = _filename_stem(stem)
+    stem = safe_open.component(_filename_stem(stem))
     candidate = root / f"{stem}.md"
     index = 2
     while candidate.exists() or candidate.is_symlink() or candidate in reserved:

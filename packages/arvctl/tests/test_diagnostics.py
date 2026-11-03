@@ -392,7 +392,7 @@ console.log('browser metadata and rendering verified'); })();'''
         with tempfile.TemporaryDirectory() as tmp:
             reporter = Reporter(Path(tmp)/'errors.sqlite')
             with patch.object(diagnostics, '_reporter', reporter), patch.object(mcp, 'append_audit', side_effect=OSError('SECRET')):
-                result = mcp._audit_secret_resolve(params={'name':'secret.resolve','arguments':{'ref':'synthetic'}}, audit_log=Path(tmp)/'audit', require_audit=True, surface='mcp', actor=None, allowed_tools={'secret.resolve'})
+                result = mcp._audit_reference_resolve(params={'name':'secret.resolve','arguments':{'ref':'synthetic'}}, audit_log=Path(tmp)/'audit', require_audit=True, surface='mcp', actor=None, allowed_tools={'secret.resolve'})
                 self.assertIn('refusing', result)
                 reporter.flush()
                 self.assertEqual(reporter.read()['groups'][0]['code'], 'secret_audit')

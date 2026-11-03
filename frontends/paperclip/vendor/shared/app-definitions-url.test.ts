@@ -42,7 +42,7 @@ describe("tool app gallery URL matching", () => {
 
   it("keeps every gallery entry reachable through at least one pattern", () => {
     for (const app of CONNECTABLE_APP_DEFINITIONS) {
-      const example = app.urlPatterns[0]?.replace("*", "example");
+      const example = app.urlPatterns[0]?.replaceAll("*", "example");
       expect(example, `${app.slug} has a pattern`).toBeTruthy();
       expect(getAppDefinitionForUrl(example!)?.slug).toBe(app.slug);
     }

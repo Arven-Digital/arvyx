@@ -124,6 +124,55 @@ class ResolvePathTests(unittest.TestCase):
                 safe_open.resolve_path(r"D:\vault\agents\x\SESSION.md")
 
 
+
+class ComponentTests(unittest.TestCase):
+    def test_plain_names_come_back_unchanged(self):
+        for name in ("a", "SOUL.md", "caf\u00e9", ".hidden", "...", "a b", "x" * 200, "\U0001f680"):
+            with self.subTest(name=name):
+                self.assertEqual(safe_open.component(name), name)
+        self.assertEqual(safe_open.component(".", allow_self=True), ".")
+
+    def test_separators_traversal_and_control_names_are_refused(self):
+        bad = ["", ".", "..", "a/b", "a\\b", "/a", "a/", "a\x00b", 42, None]
+        if os.name == "nt":
+            bad += ["a:b", "C:", "file::$DATA"]
+        for name in bad:
+            with self.subTest(name=repr(name)), self.assertRaises(OSError):
+                safe_open.component(name)
+
+
+class ResolveUnderTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = pathlib.Path(self.tmp.name) / "vault"
+        (self.root / "projects" / "demo").mkdir(parents=True)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_inside_and_root_itself(self):
+        from arvyx_control.paths import resolve_under
+        self.assertEqual(resolve_under(self.root, "projects", "demo"), (self.root / "projects" / "demo").resolve())
+        self.assertEqual(resolve_under(self.root, "projects", "new", "file.md"), (self.root / "projects" / "new" / "file.md").resolve())
+        self.assertEqual(resolve_under(self.root), self.root.resolve())
+
+    def test_traversal_and_siblings_are_refused(self):
+        from arvyx_control.paths import resolve_under
+        (pathlib.Path(self.tmp.name) / "vault-sibling").mkdir()
+        for parts in (("..",), ("..", "vault-sibling"), ("projects", "..", "..", "vault-sibling"), ("..", "vault-sibling", "x")):
+            with self.subTest(parts=parts), self.assertRaises(ValueError):
+                resolve_under(self.root, *parts)
+
+    @unittest.skipUnless(os.name == "posix", "symlink escape fixture")
+    def test_symlink_escape_is_refused(self):
+        from arvyx_control.paths import resolve_under
+        outside = pathlib.Path(self.tmp.name) / "outside"
+        outside.mkdir()
+        (self.root / "projects" / "link").symlink_to(outside)
+        with self.assertRaises(ValueError):
+            resolve_under(self.root, "projects", "link", "x")
+
+
 def make_link(link: pathlib.Path, target: pathlib.Path) -> None:
     if os.name == "nt":
         subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(target)], check=True, capture_output=True)

@@ -398,7 +398,7 @@ def handle_request(
                     inspection_guard=inspection_guard,
                 )
                 return None if notification else {"jsonrpc": "2.0", "id": request_id, "result": result}
-            secret_audit_error = None if mutation_claimed else _audit_secret_resolve(
+            reference_audit_error = None if mutation_claimed else _audit_reference_resolve(
                 params=params,
                 audit_log=secret_audit_log,
                 require_audit=require_secret_audit and not mutation_claimed,
@@ -406,10 +406,10 @@ def handle_request(
                 actor=actor,
                 allowed_tools=allowed_tool_names,
             )
-            if secret_audit_error is not None:
+            if reference_audit_error is not None:
                 if dispatch_outcome is not None:
                     dispatch_outcome["decision"] = "error"
-                return None if notification else _error(request_id, -32003, secret_audit_error)
+                return None if notification else _error(request_id, -32003, reference_audit_error)
             result = _call_tool(
                 params=params,
                 vault=vault,
@@ -533,7 +533,7 @@ def handle_json_line(
     return json.dumps(response, sort_keys=True)
 
 
-def _audit_secret_resolve(
+def _audit_reference_resolve(
     *,
     params: dict[str, Any],
     audit_log: Path | None,

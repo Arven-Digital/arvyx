@@ -3,10 +3,10 @@ import argparse
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
-import mimetypes
 import os
 from pathlib import Path
 import secrets
+from arvyx_control.cockpit_paperclip import asset_content_type
 import tempfile
 from arvyx_control.public_onboarding_api import fixture_composition, PREFIX
 
@@ -36,7 +36,7 @@ def make_demo(port=0):
             if self.command=='GET' and not self.path.startswith(PREFIX):
                 path='/onboarding-demo.html' if self.path=='/' else self.path
                 if path not in allowed:return self.reply(404,{'error':'not_found'})
-                return self.reply(200,allowed[path],content_type=mimetypes.guess_type(path)[0] or 'application/octet-stream')
+                return self.reply(200,allowed[path],content_type=asset_content_type(path))
             try:
                 size=int(self.headers.get('Content-Length','0'))
                 if self.headers.get('Transfer-Encoding') or not 0<=size<=16384:raise ValueError

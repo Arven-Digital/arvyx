@@ -155,4 +155,4 @@ def test_notifier_does_not_report_redirect_as_delivery():
 def test_scanner_handles_valid_deep_constant_without_recursion_crash():
     text='value = '+' + '.join([repr('a')]*1200)
     ast.parse(text);compile(text,'<synthetic>','exec')
-    assert security.python_constant_secret_spans(text)==set()
+    assert security.python_constant_shape_spans(text)==set()

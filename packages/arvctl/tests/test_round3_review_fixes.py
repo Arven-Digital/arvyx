@@ -87,7 +87,7 @@ def test_https_downgrade_is_refused_by_actual_client_opener(client, monkeypatch,
             self.send_header('Content-Length', str(len(data)))
             self.end_headers(); self.wfile.write(data)
     source = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
-    tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER); tls.load_cert_chain(cert, key)
+    tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER); tls.minimum_version = ssl.TLSVersion.TLSv1_2; tls.load_cert_chain(cert, key)
     source.socket = tls.wrap_socket(source.socket, server_side=True)
     module = replica if client == 'replica' else embeddings
     # Change certificate trust only; exercise the actual production transport.

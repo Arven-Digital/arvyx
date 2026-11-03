@@ -14,7 +14,7 @@ spec.loader.exec_module(scanner)
 
 
 @pytest.mark.parametrize('operation', [security.contains_literal_secret, security.redact_secrets,
-                                      lambda s: bridge.bounded_secret_subn(s, bridge._FALLBACK_SECRET_RE)])
+                                      lambda s: bridge.bounded_redaction_subn(s, bridge._FALLBACK_SECRET_RE)])
 def test_jwt_nonmatch_cpu(operation):
     durations = []
     for count in (4000, 8000, 16000):
@@ -34,7 +34,7 @@ def test_jwt_positive_parity():
         expected = bool(pattern.search(text))
         assert security.contains_literal_secret(text) == expected
         assert (security.redact_secrets(text) != text) == expected
-        assert (bridge.bounded_secret_subn(text, bridge._FALLBACK_SECRET_RE)[0] != text) == expected
+        assert (bridge.bounded_redaction_subn(text, bridge._FALLBACK_SECRET_RE)[0] != text) == expected
 
 
 def test_multiline_assignments(tmp_path):
@@ -57,7 +57,7 @@ def test_exact_line_exception_does_not_hide_multiline(tmp_path):
     path.write_text(line + '\npassword:\n  abcdefghijk1234\n')
     allow = tmp_path / 'fixtures/secret-scan-allowlist.txt'
     allow.parent.mkdir()
-    allow.write_text(security.secret_line_fingerprint(Path('a.yaml'), line) + '\n')
+    allow.write_text(security.reviewed_line_fingerprint(Path('a.yaml'), line) + '\n')
     hits, _ = scanner.scan(tmp_path)
     assert 'a.yaml:1' not in hits
     assert 'a.yaml:2' in hits
@@ -80,4 +80,4 @@ def test_jwt_span_differential():
 @pytest.mark.parametrize('ending', ['\n', '\r\n', '\r', '\u2028'])
 def test_source_line_mapping(ending):
     text = ending.join(['secret://vault/service/key', 'heading', 'password:', ' abcdefghijk1234'])
-    assert security.canonical_secret_line_spans(text) == {(3, 4)}
+    assert security.canonical_shape_line_spans(text) == {(3, 4)}

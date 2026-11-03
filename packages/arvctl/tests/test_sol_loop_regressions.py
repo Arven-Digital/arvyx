@@ -24,7 +24,7 @@ def test_image_magic_does_not_exempt_payload(tmp_path):
 
 def test_standalone_bridge_detector_parity():
     assert bridge._FALLBACK_SECRET_RE.pattern == security.SECRET_RE.pattern
-    code = "from safe_mcp_bridge.cli import _redact_secret_shapes; import json; print(json.dumps(_redact_secret_shapes(['glpat-'+'a'*24, 'npm_'+'b'*24, 'pypi-'+'c'*24])))"
+    code = "from safe_mcp_bridge.cli import _redact_shapes; import json; print(json.dumps(_redact_shapes(['glpat-'+'a'*24, 'npm_'+'b'*24, 'pypi-'+'c'*24])))"
     env = dict(os.environ, PYTHONPATH=str(Path(bridge.__file__).parents[1]))
     result = subprocess.run([sys.executable, '-S', '-c', code], env=env, capture_output=True, text=True, check=True)
     value, count = json.loads(result.stdout)
@@ -198,7 +198,7 @@ def test_redaction_suffix_present_is_bounded(standalone):
     # source root explicitly; CI's editable install alone cannot satisfy -S.
     env = dict(os.environ, PYTHONPATH=str(Path(security.__file__).parents[1]))
     if standalone:
-        code = "from safe_mcp_bridge.cli import _redact_secret_shapes; text='a.'*16000+' (@arven.digital)'; assert _redact_secret_shapes(text)==(text,0)"
+        code = "from safe_mcp_bridge.cli import _redact_shapes; text='a.'*16000+' (@arven.digital)'; assert _redact_shapes(text)==(text,0)"
         env['PYTHONPATH'] = str(Path(bridge.__file__).parents[1])
     subprocess.run([sys.executable,'-S','-c',code],env=env,check=True,timeout=2)
 

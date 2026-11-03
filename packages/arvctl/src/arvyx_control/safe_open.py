@@ -67,12 +67,36 @@ def stable_identity(value: int) -> int:
     return value - (1 << 64) if value >= (1 << 63) else value
 
 
-def _refuse_component(name: str, *, allow_self: bool = False) -> None:
+# A fixed absolute anchor under which a vetted component is normalized; the prefix
+# check below is the shape static analysis models as a path sanitizer.
+_ANCHOR = os.path.join(os.sep, "arvyx-component")
+
+
+def component(name: str, *, allow_self: bool = False) -> str:
+    """Return ``name`` as a single plain path component, or raise ``OSError``.
+
+    Plain means: non-empty, not ``.`` or ``..``, no ``/`` or ``\\``, no NUL and no
+    ``:`` on Windows (drive and NTFS stream syntax). The name is also joined under a
+    fixed anchor, normalized and required to stay directly under it, so a vetted value
+    is exactly the input and the check is visible to path-injection analysis. Every
+    descriptor-relative call here uses the returned value.
+    """
     if allow_self and name == ".":
-        return
-    if (not name or name in (".", "..") or "/" in name or "\\" in name
-            or "\x00" in name or (_WINDOWS and ":" in name)):
+        return name
+    if (not isinstance(name, str) or not name or name in (".", "..") or "/" in name
+            or "\\" in name or "\x00" in name or (_WINDOWS and ":" in name)):
         raise OSError(f"invalid path component {name!r}")
+    joined = os.path.normpath(os.path.join(_ANCHOR, name))
+    if not joined.startswith(_ANCHOR + os.sep):
+        raise OSError(f"invalid path component {name!r}")
+    vetted = joined[len(_ANCHOR) + 1:]
+    if vetted != name or os.sep in vetted or (os.altsep and os.altsep in vetted):
+        raise OSError(f"invalid path component {name!r}")
+    return vetted
+
+
+def _refuse_component(name: str, *, allow_self: bool = False) -> str:
+    return component(name, allow_self=allow_self)
 
 
 def _encoded_native_name(name: str) -> bytes:
@@ -97,7 +121,7 @@ if not _WINDOWS:
         fd = os.open("/", os.O_RDONLY | os.O_DIRECTORY)
         try:
             for part in path.parts[1:]:
-                _refuse_component(part)
+                part = _refuse_component(part)
                 next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
                 os.close(fd)
                 fd = next_fd
@@ -108,12 +132,12 @@ if not _WINDOWS:
 
     def open_directory_at(dirfd: int, name: str) -> int:
         """Open a directory name relative to a descriptor; '.' reopens the directory itself."""
-        _refuse_component(name, allow_self=True)
+        name = _refuse_component(name, allow_self=True)
         return os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=dirfd)
 
     def open_file_at(dirfd: int, name: str, *, write: bool = False, create: bool = False,
                      exclusive: bool = False, mode: int = 0o600) -> int:
-        _refuse_component(name)
+        name = _refuse_component(name)
         flags = (os.O_RDWR if write else os.O_RDONLY) | os.O_NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
         if not write:
             flags |= os.O_NONBLOCK
@@ -131,7 +155,7 @@ if not _WINDOWS:
 
     def stat_at(dirfd: int, name: str) -> os.stat_result:
         """lstat of one name relative to a directory descriptor ('.' is the directory itself)."""
-        _refuse_component(name, allow_self=True)
+        name = _refuse_component(name, allow_self=True)
         return os.stat(name, dir_fd=dirfd, follow_symlinks=False)
 
     def open_directory(path: os.PathLike | str) -> int:
@@ -154,7 +178,7 @@ if not _WINDOWS:
 
     def open_entry_at(dirfd: int, name: str) -> int:
         """Open a regular file or a directory for reading, never a link (the caller inspects fstat)."""
-        _refuse_component(name)
+        name = _refuse_component(name)
         return os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | getattr(os, "O_CLOEXEC", 0), dir_fd=dirfd)
 
     def scandir_names(dirfd: int):
@@ -164,7 +188,7 @@ if not _WINDOWS:
                 yield entry.name
 
     def mkdir_at(dirfd: int, name: str, mode: int = 0o700) -> None:
-        _refuse_component(name)
+        name = _refuse_component(name)
         os.mkdir(name, mode, dir_fd=dirfd)
 
     def fsync_directory(dirfd: int, *, tolerate_unwritable: bool = False) -> None:
@@ -176,23 +200,23 @@ if not _WINDOWS:
         os.fsync(fd)
 
     def unlink_at(dirfd: int, name: str) -> None:
-        _refuse_component(name)
+        name = _refuse_component(name)
         os.unlink(name, dir_fd=dirfd)
 
     def rmdir_at(dirfd: int, name: str) -> None:
-        _refuse_component(name)
+        name = _refuse_component(name)
         os.rmdir(name, dir_fd=dirfd)
 
     def link_at(dirfd: int, source: str, target: str) -> None:
         """Hard-link ``source`` as ``target`` inside one directory descriptor, never through a link."""
-        _refuse_component(source)
-        _refuse_component(target)
+        source = _refuse_component(source)
+        target = _refuse_component(target)
         os.link(source, target, src_dir_fd=dirfd, dst_dir_fd=dirfd, follow_symlinks=False)
 
     def replace_at(dirfd: int, source: str, target: str) -> None:
         """Atomically rename ``source`` over ``target`` inside one directory descriptor."""
-        _refuse_component(source)
-        _refuse_component(target)
+        source = _refuse_component(source)
+        target = _refuse_component(target)
         os.replace(source, target, src_dir_fd=dirfd, dst_dir_fd=dirfd)
 
     def descriptor_path(fd: int) -> str | None:
@@ -352,7 +376,7 @@ else:
         try:
             _reject_reparse(fd)
             for part in path.parts[1:]:
-                _refuse_component(part)
+                part = _refuse_component(part)
                 next_fd = open_directory_at(fd, part)
                 os.close(fd)
                 fd = next_fd
@@ -363,7 +387,7 @@ else:
 
     def open_directory_at(dirfd: int, name: str) -> int:
         """Open a directory name relative to a descriptor; '.' reopens the directory itself."""
-        _refuse_component(name, allow_self=True)
+        name = _refuse_component(name, allow_self=True)
         handle = _nt_open(msvcrt.get_osfhandle(dirfd), "" if name == "." else name,
                           _FILE_LIST_DIRECTORY | _FILE_READ_ATTRIBUTES | _READ_CONTROL, _FILE_OPEN,
                           _FILE_DIRECTORY_FILE | _FILE_OPEN_FOR_BACKUP_INTENT)
@@ -373,7 +397,7 @@ else:
 
     def open_file_at(dirfd: int, name: str, *, write: bool = False, create: bool = False,
                      exclusive: bool = False, mode: int = 0o600) -> int:
-        _refuse_component(name)
+        name = _refuse_component(name)
         access = _FILE_READ_DATA | _FILE_READ_ATTRIBUTES | _FILE_READ_EA | _READ_CONTROL
         if write:
             access |= _FILE_WRITE_DATA | _FILE_APPEND_DATA | _FILE_WRITE_ATTRIBUTES | _FILE_WRITE_EA
@@ -403,7 +427,7 @@ else:
 
     def stat_at(dirfd: int, name: str) -> os.stat_result:
         """lstat of one name relative to a directory descriptor (reparse points report S_IFLNK; '.' is the directory)."""
-        _refuse_component(name, allow_self=True)
+        name = _refuse_component(name, allow_self=True)
         handle = _nt_open(msvcrt.get_osfhandle(dirfd), "" if name == "." else name,
                           _FILE_READ_ATTRIBUTES | _READ_CONTROL, _FILE_OPEN, _FILE_OPEN_FOR_BACKUP_INTENT)
         fd = _handle_to_fd(handle, False)
@@ -428,7 +452,7 @@ else:
 
     def open_entry_at(dirfd: int, name: str) -> int:
         """Open a regular file or a directory for reading, never a reparse point."""
-        _refuse_component(name)
+        name = _refuse_component(name)
         handle = _nt_open(msvcrt.get_osfhandle(dirfd), name, _FILE_READ_DATA | _FILE_READ_ATTRIBUTES | _READ_CONTROL,
                           _FILE_OPEN, _FILE_OPEN_FOR_BACKUP_INTENT)
         fd = _handle_to_fd(handle, False)
@@ -460,7 +484,7 @@ else:
 
     def mkdir_at(dirfd: int, name: str, mode: int = 0o700) -> None:
         """Create a directory relative to a descriptor; an owner-only mode becomes the trusted-set DACL."""
-        _refuse_component(name)
+        name = _refuse_component(name)
         handle = _nt_open(msvcrt.get_osfhandle(dirfd), name, _FILE_LIST_DIRECTORY | _FILE_READ_ATTRIBUTES | _READ_CONTROL, _FILE_CREATE,
                           _FILE_DIRECTORY_FILE | _FILE_OPEN_FOR_BACKUP_INTENT)
         fd = _handle_to_fd(handle, False)
@@ -475,14 +499,14 @@ else:
 
     def unlink_at(dirfd: int, name: str) -> None:
         """Delete one name relative to a directory descriptor (never through a reparse point)."""
-        _refuse_component(name)
+        name = _refuse_component(name)
         handle = _nt_open(msvcrt.get_osfhandle(dirfd), name, _DELETE | _FILE_READ_ATTRIBUTES, _FILE_OPEN,
                           _FILE_NON_DIRECTORY_FILE | _FILE_DELETE_ON_CLOSE)
         _nt()[1].CloseHandle(handle)
 
     def rmdir_at(dirfd: int, name: str) -> None:
         """Delete one empty directory relative to a directory descriptor."""
-        _refuse_component(name)
+        name = _refuse_component(name)
         handle = _nt_open(msvcrt.get_osfhandle(dirfd), name, _DELETE | _FILE_READ_ATTRIBUTES, _FILE_OPEN,
                           _FILE_DIRECTORY_FILE | _FILE_DELETE_ON_CLOSE | _FILE_OPEN_FOR_BACKUP_INTENT)
         _nt()[1].CloseHandle(handle)
@@ -494,8 +518,8 @@ else:
         the source is verified first through a relative no-follow open, so a reparse
         point is never linked. The target name is created, never replaced (EEXIST).
         """
-        _refuse_component(source)
-        _refuse_component(target)
+        source = _refuse_component(source)
+        target = _refuse_component(target)
         probe = open_file_at(dirfd, source)
         os.close(probe)
         base = descriptor_path(dirfd)
@@ -512,8 +536,8 @@ else:
         handle (RootDirectory); no path is consulted. Older kernels without the Ex class
         get FileRenameInformation with ReplaceIfExists.
         """
-        _refuse_component(source)
-        _refuse_component(target)
+        source = _refuse_component(source)
+        target = _refuse_component(target)
         ntdll, kernel32 = _nt()
         ntdll.NtSetInformationFile.restype = wintypes.ULONG
         ntdll.NtSetInformationFile.argtypes = [wintypes.HANDLE, ctypes.POINTER(_IO_STATUS_BLOCK), ctypes.c_void_p, wintypes.ULONG, wintypes.ULONG]

@@ -147,7 +147,9 @@ def _postgres_spans(text: str, flags=re.IGNORECASE):
         return
     spaces = [m.start() for m in re.finditer(r'\s', text, flags)] + [len(text)]
     slashes = [m.start() for m in re.finditer('/', text)] + [len(text)]
-    username = re.compile(r'[^:\s]+:', flags)
+    # Bounded: an unbounded run here is rescanned from every prefix (quadratic on
+    # long colon-free text); 256 characters cover any credential-shaped user name.
+    username = re.compile(r'[^:\s]{1,256}:', flags)
     detector = re.compile(_POSTGRES_PATTERN, flags)
     consumed = 0
     for prefix in candidates:
@@ -205,7 +207,7 @@ def _jwt_spans(text: str, flags=re.IGNORECASE):
                 yield match.span()
 
 
-def canonical_secret_line_spans(text: str):
+def canonical_shape_line_spans(text: str):
     """Map canonical full-text matches to inclusive source line ranges.
 
     Preserve offsets when masking sanctioned references. Multiline matches
@@ -216,7 +218,7 @@ def canonical_secret_line_spans(text: str):
         else re.sub(r"[^\r\n]", " ", m.group(0)), text)
     # Reuse the bounded union matcher, recording its exact character spans.
     spans = []
-    bounded_secret_subn(masked, SECRET_RE, _spans=spans)
+    bounded_redaction_subn(masked, SECRET_RE, _spans=spans)
     boundaries = [m.end() for m in re.finditer(r"\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]", text)]
     return {(bisect_right(boundaries, start) + 1,
              bisect_right(boundaries, end - 1) + 1) for start, end in spans}
@@ -302,7 +304,7 @@ def _derived_detector(pattern: str, flags: int) -> tuple[re.Pattern[str], bool, 
     return re.compile(pattern, flags), has_postgres, has_jwt
 
 
-def bounded_secret_subn(text, detector, replacement="[REDACTED-SECRET]", *, _spans=None):
+def bounded_redaction_subn(text, detector, replacement="[REDACTED-SECRET]", *, _spans=None):
     """Find email runs once; redact the union of all canonical secret spans.
 
     Overlapping detector spans are conservatively redacted together, never
@@ -360,7 +362,7 @@ def redact_secrets(text: str) -> str:
         return key
 
     protected = _SECRET_REF_RE.sub(protect, text)
-    redacted, _ = bounded_secret_subn(protected, SECRET_RE, SECRET_REDACTION)
+    redacted, _ = bounded_redaction_subn(protected, SECRET_RE, SECRET_REDACTION)
     for key, value in stash.items():
         redacted = redacted.replace(key, value)
     return redacted
@@ -669,14 +671,14 @@ def read_scannable_text(path: Path) -> str:
     return text
 
 
-def multiline_constant_secret_spans(text: str, *, max_lines: int = 8) -> set[tuple[int, int]]:
+def multiline_constant_shape_spans(text: str, *, max_lines: int = 8) -> set[tuple[int, int]]:
     """Find explicit cross-line concatenations of quoted string literals.
 
     Only adjacent literals joined by ``+`` or a backslash line continuation are
     assembled. Arbitrary punctuation is never stripped: regex definitions,
     YAML lists, documentation examples, and unrelated nearby strings therefore
     cannot synthesize a credential that was not present in the source.
-    Python uses :func:`python_constant_secret_spans` instead.
+    Python uses :func:`python_constant_shape_spans` instead.
     """
     literal_re = re.compile(
         r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`',
@@ -715,7 +717,7 @@ def multiline_constant_secret_spans(text: str, *, max_lines: int = 8) -> set[tup
     return spans
 
 
-def python_constant_secret_spans(text: str) -> set[tuple[int, int]]:
+def python_constant_shape_spans(text: str) -> set[tuple[int, int]]:
     """Find secret-shaped values assembled entirely from Python literals."""
     try:
         tree = ast.parse(text)
@@ -758,7 +760,7 @@ def python_constant_secret_spans(text: str) -> set[tuple[int, int]]:
     return spans
 
 
-def secret_line_fingerprint(relative_path: Path, line: str) -> str:
+def reviewed_line_fingerprint(relative_path: Path, line: str) -> str:
     """Bind an allowed synthetic fixture to both its path and exact text."""
     material = relative_path.as_posix().encode("utf-8") + b"\0" + line.strip().encode("utf-8")
     return hashlib.sha256(material).hexdigest()

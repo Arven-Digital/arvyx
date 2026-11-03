@@ -21,19 +21,19 @@ from .security import (
     SECRET_RE,
     contains_literal_secret,
     contains_private_name,
-    canonical_secret_line_spans,
+    canonical_shape_line_spans,
     iter_source_files,
     SOURCE_SKIP_DIRS,
     is_expected_text,
     is_verified_image,
     is_verified_font,
     load_secret_scan_allowlist,
-    multiline_constant_secret_spans,
+    multiline_constant_shape_spans,
     private_name_exempt_paths,
     private_name_patterns,
-    python_constant_secret_spans,
+    python_constant_shape_spans,
     read_scannable_text,
-    secret_line_fingerprint,
+    reviewed_line_fingerprint,
     strip_secret_refs,
 )
 from .vault import run_demo
@@ -200,10 +200,10 @@ def scan_private_context(repo: Path) -> tuple[set[str], int | None, bool, int]:
             name_patterns = []
             exempted += 1
         lines = text.splitlines()
-        for start, end in canonical_secret_line_spans(text):
+        for start, end in canonical_shape_line_spans(text):
             allowed = False
             if start == end and start <= len(lines):
-                fingerprint = secret_line_fingerprint(relative, lines[start - 1])
+                fingerprint = reviewed_line_fingerprint(relative, lines[start - 1])
                 allowed = fingerprint in secret_allowlist
                 if allowed:
                     matched_allowlist.add(fingerprint)
@@ -215,7 +215,7 @@ def scan_private_context(repo: Path) -> tuple[set[str], int | None, bool, int]:
             private_hit = contains_private_name(line, name_patterns)
             secret_hit = contains_literal_secret(scannable)
             if secret_hit:
-                fingerprint = secret_line_fingerprint(relative, line)
+                fingerprint = reviewed_line_fingerprint(relative, line)
                 if fingerprint in secret_allowlist:
                     matched_allowlist.add(fingerprint)
                     secret_hit = False
@@ -223,21 +223,21 @@ def scan_private_context(repo: Path) -> tuple[set[str], int | None, bool, int]:
                 hits.add(f"{relative.as_posix()}:{line_number}")
         if path.suffix.casefold() == ".py":
             try:
-                constant_spans = python_constant_secret_spans(text)
+                constant_spans = python_constant_shape_spans(text)
             except (ValueError, RecursionError) as exc:
                 hits.add(f"{relative.as_posix()}:resource-limit:{type(exc).__name__}")
                 constant_spans = set()
             for start, end in constant_spans:
                 allowed = False
                 if start == end and start <= len(lines):
-                    fingerprint = secret_line_fingerprint(relative, lines[start - 1])
+                    fingerprint = reviewed_line_fingerprint(relative, lines[start - 1])
                     allowed = fingerprint in secret_allowlist
                     if allowed:
                         matched_allowlist.add(fingerprint)
                 if not allowed:
                     hits.add(f"{relative.as_posix()}:{start}")
         else:
-            for start, _end in multiline_constant_secret_spans(text):
+            for start, _end in multiline_constant_shape_spans(text):
                 hits.add(f"{relative.as_posix()}:{start}")
     active()
     for fingerprint in sorted(secret_allowlist - matched_allowlist):

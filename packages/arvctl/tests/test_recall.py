@@ -2218,9 +2218,9 @@ class RecallTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "vault"
             init_vault(target)
-            secret_line = "api_key = test-secret-value-12345"  # gitleaks:allow -- synthetic fixture
+            fixture_line = "api_key = test-secret-value-12345"  # gitleaks:allow -- synthetic fixture
             (target / "projects/demo-agent/STATUS.md").write_text(
-                "# Status\n\n" + secret_line + "\n",
+                "# Status\n\n" + fixture_line + "\n",
                 encoding="utf-8",
             )
 

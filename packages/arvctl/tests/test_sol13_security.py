@@ -2,7 +2,7 @@
 import time
 import pytest
 from arvyx_control.security import (SECRET_RE, SECRET_REDACTION, contains_literal_secret,
-    redact_secrets, strip_secret_refs, bounded_secret_subn)
+    redact_secrets, strip_secret_refs, bounded_redaction_subn)
 
 @pytest.mark.parametrize('token', ['ghp_' + 'a' * 24, 'sk-' + 'a' * 24, 'github_pat_' + 'a' * 24])
 @pytest.mark.parametrize('location', ['broker', 'path'])
@@ -28,7 +28,7 @@ def test_safe_references_preserved(value):
 ])
 def test_postgres_detection_semantics(value):
     assert contains_literal_secret(value) == bool(SECRET_RE.search(value))
-    assert bounded_secret_subn(value, SECRET_RE) == SECRET_RE.subn(SECRET_REDACTION, value)
+    assert bounded_redaction_subn(value, SECRET_RE) == SECRET_RE.subn(SECRET_REDACTION, value)
 
 def test_postgres_span_grammar_differential():
     import itertools

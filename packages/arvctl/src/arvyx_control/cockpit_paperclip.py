@@ -1,9 +1,22 @@
 """Paperclip React distribution over the existing governed authority."""
 from contextlib import closing
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+
+# Content types of the enumerated distribution assets, by suffix: a constant table,
+# not the platform's MIME registry (Windows reads the registry) and not the request.
+ASSET_TYPES = {'.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
+               '.json': 'application/json', '.map': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml',
+               '.ico': 'image/x-icon', '.woff': 'font/woff', '.woff2': 'font/woff2', '.txt': 'text/plain',
+               '.webmanifest': 'application/manifest+json'}
+
+
+def asset_content_type(path):
+    """The constant content type for a distribution path ('/' is the shell)."""
+    if path == '/':
+        return 'text/html'
+    return ASSET_TYPES.get(PurePosixPath(path).suffix.lower(), 'application/octet-stream')
 import argparse
 import json
-import mimetypes
 import os
 import stat
 from html.parser import HTMLParser
@@ -131,7 +144,7 @@ class PaperclipHandler(DashboardHandler):
         if asset is None:
             self.reply(404, {'error': 'Unknown frontend asset'})
             return
-        self.reply(200, asset, content_type=mimetypes.guess_type(self.path)[0] or ('text/html' if self.path == '/' else 'application/octet-stream'))
+        self.reply(200, asset, content_type=asset_content_type(self.path))
 
     def do_POST(self):
         if self.path == '/api/primary-agent':
