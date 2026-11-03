@@ -139,7 +139,14 @@ jobs:
 
       - name: Cache pinned frontend inputs for the offline npm smoke
         working-directory: frontends/paperclip
-        run: npm ci --include=dev --ignore-scripts --no-audit --no-fund
+        shell: bash
+        # The build runs npm with the user npmrc disabled (npm_config_userconfig), so
+        # it reads npm's default cache location, not the runner image's user-level
+        # cache setting (C:\npm\cache); warm the cache the offline build will read.
+        run: |
+          cache_dir="$(npm_config_userconfig=nul npm config get cache)"
+          echo "npm cache for the offline build: $cache_dir"
+          npm ci --include=dev --ignore-scripts --no-audit --no-fund --cache "$cache_dir"
 
       - name: Build, install and smoke the Windows npm package
         timeout-minutes: 10

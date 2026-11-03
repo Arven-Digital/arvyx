@@ -32,8 +32,8 @@
       ]
     },
     ".github/workflows/ci.yml": {
-      "exported_sha256": "bfbf641c23e6692e90b48ee4cb21afb01b5955fa6295324b2107aeb540224b47",
-      "source_sha256": "8cc716ec6021333ada5c50982373a18543836e155ab691704629ef04b6456f83",
+      "exported_sha256": "eeafaf73c8c1428c064faaf2a488b475ee9ff3c6ab698a03abf978ff13cd19dc",
+      "source_sha256": "7db052e8215b16a1ea843518755f0a350b8bd4c01d81826365e01e10ccebc2f5",
       "transforms": [
         "override:config/public-candidate/.github/workflows/ci.yml",
         "strip-private-notice"
@@ -6293,6 +6293,6 @@
       "transforms": []
     }
   },
-  "source_tree": "fc32589b32cc1f8c7d54ea8608f29ad1dfae6e61",
+  "source_tree": "61e51e5fa02bf323c1c7e12540b917ab230aa934",
   "version": 1
 }
