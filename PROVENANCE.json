@@ -3545,8 +3545,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/forget_guard.py": {
-      "exported_sha256": "59cbb67b2082f3a20abe84d0d2b8e0067564ebb255891d468571a0c3fed98e27",
-      "source_sha256": "59cbb67b2082f3a20abe84d0d2b8e0067564ebb255891d468571a0c3fed98e27",
+      "exported_sha256": "941fe3228772e068ce314c985bf9c8dfabb756c637ed7925f2d5a8bd38ed331a",
+      "source_sha256": "941fe3228772e068ce314c985bf9c8dfabb756c637ed7925f2d5a8bd38ed331a",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/harness_discovery.py": {
@@ -3750,8 +3750,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/paths.py": {
-      "exported_sha256": "49549f575df388a2532a2d898516b7e0ca2be830f24d8ac5a5a59211e43e30a4",
-      "source_sha256": "49549f575df388a2532a2d898516b7e0ca2be830f24d8ac5a5a59211e43e30a4",
+      "exported_sha256": "e894d7012acb7de24ff34e921829978360c66bc25acc86e8fe80b9e5a743b7c1",
+      "source_sha256": "e894d7012acb7de24ff34e921829978360c66bc25acc86e8fe80b9e5a743b7c1",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/private_paths.py": {
@@ -3850,8 +3850,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/safe_open.py": {
-      "exported_sha256": "085e6903fc3ae28c9c10ba98ba59c9f245f47d635901bcb226085e89e3340533",
-      "source_sha256": "085e6903fc3ae28c9c10ba98ba59c9f245f47d635901bcb226085e89e3340533",
+      "exported_sha256": "57637c078a1a23c3901669b1ed3876e3ecc9865f459462dc7cda6576c311df0f",
+      "source_sha256": "57637c078a1a23c3901669b1ed3876e3ecc9865f459462dc7cda6576c311df0f",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/secret_delivery.py": {
@@ -5365,8 +5365,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_safe_open.py": {
-      "exported_sha256": "5423e963998670bf3d6b633829d404494e6a2dd74e0022d315cabff8a728f34a",
-      "source_sha256": "5423e963998670bf3d6b633829d404494e6a2dd74e0022d315cabff8a728f34a",
+      "exported_sha256": "f2459e54e7277b1a12e59fc0d38840e07996dd19f39754f620957c52ca56f475",
+      "source_sha256": "f2459e54e7277b1a12e59fc0d38840e07996dd19f39754f620957c52ca56f475",
       "transforms": []
     },
     "packages/arvctl/tests/test_scandir_streaming.py": {
@@ -6293,6 +6293,6 @@
       "transforms": []
     }
   },
-  "source_tree": "83a0a27b1de71e97d3c72c0ba88dc5ea8b08037c",
+  "source_tree": "2f6f29df1fe56d625125e48297f970f73c11219b",
   "version": 1
 }

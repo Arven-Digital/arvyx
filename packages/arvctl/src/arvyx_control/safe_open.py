@@ -632,3 +632,28 @@ def read_text_shared(path: os.PathLike | str, *, encoding: str = "utf-8") -> str
     fd = open_file(path)
     with os.fdopen(fd, "r", encoding=encoding) as handle:
         return handle.read()
+
+
+_DELETED_MARKER = "\\$extend\\$deleted\\"
+
+
+def resolve_path(path: os.PathLike | str) -> Path:
+    """``Path.resolve()`` that survives a concurrent POSIX-semantics replacement on Windows.
+
+    Windows ``realpath`` opens the name and asks the handle for its final name. When
+    the file at that name is replaced in between (``replace_path`` while a reader
+    holds the old file), the handle belongs to the old file, which NTFS now lists
+    under ``\\$Extend\\$Deleted``; no live name looks like that, so resolve again
+    until the live name comes back (bounded). POSIX: ``Path.resolve()``.
+    """
+    target = Path(path)
+    if not _WINDOWS:
+        return target.resolve()
+    import time
+    resolved = target.resolve()
+    for _attempt in range(50):
+        if _DELETED_MARKER not in str(resolved).lower():
+            return resolved
+        time.sleep(0.005)
+        resolved = target.resolve()
+    raise OSError(f"{target} resolved to a file deleted while open; retry the operation")

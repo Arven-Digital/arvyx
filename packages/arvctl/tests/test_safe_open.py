@@ -104,6 +104,26 @@ class ReplacePathTests(unittest.TestCase):
         self.assertEqual(safe_open.read_text_shared(self.target), self.target.read_text(encoding="utf-8"))
 
 
+
+class ResolvePathTests(unittest.TestCase):
+    def test_matches_path_resolve(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = pathlib.Path(tmp) / "file"
+            target.write_bytes(b"x")
+            self.assertEqual(safe_open.resolve_path(target), target.resolve())
+            self.assertEqual(safe_open.resolve_path(str(target)), target.resolve())
+
+    @unittest.skipUnless(os.name == "nt", "NTFS lists a replaced-but-open file under $Extend\\$Deleted")
+    def test_retries_past_a_deleted_name_and_bounds_the_wait(self):
+        live = pathlib.Path(r"\\?\D:\vault\agents\x\SESSION.md")
+        deleted = pathlib.Path(r"\\?\D:\$Extend\$Deleted\000400000000842C4F7EE46D")
+        with mock.patch.object(pathlib.Path, "resolve", side_effect=[deleted, deleted, live]):
+            self.assertEqual(safe_open.resolve_path(r"D:\vault\agents\x\SESSION.md"), live)
+        with mock.patch.object(pathlib.Path, "resolve", return_value=deleted):
+            with self.assertRaises(OSError):
+                safe_open.resolve_path(r"D:\vault\agents\x\SESSION.md")
+
+
 def make_link(link: pathlib.Path, target: pathlib.Path) -> None:
     if os.name == "nt":
         subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(target)], check=True, capture_output=True)
