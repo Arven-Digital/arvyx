@@ -145,10 +145,11 @@ class Destination:
         fd = os.open('/', os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)
         try:
             parts = self.directory.split('/')[1:]
+            from .posix_support import descend_directory
+            built = ''
             for i, part in enumerate(parts):
-                nxt = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=fd)
-                os.close(fd)
-                fd = nxt
+                built += '/' + part
+                fd = descend_directory(fd, part, built)
                 st = os.fstat(fd)
                 terminal = i == len(parts) - 1
                 sticky_root = st.st_uid == 0 and bool(st.st_mode & stat.S_ISVTX)

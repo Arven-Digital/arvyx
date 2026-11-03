@@ -465,20 +465,32 @@ def _resolve_file(ref: SecretRef, spec: dict[str, object]) -> str:
 
 
 def _require_owned_command_support():
-    if not all(hasattr(os, name) for name in ('waitid', 'WNOWAIT', 'WEXITED', 'WNOHANG', 'P_PID', 'killpg')):
+    from .posix_support import owned_command_supported
+    if not owned_command_supported():
         raise BrokerError('owned command supervision unavailable on this platform')
 
 
 def _wait_owned_command(process, deadline):
-    """Observe exit WITHOUT reaping: the owned leader pins the session ID.
+    """Observe exit WITHOUT reaping on Linux: the owned leader pins the session ID.
 
     These POSIX adapters exclusively reap their own Popen children. Never poll
     or wait before group cleanup, even when pipes reached EOF successfully.
+    macOS has no waitid(WNOWAIT). A kqueue NOTE_EXIT proves the zombie still
+    holds the process group, so the group is signalled and then reaped here.
     """
+    from .posix_support import exited_unreaped
     while True:
-        result = os.waitid(os.P_PID, process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
-        if result is not None:
-            return result.si_status if result.si_code == os.CLD_EXITED else -result.si_status
+        if exited_unreaped(process.pid):
+            if hasattr(os, 'waitid'):
+                result = os.waitid(os.P_PID, process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
+                if result is None:
+                    return 0
+                return result.si_status if result.si_code == os.CLD_EXITED else -result.si_status
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError):
+                pass
+            return process.wait(timeout=1.0)
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise TimeoutError('owned command deadline exceeded')
@@ -492,7 +504,10 @@ def _cleanup_owned_command(process):
         if process.returncode is None:
             # ChildProcessError means someone else reaped it: ownership is lost,
             # so fail safely instead of signaling a potentially recycled group.
-            os.waitid(os.P_PID, process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
+            if hasattr(os, 'waitid'):
+                os.waitid(os.P_PID, process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
+            elif process.poll() is not None:
+                return
             try:
                 os.killpg(process.pid, signal.SIGKILL)
             except ProcessLookupError:

@@ -92,6 +92,7 @@ class Terminal:
         self.stream = pyte.ByteStream(self.screen)
         self.pid, self.fd = pty.fork()
         if self.pid == 0:  # child
+            fcntl.ioctl(1, termios.TIOCSWINSZ, struct.pack('HHHH', rows, cols, 0, 0))
             os.execve(str(binary), [str(binary), '--session', 'amc'], env)
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, struct.pack('HHHH', rows, cols, 0, 0))
         self.raw = bytearray()
@@ -167,10 +168,9 @@ def main() -> int:
     digest = hashlib.sha256(binary.read_bytes()).hexdigest()
     # Only the admitted onboarding-v1 bytes are an acceptance subject; any other
     # binary would produce a receipt about something the product never admits.
-    from arvyx_control.native_artifact_policy import NATIVE_ONBOARDING_BINARY_SHA256
-    if digest != NATIVE_ONBOARDING_BINARY_SHA256:
-        print(f'refusing: {binary} is not the admitted onboarding-v1 artifact ({digest[:12]}… != '
-              f'{NATIVE_ONBOARDING_BINARY_SHA256[:12]}…)', file=sys.stderr)
+    from arvyx_control.native_artifact_policy import admitted_capabilities
+    if 'onboarding-v1' not in admitted_capabilities(digest):
+        print(f'refusing: {binary} is not the admitted onboarding-v1 artifact for this platform ({digest[:12]}…)', file=sys.stderr)
         return 2
     receipt: dict = dict(binary=str(binary), binary_sha256=digest, admitted=True,
                          synthetic_only=True, provider=False, steps=[], api_calls=[], failures=[])

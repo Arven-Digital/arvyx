@@ -52,7 +52,7 @@ def install(binary,receipt,destination,*,required_capability='mouse-existing'):
         try:
             write('arvyx',data,0o700,dir_fd=installed)
             capabilities=admitted_capabilities(digest)
-            record=dict(binary_sha256=digest,provenance_sha256=hashlib.sha256(receipt_bytes).hexdigest(),platform='linux-x86_64',approved_capabilities=capabilities,onboarding_v1='onboarding-v1' in capabilities,runtime_acceptance=False)
+            record=dict(binary_sha256=digest,provenance_sha256=hashlib.sha256(receipt_bytes).hexdigest(),platform=policy['platform'],approved_capabilities=capabilities,onboarding_v1='onboarding-v1' in capabilities,runtime_acceptance=False)
             write('native-install.json',(json.dumps(record,indent=2)+'\n').encode(),0o600,dir_fd=installed);os.fsync(installed)
         finally:os.close(installed)
     finally:os.close(parent_fd)

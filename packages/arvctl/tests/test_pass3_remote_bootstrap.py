@@ -25,4 +25,4 @@ def test_plan_is_deterministic_and_receipt_is_exact_single_use(tmp_path):
 def test_unsupported_platform_and_expired_or_unsigned_receipt_refused(tmp_path):
     from arvyx_control.remote_bootstrap import make_plan,BootstrapStore
     identity=MachineIdentity('Test',base64.b64encode(b'x'*32).decode())
-    with pytest.raises(ValueError):make_plan(machine='m',identity=identity,platform='darwin-arm64',package_sha256='a'*64,native_sha256='b'*64,capabilities=['onboarding-v1'],nonce='c'*32,expires=time.time()+300)
+    with pytest.raises(ValueError):make_plan(machine='m',identity=identity,platform='windows-x86_64',package_sha256='a'*64,native_sha256='b'*64,capabilities=['onboarding-v1'],nonce='c'*32,expires=time.time()+300)

@@ -235,7 +235,8 @@ class HermesHistory:
                         raise PermissionError('native history workspace incarnation changed')
                     if execution_policy.plan(environment,workspace,root_acknowledged=root_acknowledged)!=plan:
                         raise PermissionError('execution policy changed after native history admission')
-                    pinned='/proc/self/fd/'+str(workspace_fd)
+                    from .posix_support import fd_directory
+                    pinned = fd_directory(workspace_fd, workspace)
                     argv=list(argv);argv[argv.index('--in')+1]=pinned
                     result = subprocess.call(argv, env=env, cwd=pinned, pass_fds=(workspace_fd,))
                 self.profile.assert_idle(default_home=self.default_home, validate_metadata=False)

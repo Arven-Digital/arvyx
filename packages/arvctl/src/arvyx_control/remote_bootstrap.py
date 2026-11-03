@@ -14,7 +14,7 @@ def canonical(value):return json.dumps(value,sort_keys=True,separators=(',',':')
 def sha(value):return hashlib.sha256(canonical(value)).hexdigest()
 def make_plan(*,machine,identity,platform,package_sha256,native_sha256,capabilities,nonce,expires):
     if not isinstance(identity,MachineIdentity) or not isinstance(machine,str) or not re.fullmatch('[a-z0-9-]{1,64}',machine):raise ValueError('exact machine identity required')
-    if platform!='linux-x86_64':raise ValueError('no approved platform artifact/descriptor execution support')
+    if platform not in ('linux-x86_64','darwin-arm64'):raise ValueError('no approved platform artifact/descriptor execution support')
     if any(not isinstance(v,str) or not re.fullmatch('[a-f0-9]{64}',v) for v in (package_sha256,native_sha256)) or not re.fullmatch('[a-f0-9]{32}',nonce):raise ValueError('exact digests and one-time challenge required')
     if not capabilities or set(capabilities)-{'mouse-existing','onboarding-v1'} or len(set(capabilities))!=len(capabilities):raise ValueError('closed artifact capability selection required')
     if type(expires) not in (int,float) or not time.time()<expires<=time.time()+3600:raise ValueError('bounded future plan expiry required')

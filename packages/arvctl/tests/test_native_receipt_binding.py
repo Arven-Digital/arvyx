@@ -25,7 +25,11 @@ def test_receipt_digest_is_the_admitted_onboarding_digest():
     assert receipt["binary_sha256"] == policy.NATIVE_ONBOARDING_BINARY_SHA256
     assert receipt["manifest"]["binary_sha256"] == policy.NATIVE_ONBOARDING_BINARY_SHA256
     assert receipt["platform"] == "linux-x86_64"
-    assert "onboarding-v1" in policy.admitted_capabilities(policy.NATIVE_ONBOARDING_BINARY_SHA256)
+    host = policy.native_platform_policy()["platform"]
+    if host == "linux-x86_64":
+        assert "onboarding-v1" in policy.admitted_capabilities(policy.NATIVE_ONBOARDING_BINARY_SHA256)
+    elif host == "darwin-arm64":
+        assert "onboarding-v1" in policy.admitted_capabilities(policy.DARWIN_ONBOARDING_BINARY_SHA256)
 
 
 def test_receipt_records_executed_overlay_tests():
