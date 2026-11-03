@@ -122,7 +122,7 @@ if not _WINDOWS:
         try:
             for part in path.parts[1:]:
                 part = _refuse_component(part)
-                next_fd = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
+                next_fd = open_directory_at(fd, part)
                 os.close(fd)
                 fd = next_fd
             return fd
