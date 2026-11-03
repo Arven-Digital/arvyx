@@ -34,12 +34,13 @@ def admitted_native_artifacts():
     """Exact admitted digests for this platform. A Darwin digest is not a Linux artifact."""
     if sys.platform=='darwin' and platform.machine().lower() in ('arm64','aarch64') and DARWIN_ONBOARDING_BINARY_SHA256:
         return {DARWIN_ONBOARDING_BINARY_SHA256: frozenset({'mouse-existing', 'onboarding-v1'})}
-    if sys.platform=='linux' and platform.machine() in ('x86_64','AMD64'):
-        return {
-            NATIVE_MOUSE_BINARY_SHA256: frozenset({'mouse-existing'}),
-            NATIVE_ONBOARDING_BINARY_SHA256: frozenset({'mouse-existing', 'onboarding-v1'}),
-        }
-    return {}
+    # Linux constants stay readable on every other platform, including Windows.
+    # Tests patch them to reach the capability fence. native_platform_policy
+    # still reports those platforms unavailable, so the digests are not executable.
+    return {
+        NATIVE_MOUSE_BINARY_SHA256: frozenset({'mouse-existing'}),
+        NATIVE_ONBOARDING_BINARY_SHA256: frozenset({'mouse-existing', 'onboarding-v1'}),
+    }
 
 
 def native_platform_policy():

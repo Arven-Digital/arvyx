@@ -17,9 +17,10 @@ def test_unapproved_onboarding_remains_refused_for_matching_fixture_digest():
     data = b'synthetic fixture, never an accepted executable'
     digest = hashlib.sha256(data).hexdigest()
     policy = dict(available=True, capabilities=['mouse-existing'])
-    # Substitute only bytes/platform identity to reach the capability fence.
-    # This does not enroll a production digest or execute these bytes.
-    with patch.object(native, 'NATIVE_MOUSE_BINARY_SHA256', digest), patch.object(
+    # The platform table must not be the thing under test. A mouse-only
+    # admission, and nothing else, is what the capability fence has to refuse.
+    artifacts = {digest: frozenset({'mouse-existing'})}
+    with patch.object(native, 'admitted_native_artifacts', return_value=artifacts), patch.object(
         native, 'native_platform_policy', return_value=policy
     ):
         assert native.verify_native_bytes(data, required_capability='mouse-existing') == digest

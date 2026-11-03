@@ -1,7 +1,9 @@
 """Darwin equivalents for the POSIX calls the control plane requires."""
 import os
+import sys
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -21,11 +23,15 @@ class PosixSupportTests(unittest.TestCase):
             os.close(read)
             os.close(write)
 
-    def test_owned_command_supervision_is_available(self):
-        self.assertTrue(owned_command_supported())
+    def test_owned_command_supervision_matches_the_platform(self):
+        if sys.platform == 'win32':
+            self.assertFalse(owned_command_supported())
+        else:
+            self.assertTrue(owned_command_supported())
 
     def test_exit_is_observed_without_reaping(self):
-        import time
+        if not owned_command_supported() or not os.path.exists('/bin/sh'):
+            self.skipTest('no unreaped POSIX exit watch on this platform')
         process = subprocess.Popen(['/bin/sh', '-c', 'exit 0'])
         try:
             for _ in range(50):
@@ -34,8 +40,12 @@ class PosixSupportTests(unittest.TestCase):
                 time.sleep(0.02)
             else:
                 self.fail('exit was not observed')
+            # poll() reaps. returncode stays unset until the caller waits,
+            # which is the pin this helper must keep.
+            self.assertIsNone(process.returncode)
             if hasattr(os, 'waitid'):
-                self.assertIsNone(process.poll())
+                again = os.waitid(os.P_PID, process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
+                self.assertIsNotNone(again)
         finally:
             process.wait(timeout=2)
 
@@ -59,6 +69,8 @@ class PosixSupportTests(unittest.TestCase):
             os.close(fd)
 
     def test_fd_directory_falls_back_when_proc_is_absent(self):
+        if not hasattr(os, 'O_DIRECTORY'):
+            self.skipTest('POSIX directory descriptors are absent')
         with tempfile.TemporaryDirectory() as tmp:
             fd = os.open(tmp, os.O_RDONLY | os.O_DIRECTORY)
             try:
