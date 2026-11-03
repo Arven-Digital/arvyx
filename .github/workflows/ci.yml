@@ -131,7 +131,7 @@ jobs:
           printf 'TEMP=%s\nTMP=%s\n' "$win" "$win" >> "$GITHUB_ENV"
 
       - name: Set up supported Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24.11.1"
           cache: npm
@@ -374,7 +374,7 @@ jobs:
       - name: Set up supported Node
         # Python tests that shell out to node (the npm launcher) must see the pinned
         # Node, not whatever the runner image ships.
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24.11.1"
 
@@ -514,7 +514,7 @@ jobs:
           python -m pip install --no-deps --no-build-isolation -e .
 
       - name: Set up supported Node
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24.11.1"
           cache: npm
