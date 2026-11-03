@@ -19,7 +19,8 @@ def create_secret_file(path: Path, *, token_bytes: int = 48) -> Path:
         raise RuntimeError("secret path already exists; refuse overwrite")
     parent = path.parent
     for ancestor in (parent, *parent.parents):
-        if ancestor.is_symlink():
+        from arvyx_control.posix_support import system_directory_symlink
+        if ancestor.is_symlink() and not system_directory_symlink(ancestor):
             raise RuntimeError("secret directory must not be a symlink")
     parent.mkdir(parents=True, mode=0o700, exist_ok=True)
     if not parent.is_dir() or parent.is_symlink():

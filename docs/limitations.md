@@ -178,10 +178,15 @@ Check: `packages/arvctl/src/arvyx_control/static/index.html`,
   token into the private `runtime/cockpit.sock` file; clients present the token
   with every request. The reachable set is the same as the POSIX socket's: processes
   that can read the owner's private runtime directory.
-- macOS is conditional. Its hosted CI jobs run only when the repository variables
+- The Python control plane also runs on macOS. `pipe2`, `waitid(WNOWAIT)`,
+  `/proc/self/fd` and `pidfd` are not on Darwin, so those calls go through
+  `posix_support`: a CLOEXEC pipe, a kqueue exit watch that does not reap, a
+  no-follow walk that accepts only the root-owned `/var`, `/tmp` and `/etc`
+  firmlinks, and process-group cleanup where pidfd is absent. Native sealed
+  execution (memfd) remains Linux-only. A macOS binary is not admitted in this
+  change. Hosted macOS CI stays conditional: it runs only when
   `HOSTED_ACTIONS_ENABLED` and `HOSTED_EXPERIMENTAL_PLATFORMS` are both `true`,
-  and the release workflow does not require them; until candidate-SHA matrix
-  receipts exist, macOS is not verified.
+  and the release workflow does not require it.
 - The Makefile assumes a POSIX shell. On Windows, run `python -m arvyx_control.cli ...`
   (or the npm launcher) from PowerShell or Git Bash.
 - Python 3.11 or newer is required. The suite runs on 3.11, 3.12 and 3.13 in CI.

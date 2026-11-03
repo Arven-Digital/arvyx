@@ -1036,7 +1036,8 @@ class LocalCockpit:
                 self.db.execute("UPDATE delegations SET cursor=0, generation=generation+1, status=CASE WHEN pending IS NOT NULL THEN 'ambiguous' WHEN status='active' THEN 'paused' ELSE status END WHERE session=?", (sid,))
                 self.db.commit()
                 if restart_admission is not None:restart_admission.launch_prepared=True
-                exec_read, exec_write = os.pipe2(os.O_CLOEXEC)
+                from .posix_support import cloexec_pipe
+                exec_read, exec_write = cloexec_pipe()
                 try:
                     # The authenticated policy fence spans fork, exec ACK and
                     # publication. Sender timeouts cannot release this guard.
@@ -1117,7 +1118,8 @@ class LocalCockpit:
                         handshake.extend(chunk)
                         if handshake != b'X':
                             raise ValueError('native chdir/exec failed; no connection published')
-                    if handshake != b'X' or os.waitid(os.P_PID, pid, os.WEXITED | os.WNOHANG | os.WNOWAIT) is not None:
+                    from .posix_support import exited_unreaped
+                    if handshake != b'X' or exited_unreaped(pid):
                         raise ValueError('native launch exited before connection publication')
                 finally:
                     os.close(exec_read)
@@ -1407,15 +1409,27 @@ class LocalCockpit:
                 if candidate.isdigit() and int(candidate) != live['pid']:
                     try:
                         pid = int(candidate)
-                        if not hasattr(os,'pidfd_open') or not hasattr(signal,'pidfd_send_signal'):
-                            raise ValueError('termination incomplete; stable member process handles unavailable')
-                        handle=os.pidfd_open(pid)
-                        try:
-                            if os.getsid(pid) == live['pid']:
-                                found = True
-                                signal.pidfd_send_signal(handle,signal.SIGKILL)
-                        finally:
-                            os.close(handle)
+                        pidfd_open = getattr(os, 'pidfd_open', None)
+                        pidfd_send = getattr(signal, 'pidfd_send_signal', None)
+                        if pidfd_open is not None and pidfd_send is not None:
+                            handle = pidfd_open(pid)
+                            try:
+                                if os.getsid(pid) == live['pid']:
+                                    found = True
+                                    pidfd_send(handle, signal.SIGKILL)
+                            finally:
+                                os.close(handle)
+                        else:
+                            # macOS has no pidfd. Match the process group, which
+                            # setsid made equal to the leader, and skip a pid
+                            # that disappeared between the snapshot and the check.
+                            try:
+                                if os.getpgid(pid) != live['pid']:
+                                    continue
+                            except ProcessLookupError:
+                                continue
+                            found = True
+                            os.kill(pid, signal.SIGKILL)
                     except ProcessLookupError:
                         pass
                     except PermissionError:

@@ -133,7 +133,30 @@ if not _WINDOWS:
     def open_directory_at(dirfd: int, name: str) -> int:
         """Open a directory name relative to a descriptor; '.' reopens the directory itself."""
         name = _refuse_component(name, allow_self=True)
-        return os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=dirfd)
+        flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+        try:
+            return os.open(name, flags, dir_fd=dirfd)
+        except OSError as exc:
+            if exc.errno != 20 or name in ('.', '..'):
+                raise
+            root = os.stat('/')
+            info = os.fstat(dirfd)
+            if (info.st_dev, info.st_ino) != (root.st_dev, root.st_ino):
+                raise
+            from .posix_support import system_directory_symlink
+            if not system_directory_symlink('/' + name):
+                raise
+            fd = os.open('/', os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC)
+            try:
+                for private in os.readlink('/' + name).split('/'):
+                    nxt = os.open(private, flags | os.O_CLOEXEC, dir_fd=fd)
+                    os.close(fd)
+                    fd = nxt
+                result, fd = fd, None
+                return result
+            finally:
+                if fd is not None:
+                    os.close(fd)
 
     def open_file_at(dirfd: int, name: str, *, write: bool = False, create: bool = False,
                      exclusive: bool = False, mode: int = 0o600) -> int:
