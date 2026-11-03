@@ -140,11 +140,14 @@ jobs:
       - name: Cache pinned frontend inputs for the offline npm smoke
         working-directory: frontends/paperclip
         shell: bash
-        # The build runs npm with the user npmrc disabled (npm_config_userconfig), so
-        # it reads npm's default cache location, not the runner image's user-level
-        # cache setting (C:\npm\cache); warm the cache the offline build will read.
+        # scripts/build_arvyx_npm.py runs npm with every NPM_CONFIG_* variable removed
+        # and the user npmrc disabled, so it resolves npm's default cache location,
+        # not the runner image's C:\npm\cache; warm the cache the offline build reads
+        # by resolving it under the same npm environment.
         run: |
-          cache_dir="$(npm_config_userconfig=nul npm config get cache)"
+          for name in $(env | sed -n 's/^\([Nn][Pp][Mm]_[Cc][Oo][Nn][Ff][Ii][Gg]_[^=]*\)=.*/\1/p'); do unset "$name"; done
+          export npm_config_userconfig=nul
+          cache_dir="$(npm config get cache)"
           echo "npm cache for the offline build: $cache_dir"
           npm ci --include=dev --ignore-scripts --no-audit --no-fund --cache "$cache_dir"
 
