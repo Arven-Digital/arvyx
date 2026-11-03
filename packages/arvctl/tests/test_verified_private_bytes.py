@@ -90,7 +90,7 @@ class ReviewedLocalPatchTests(unittest.TestCase):
         self.provenance = {e['path']: e['sha256'] for e in json.loads((ROOT / PROVENANCE).read_text())['files']}
 
     def test_every_local_patch_is_bound_to_recorded_upstream_bytes(self):
-        self.assertEqual(len(LOCAL_PATCHES), 24)
+        self.assertEqual(len(LOCAL_PATCHES), 25)
         for rel, (upstream, local, reason) in LOCAL_PATCHES.items():
             with self.subTest(rel=rel):
                 self.assertEqual(self.provenance[rel], upstream)
