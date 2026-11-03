@@ -74,7 +74,9 @@ def owned_by_current_user(st: os.stat_result, *, fd: int | None = None, path=Non
             os.close(fd)
     if allow_root:
         return owner in windows_acl.trusted_sids()
-    return owner == windows_acl.current_user_sid()
+    # An elevated administrator's objects are owned by Administrators (the token's
+    # default owner), so ownership means the user SID or that default owner.
+    return owner in windows_acl.current_owner_sids()
 
 
 def is_private(st: os.stat_result, *, fd: int | None = None, path=None, dirfd: int | None = None,

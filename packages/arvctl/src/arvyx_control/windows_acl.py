@@ -65,6 +65,7 @@ _OBJECT_INHERIT_ACE = 0x1
 _CONTAINER_INHERIT_ACE = 0x2
 _TOKEN_QUERY = 0x8
 _TOKEN_USER = 1
+_TOKEN_OWNER = 4
 _ACL_REVISION = 2
 _ACL_SIZE_INFORMATION = 2
 
@@ -173,6 +174,38 @@ def current_user_sid() -> str:
         return _sid_string(ctypes, advapi32, kernel32, user.User.Sid)
     finally:
         kernel32.CloseHandle(token)
+
+
+def current_owner_sid() -> str:
+    """String SID the current token assigns as owner of the objects it creates (``TokenOwner``).
+
+    For an elevated administrator Windows sets this to ``BUILTIN\\Administrators``, so
+    files and directories the process itself creates are not owned by the user SID.
+    """
+    _require_windows()
+    ctypes, wintypes, advapi32, kernel32, *_rest = _api()
+
+    class TOKEN_OWNER(ctypes.Structure):
+        _fields_ = [("Owner", ctypes.c_void_p)]
+
+    token = wintypes.HANDLE()
+    if not advapi32.OpenProcessToken(kernel32.GetCurrentProcess(), _TOKEN_QUERY, ctypes.byref(token)):
+        raise OSError(ctypes.get_last_error(), "OpenProcessToken failed")
+    try:
+        needed = wintypes.DWORD()
+        advapi32.GetTokenInformation(token, _TOKEN_OWNER, None, 0, ctypes.byref(needed))
+        buffer = ctypes.create_string_buffer(needed.value)
+        if not advapi32.GetTokenInformation(token, _TOKEN_OWNER, buffer, needed.value, ctypes.byref(needed)):
+            raise OSError(ctypes.get_last_error(), "GetTokenInformation failed")
+        owner = ctypes.cast(buffer, ctypes.POINTER(TOKEN_OWNER)).contents
+        return _sid_string(ctypes, advapi32, kernel32, owner.Owner)
+    finally:
+        kernel32.CloseHandle(token)
+
+
+def current_owner_sids() -> frozenset[str]:
+    """SIDs that mean "owned by the current user": the user SID and the token's default owner."""
+    return frozenset({current_user_sid(), current_owner_sid()})
 
 
 def trusted_sids() -> frozenset[str]:

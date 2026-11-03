@@ -52,6 +52,30 @@ class WindowsAclTests(unittest.TestCase):
         self.assertTrue(sid.startswith("S-1-5-21-") or sid.startswith("S-1-12-"), sid)
         self.assertEqual(windows_acl.trusted_sids(), frozenset({sid, windows_acl.SYSTEM_SID, windows_acl.ADMINISTRATORS_SID}))
 
+    def test_token_owner_is_the_user_or_administrators(self):
+        owner = windows_acl.current_owner_sid()
+        self.assertIn(owner, {windows_acl.current_user_sid(), windows_acl.ADMINISTRATORS_SID})
+        self.assertIn(windows_acl.current_user_sid(), windows_acl.current_owner_sids())
+        self.assertIn(owner, windows_acl.current_owner_sids())
+
+    def test_ownership_accepts_the_token_default_owner_only(self):
+        # An elevated administrator's new objects are owned by Administrators; that
+        # counts as owned by the current user exactly when the token says so.
+        from unittest import mock
+        from arvyx_control import private_paths
+        target = self.base / "owned"
+        target.mkdir()
+        self.assertTrue(private_paths.owned_by_current_user(target.stat(), path=target))
+        _owner, rows = windows_acl.security_entries(target)
+        with mock.patch.object(windows_acl, "security_entries", return_value=(windows_acl.ADMINISTRATORS_SID, rows)):
+            with mock.patch.object(windows_acl, "current_owner_sid", return_value=windows_acl.ADMINISTRATORS_SID):
+                self.assertTrue(private_paths.owned_by_current_user(target.stat(), path=target))
+            with mock.patch.object(windows_acl, "current_owner_sid", return_value=windows_acl.current_user_sid()):
+                self.assertFalse(private_paths.owned_by_current_user(target.stat(), path=target))
+        with mock.patch.object(windows_acl, "security_entries", return_value=(windows_acl.SYSTEM_SID, rows)):
+            self.assertFalse(private_paths.owned_by_current_user(target.stat(), path=target))
+            self.assertTrue(private_paths.owned_by_current_user(target.stat(), path=target, allow_root=True))
+
     def test_make_private_yields_a_private_directory_that_children_inherit(self):
         windows_acl.make_private(self.base)
         self.assertIsNone(windows_acl.private_path_problem(self.base))

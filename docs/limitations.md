@@ -149,9 +149,11 @@ Check: `packages/arvctl/src/arvyx_control/static/index.html`,
   user, `SYSTEM` and `Administrators` (`arvyx_control.windows_acl`); directories
   and files the product creates owner-only get that DACL, so a prefix or home
   under `%LOCALAPPDATA%` qualifies, while `%TEMP%` trees that grant other accounts
-  access are refused like a world-writable `/tmp`. Modes are not applied on
-  Windows (`chmod` there only sets the READONLY attribute, which would break
-  rename and delete).
+  access are refused like a world-writable `/tmp`. An elevated administrator's
+  new objects are owned by `Administrators` (the token's default owner), so
+  ownership means the user SID or that default owner; a hosted CI runner is such
+  an account. Modes are not applied on Windows (`chmod` there only sets the
+  READONLY attribute, which would break rename and delete).
 - Windows durability. File contents are fsynced; directory names are not
   (`FlushFileBuffers` on a directory handle flushes the whole NTFS volume), so
   crash-durable namespaces rely on NTFS journaling. Descriptor-relative no-follow

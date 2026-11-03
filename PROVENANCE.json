@@ -361,8 +361,8 @@
       "transforms": []
     },
     "docs/limitations.md": {
-      "exported_sha256": "7c7f84a82a64404a8ea19efc5a479aa10c319a3a5634a7f4e98d5fc6ccaaf2ef",
-      "source_sha256": "7c7f84a82a64404a8ea19efc5a479aa10c319a3a5634a7f4e98d5fc6ccaaf2ef",
+      "exported_sha256": "9ba75b82d01c56dcaada6f8476f4100b19810e899428a146cbf8f03eb8989e96",
+      "source_sha256": "9ba75b82d01c56dcaada6f8476f4100b19810e899428a146cbf8f03eb8989e96",
       "transforms": []
     },
     "docs/local-quickstart.md": {
@@ -3755,8 +3755,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/private_paths.py": {
-      "exported_sha256": "ed2dba3650b091610b3125b14a06f6a53bf064392306958bd67a8c2df7b1baa2",
-      "source_sha256": "ed2dba3650b091610b3125b14a06f6a53bf064392306958bd67a8c2df7b1baa2",
+      "exported_sha256": "8762887f8dc004308399d90729adc38451b5b7ecc4643bf9b5da84c022f0adba",
+      "source_sha256": "8762887f8dc004308399d90729adc38451b5b7ecc4643bf9b5da84c022f0adba",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/projection_cache.py": {
@@ -3970,8 +3970,8 @@
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/windows_acl.py": {
-      "exported_sha256": "7e972d44accf9119a85945a3f569a1c94e5964304d94ce71ebae2f08d533d128",
-      "source_sha256": "7e972d44accf9119a85945a3f569a1c94e5964304d94ce71ebae2f08d533d128",
+      "exported_sha256": "dc8d3c183aae1984dccf891e5df17f914fc4d5264125f5b566e9b66434bee74d",
+      "source_sha256": "dc8d3c183aae1984dccf891e5df17f914fc4d5264125f5b566e9b66434bee74d",
       "transforms": []
     },
     "packages/arvctl/src/arvyx_control/writes.py": {
@@ -5825,8 +5825,8 @@
       "transforms": []
     },
     "packages/arvctl/tests/test_windows_acl.py": {
-      "exported_sha256": "b3ccf041dd55b123f6bce88ff1d2d5771f4dd1ff9561b6f6d6f90b681fb2cc87",
-      "source_sha256": "b3ccf041dd55b123f6bce88ff1d2d5771f4dd1ff9561b6f6d6f90b681fb2cc87",
+      "exported_sha256": "8a6de4dcce64d3e86acfee47e075f21dcdf463a6d9f4f39690a5037f85e89278",
+      "source_sha256": "8a6de4dcce64d3e86acfee47e075f21dcdf463a6d9f4f39690a5037f85e89278",
       "transforms": []
     },
     "packages/arvctl/tests/test_windows_crt_binary_mode.py": {
@@ -6293,6 +6293,6 @@
       "transforms": []
     }
   },
-  "source_tree": "f270b30234b680cd2b879b6974f885aa784dcba8",
+  "source_tree": "1bf5f098a838fb6b0ef8365a52755fc6ff7a9771",
   "version": 1
 }
