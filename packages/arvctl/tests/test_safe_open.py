@@ -245,6 +245,15 @@ class SafeOpenTests(unittest.TestCase):
         with self.assertRaises(OSError):
             safe_open.open_root("relative/path")
 
+    @unittest.skipUnless(os.name == "nt", "extended-length prefix is a Windows path form")
+    def test_open_root_accepts_the_extended_length_prefix(self):
+        # Path.resolve() can hand back a \?\ name for the same directory. It must open,
+        # and the prefix must not be read as a UNC root.
+        prefixed = pathlib.Path("\\\\?\\" + str(self.base))
+        root = self.keep(safe_open.open_root(prefixed))
+        self.assertEqual(identity(os.fstat(root)), identity(os.stat(self.base)))
+
+
     def test_open_root_refuses_a_link_on_the_path(self):
         with self.assertRaises(OSError):
             safe_open.open_root(self.base / "link")
