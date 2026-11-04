@@ -1,7 +1,7 @@
 # Limitations and Non-Goals
 
-**Status:** alpha, version `0.1.0a0`. Last checked against the code on
-2026-11-02.
+**Status:** alpha, version `0.1.0a1`. Last checked against the code on
+2026-11-04.
 
 This page lists what the system deliberately does not do today. Each item
 names where the behavior lives, so every claim can be checked against the

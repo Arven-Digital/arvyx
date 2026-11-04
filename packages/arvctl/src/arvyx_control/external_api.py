@@ -413,7 +413,7 @@ class ExternalAPI:
         if body['method']=='initialize':
             if set(params)!={'protocolVersion','capabilities','clientInfo'} or not isinstance(params['protocolVersion'],str) or type(params['capabilities']) is not dict or type(params['clientInfo']) is not dict:
                 raise ValueError('invalid initialization')
-            return 200,dict(jsonrpc='2.0',id=body['id'],result=dict(protocolVersion='2024-11-05',capabilities=dict(tools={}),serverInfo=dict(name='arvyx-external',version='0.1.0a0')))
+            return 200,dict(jsonrpc='2.0',id=body['id'],result=dict(protocolVersion='2024-11-05',capabilities=dict(tools={}),serverInfo=dict(name='arvyx-external',version='0.1.0a1')))
         expected=set() if body['method']=='tools/list' else {'name','arguments'}
         if set(params)!=expected or body['method'] not in {'tools/list','tools/call'}:raise ValueError('unsupported MCP method')
         if body['method']=='tools/list':

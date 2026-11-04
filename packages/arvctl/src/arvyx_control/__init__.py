@@ -4,7 +4,7 @@ import os as _os
 
 __all__ = ["__version__"]
 
-__version__ = "0.1.0a0"
+__version__ = "0.1.0a1"
 
 
 def _crt_binary_descriptors() -> None:
