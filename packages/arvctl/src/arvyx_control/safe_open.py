@@ -389,7 +389,16 @@ else:
 
     def open_root(root: os.PathLike | str) -> int:
         """Directory descriptor for an absolute path, walked component-wise without following reparse points."""
-        path = Path(root)
+        text = str(root)
+        # The extended-length prefix names the same path. Drop it before parsing so a
+        # drive letter is not mistaken for a UNC root. Same rule as paths._comparable.
+        unc = '\\\\?\\UNC\\'
+        extended = '\\\\?\\'
+        if text.startswith(unc):
+            text = '\\\\' + text[len(unc):]
+        elif text.startswith(extended):
+            text = text[len(extended):]
+        path = Path(text)
         if not path.is_absolute() or not path.drive or path.drive.startswith("\\\\"):
             raise OSError("root must be an absolute local path with a drive letter")
         drive = path.drive  # e.g. 'C:'
