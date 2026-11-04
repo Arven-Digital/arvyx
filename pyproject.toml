@@ -1,6 +1,6 @@
 [project]
 name = "arvyx"
-version = "0.1.0a0"
+version = "0.1.0a1"
 description = "Self-hosted memory and control plane for multi-machine agent teams"
 readme = "README.md"
 requires-python = ">=3.11"

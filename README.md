@@ -9,7 +9,7 @@ and terminal). It runs locally, stores everything in files you can read, and
 talks to agents over MCP, HTTP and a CLI. It is an operating layer around
 agents, not an agent framework, a vector database or a transcript archive.
 
-> **Alpha, version `0.1.0a0`.** Interfaces and persisted formats may change
+> **Alpha, version `0.1.0a1`.** Interfaces and persisted formats may change
 > before 1.0. Read [Limitations](docs/limitations.md) before relying on it.
 
 ## Who it is for

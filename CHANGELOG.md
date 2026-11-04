@@ -4,6 +4,24 @@ All notable changes to Arvyx are documented here. Versions follow semantic
 versioning where practical during alpha; incompatible changes may still occur
 before 1.0 and are called out explicitly.
 
+## 0.1.0a1
+
+Second public alpha. The control plane now runs on Windows and macOS, and the
+Windows path walk accepts the extended-length prefix that `Path.resolve()`
+returns, so a resolved name is no longer refused as a UNC root.
+
+- Windows: NTFS owner and DACL privacy model, descriptor-relative opens that
+  never follow reparse points, a loopback owner endpoint and a Windows CI lane
+  including the npm package smoke.
+- macOS: the control plane runs without Linux-only calls, Darwin files are
+  classified for release and the on-machine darwin-arm64 native binary is
+  admitted.
+- The no-follow root walk drops the Windows extended-length path prefix before
+  parsing, the same rule the containment check uses, and still refuses real UNC
+  roots.
+- Dependency bumps reviewed together: pytest, cyclonedx-bom, pip-licenses and
+  actions/setup-node.
+
 ## 0.1.0a0 (first public candidate)
 
 Initial public release candidate of the self-hosted memory and control plane:

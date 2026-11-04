@@ -1,6 +1,6 @@
 {
   "name": "arvyx",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Arvyx: self-hosted memory and control plane for AI agent teams (bundled Python wheel and web control room)",
   "license": "Apache-2.0",
   "repository": {"type": "git", "url": "https://github.com/Arven-Digital/arvyx.git"},
