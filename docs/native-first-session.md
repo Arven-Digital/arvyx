@@ -269,6 +269,91 @@ this changed candidate. Current source hashes are in the separate external
 or live gateway/pilot change was made. GitHub publication/CI remains with the
 parent operator.
 
+## CI run 42043984576 repair (PR 10, base `5fb7178`)
+
+The complete failed-log file was parsed programmatically (5,975 lines), deduplicating
+all pytest failure node IDs across the matrix and correctness shards. There were
+**12 unique failing test cases**, grouped below. No collection/import errors were
+present, including on Windows; missing platform markers were not the cause.
+
+| Test in `packages/arvctl/tests/` | Cases | Cause and disposition |
+| --- | --- | --- |
+| `test_first_session.py::test_failed_native_init_retains_root_without_placeholder_database` | `[False]`, `[True]` | Long runner TMPDIR caused the socket preflight to mask the intended init failure. Use a separate bounded private socket fixture root. |
+| `test_first_session.py::test_final_init_dispatch_guard_after_publication` | `[expiry]`, `[policy]`, `[ancestry]` | Same early socket refusal prevented reaching publication. All original mutation and no-dispatch assertions remain. |
+| `test_first_session.py::test_existing_root_is_never_adopted` | one | Same early socket refusal; existing-state non-adoption assertion remains. |
+| `test_first_session.py::test_policy_denial_precedes_creation` | one | Same early socket refusal; effective policy denial and no-creation assertions remain. |
+| `test_first_session.py::test_frontend_failure_retains_acknowledged_native_state` | `[None]`, `[server]`, `[owner]` | Same early socket refusal; retained native metadata, valuable state, and cleanup receipts remain checked. |
+| `test_hermes_history.py::test_main_rejects_history_only_terminal_without_creating_onboarding_state` | one | Stale diagnostic assertion. Assert the current attach-only refusal, required flags, separate first-session guidance, and no-provider/owner-start statement. |
+| `test_native_new.py::test_empty_placeholder_database_is_not_a_bootstrap` | one | Windows mode bits do not express DACL write permissions. NativeRuntime now uses the existing platform-aware `private_paths.not_writable_by_others` guard (unchanged POSIX bit policy, Windows trusted-SID DACL policy). Fixture executable permissions also use `make_private`, not Windows chmod. |
+
+The Linux 3.11/3.12/3.13 jobs each reported the ten first-session cases and the
+history diagnostic case. Correctness shard 2 reported the ten first-session
+cases; shard 1 reported the diagnostic case. Windows 3.11/3.12/3.13 each reported
+only the empty-placeholder case. The aggregate `test` job failed because
+`CORRECTNESS_RESULT=failure`; its security and integration results were success.
+These are deterministic failures, not flakes. No workflow or coverage gate changed.
+
+### Fixture architecture and regression evidence
+
+`short_fixture` now deliberately sets an owner-only long private TMPDIR on every
+invocation. Its socket tree is independently created with `TemporaryDirectory`
+under the short test base `ARVYX_TEST_SOCKET_TMPDIR`, defaulting to the test user's
+home. The fixture verifies its private mode and complete longest socket budget,
+cleans up only its newly created tree, and never chmods an ancestor. This override
+is **test-only**, not a production option. On hosts with long home paths, set it
+to an existing short test base. Local execution here selected the designated
+scratch directory. The production `<104` encoded-byte guard is unchanged.
+
+`test_short_fixture_preserves_real_socket_budget_under_long_private_tmpdir`
+asserts that a real long destination is still refused without publication, then
+binds/connects/exchanges bytes on a real AF_UNIX socket at the fixture's longest
+frontend pathname. The existing inode-replacement, source/admission, and explicit
+overlength tests remain real at their original boundaries. The original
+fixture's mocked ancestry admission is unchanged: these tests are **not** proof
+of production native ancestry acceptance. No proc-fd aliases or symlinked short
+roots are used to hide noncanonical profiles.
+
+Targeted RED with long private TMPDIR, before changing fixture placement:
+**10 failed, 13 passed**, all ten matching the hosted runner's socket-budget
+failures. A new platform-policy delegation test also failed before the production
+change (`DID NOT RAISE` when the platform write policy denied admission). It now
+checks both admission and denial. The history assertion was independently RED
+before its correction.
+
+Final targeted command (system Python is necessary for executable sealing):
+
+```sh
+ARVYX_TEST_SOCKET_TMPDIR=/home/clawd/.hermes/cache/scratch \
+PYTHONPATH=packages/arvctl/src /usr/bin/python3 -m pytest -q \
+  packages/arvctl/tests/test_first_session.py \
+  packages/arvctl/tests/test_native_new.py \
+  packages/arvctl/tests/test_hermes_history.py \
+  packages/arvctl/tests/test_cockpit_native_runtime.py \
+  packages/arvctl/tests/test_verified_private_bytes.py
+```
+
+Result: **60 passed, 31 subtests passed**, with the existing multithreaded
+`forkpty` deprecation warning visible. `git diff --check` passed. The targeted
+runtime tests include real offline child execution; no provider was called.
+The ambient agent Python lacks fcntl sealing constants and is not a substitute
+for the system Python used by these Linux tests.
+
+A fresh real native acceptance harness invocation was attempted against a new
+scratch root with the provisioned public binary, protected native source, and
+strace. It **refused before creation** with `unsafe native artifact ancestor`:
+`/home/clawd/.hermes/cache` is mode `0775`. No ancestor permissions were changed,
+no admission guard was mocked, and no alternate live/default/pilot profile was
+used. The previously recorded native acceptance above remains historical; this
+attempt is not a new native PASS. A new fully admitted harness run requires an
+operator-approved protected short location outside this task's scratch boundary.
+
+External local receipts are `arvyx-ci-failure-inventory.json`,
+`arvyx-ci-long-red.log`, and `arvyx-ci-targeted-green.log` in the designated scratch
+directory. Windows execution and the full hosted matrix remain unverified until
+the parent reviews/publishes and authorized GitHub CI runs. No full local CI,
+commit, push, workflow dispatch, live service change, provider call, or paid call
+was performed. Release remains HOLD.
+
 Native references: [Hermes sessions](https://hermes-agent.nousresearch.com/docs/user-guide/sessions)
 and [isolated profiles](https://hermes-agent.nousresearch.com/docs/user-guide/profiles).
 The attested writer/setup API contract is witnessed in the selected installed

@@ -91,7 +91,11 @@ def test_main_rejects_history_only_terminal_without_creating_onboarding_state(hi
     monkeypatch.setattr('builtins.input',lambda _:pytest.fail('must reject before prompting or launching'))
     state = tmp_path/'unused-state'
     assert main(['terminal','--hermes-home',str(history.home),'--state-dir',str(state)]) == 2
-    assert 'existing native mouse frontend' in capsys.readouterr().err
+    diagnostic = capsys.readouterr().err
+    assert 'No existing native frontend was supplied' in diagnostic
+    assert '--native-owner' in diagnostic and '--frontend-home' in diagnostic
+    assert 'first-session' in diagnostic and 'docs/native-first-session.md' in diagnostic
+    assert 'No provider or owner was started' in diagnostic
     assert not state.exists()
 
 

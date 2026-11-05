@@ -23,7 +23,8 @@ def test_blank_profile_cannot_initialize_owner_new_protocol(tmp_path):
     workspace.mkdir()
     binary = tmp_path / 'hermes'
     binary.write_text('#!/bin/sh\nexit 99\n')
-    binary.chmod(0o700)
+    from arvyx_control import private_paths
+    private_paths.make_private(path=binary, mode=0o700)
     # NativeRuntime requires an existing metadata store before plan_new can run.
     with pytest.raises(FileNotFoundError):
         NativeRuntime(tool='hermes', executable=binary, home=profile,
@@ -39,12 +40,37 @@ def test_empty_placeholder_database_is_not_a_bootstrap(tmp_path):
     workspace.mkdir()
     binary = tmp_path / 'hermes'
     binary.write_text('#!/bin/sh\nexit 99\n')
-    binary.chmod(0o700)
+    from arvyx_control import private_paths
+    private_paths.make_private(path=binary, mode=0o700)
     runtime = NativeRuntime(tool='hermes', executable=binary, home=profile,
                             store=profile / 'state.db', new_protocol='hermes-titled-create-v1')
     # Native planning is read-only: it must not invent the Hermes schema.
     with pytest.raises(sqlite3.OperationalError, match='no such table: sessions'):
         runtime.plan_new('arvyx-new-' + 'a' * 32, workspace)
+
+
+@pytest.mark.parametrize('allowed', [False, True])
+def test_runtime_executable_uses_platform_write_policy(tmp_path, monkeypatch, allowed):
+    """Mode bits are not Windows ACLs; use the shared platform policy."""
+    import sys
+    from pathlib import Path
+    from arvyx_control import private_paths
+    home = tmp_path / 'profile'
+    home.mkdir(mode=0o700)
+    (home / 'state.db').touch(mode=0o600)
+    executable = Path(sys.executable).resolve()
+    checked = Mock(return_value=allowed)
+    monkeypatch.setattr(private_paths, 'not_writable_by_others', checked)
+    def construct():
+        return NativeRuntime(tool='hermes', executable=executable, home=home,
+                             store=home / 'state.db')
+    if allowed:
+        assert construct().executable == executable
+    else:
+        with pytest.raises(ValueError, match='native executable/home references'):
+            construct()
+    checked.assert_called_once()
+    assert checked.call_args.kwargs['path'] == executable
 
 
 def test_direct_native_new_is_not_exposed(capsys):

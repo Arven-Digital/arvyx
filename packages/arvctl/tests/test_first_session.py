@@ -72,8 +72,19 @@ def short_fixture(tmp_path, monkeypatch):
     """Fixture ancestry only: never label this mocked admission native evidence."""
     import tempfile
     from arvyx_control import first_session as module
-    with tempfile.TemporaryDirectory(prefix='fs-', dir=os.environ.get('TMPDIR')) as directory:
+    # Reproduce the hosted runner's long, owner-only TMPDIR on every run.
+    private_tmp = tmp_path / 'arvyx-private-tmp-with-a-long-ci-prefix'
+    private_tmp.mkdir(mode=0o700)
+    monkeypatch.setenv('TMPDIR', str(private_tmp))
+    # Socket fixtures need a separate explicit short base, not the runner's
+    # potentially unbounded TMPDIR. mkdtemp creates only our owner-only tree;
+    # never chmod a shared ancestor. Local operators can keep it in scratch.
+    base = Path(os.environ.get('ARVYX_TEST_SOCKET_TMPDIR', Path.home()))
+    with tempfile.TemporaryDirectory(prefix='fs-', dir=base) as directory:
         root = Path(directory)
+        assert root.stat().st_mode & 0o777 == 0o700
+        assert len(os.fsencode(root/'existing/frontend/.config/herdr/sessions/amc/herdr.sock')) < 104, (
+            'Set ARVYX_TEST_SOCKET_TMPDIR to an existing short private test base')
         monkeypatch.setattr(module, 'open_native_directory', lambda p: os.open(p, os.O_DIRECTORY | os.O_NOFOLLOW))
         monkeypatch.setattr(module.os, 'isatty', lambda fd: True)
         monkeypatch.setattr(module, 'terminal_preflight', lambda: None)
@@ -83,6 +94,36 @@ def short_fixture(tmp_path, monkeypatch):
         (source/'hermes_cli/main.py').touch()
         (source/'hermes_state_registry.py').touch()
         yield root, source
+
+
+def test_short_fixture_preserves_real_socket_budget_under_long_private_tmpdir(short_fixture):
+    import socket
+    from arvyx_control.first_session import first_session
+    root, source = short_fixture
+    long_root = Path(os.environ['TMPDIR']) / 'fresh'
+    suffix = 'frontend/.config/herdr/sessions/amc/herdr.sock'
+    assert len(os.fsencode(long_root / suffix)) >= 104
+    assert Path(os.environ['TMPDIR']).stat().st_mode & 0o777 == 0o700
+    # The production preflight must still reject a real over-budget root.
+    with pytest.raises(ValueError, match='too long for private native sockets'):
+        first_session(long_root, **fixture_arguments(root, source))
+    assert not long_root.exists()
+    assert root.stat().st_mode & 0o777 == 0o700
+    assert not root.is_symlink()
+    endpoint = root / 'fresh' / suffix
+    assert len(os.fsencode(endpoint)) < 104
+    endpoint.parent.mkdir(parents=True, mode=0o700)
+    # Exercise AF_UNIX itself, not only a length assertion or a mocked bind.
+    with socket.socket(socket.AF_UNIX) as server:
+        server.bind(str(endpoint))
+        server.listen(1)
+        with socket.socket(socket.AF_UNIX) as client:
+            client.connect(str(endpoint))
+            peer, _ = server.accept()
+            with peer:
+                client.sendall(b'private-fixture')
+                assert peer.recv(32) == b'private-fixture'
+    endpoint.unlink()
 
 
 def fixture_arguments(root, source):
