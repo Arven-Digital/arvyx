@@ -93,7 +93,7 @@ class ArvyxFrontendTests(unittest.TestCase):
                                           'root_pane': {'pane_id': 'p' + str(len(commands))}}}).encode()
         def request(home, operation, **kwargs):
             return {'list': sessions, 'snapshot': {'host': 'east'}, 'native': None}[operation]
-        with tempfile.TemporaryDirectory() as directory:
+        with tempfile.TemporaryDirectory() as directory, patch('os.isatty', return_value=True):
             home = Path(directory)
             frontend = home / 'frontend'
             data = b'approved fixture bytes, never executed'
@@ -248,7 +248,7 @@ class ArvyxFrontendTests(unittest.TestCase):
         sessions = [{'id': 's', 'name': 'S', 'project': 'P', 'task': 'T'}]
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
-            with patch('arvyx_control.cockpit_client.request', side_effect=[sessions, {'host': 'local'}]):
+            with patch('os.isatty', return_value=True), patch('arvyx_control.cockpit_client.request', side_effect=[sessions, {'host': 'local'}]):
                 with self.assertRaisesRegex(OSError, 'spawn failed'):
                     _open_frontend(home, home / 'frontend', native)
             self.assertTrue(native.invoke.call_args.kwargs['stdout'].closed)

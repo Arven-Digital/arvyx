@@ -209,6 +209,8 @@ def _open_frontend(home: Path, frontend_home: Path, native):
     persistence, plugins, SSH endpoints, automatic restart or configuration.
     """
     from .cockpit_client import request
+    if not os.isatty(0) or not os.isatty(1):
+        raise ValueError('interactive terminal required; use ssh -t')
     digest = native.digest
     sessions = request(home, 'list')
     snapshot = request(home, 'snapshot', actor='operator')

@@ -254,7 +254,17 @@ def main(argv=None):
                                 authorize_default_resume=args.authorize_default_resume,execution_policy=policy,environment=args.execution_mode,root_acknowledged=args.root_risk_acknowledged)
         if args.command == 'terminal':
             if not all((args.native_owner, args.frontend_home, args.arvyx_binary)):
-                raise ValueError('terminal requires --native-owner, --frontend-home and --arvyx-binary for the existing native mouse frontend; history-only numbered menus are not supported')
+                supplied = any((args.native_owner, args.frontend_home, args.arvyx_binary))
+                reason = ('All three exact attach inputs are required' if supplied else
+                          'No existing native frontend was supplied')
+                raise ValueError(reason + ': terminal requires --native-owner, --frontend-home and --arvyx-binary. '
+                    'Terminal remains attach-only; an existing Telegram session is not a native PTY. '
+                    'For read-only metadata from an explicitly selected profile, run '
+                    'arvyx amc --prefix DIRECTORY history --hermes-home PROFILE '
+                    '(source: python -m arvyx_control.onboarding_cli history --hermes-home PROFILE), '
+                    'without launch authorization flags. Metadata does not create a native binding. '
+                    'Fresh native session provisioning is not available in this package; '
+                    'see docs/native-first-session.md. No provider or owner was started')
             from .terminal_sessions import terminal_menu
             onboarding=None
             if args.url:
