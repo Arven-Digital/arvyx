@@ -33,13 +33,29 @@ Attach selects an exact named connection, but honestly reports native attachment
 unavailable rather than fabricating a running session. Session integration belongs
 to the separate session module owner. EOF/errors retain previously confirmed choices.
 
+## Explicit isolated first-session entry
+
+`amc first-session` is separate from the metadata-only menu described above. It
+initializes native Hermes state using the installed writer API, enrolls a clean
+scoped owner, performs owner-managed native New, and attaches an admitted Arvyx
+frontend with exact native/pane binding. Credential-free readiness is labeled
+`setup_required`, never authenticated chat. It needs an absent protected root,
+explicit host execution policy, reviewed executable identity, and controlling-
+terminal confirmation. No existing owner/profile is adopted and no credentials
+or history are copied. See [native-first-session.md](native-first-session.md) for
+the command, boundary, retained-state behavior, and actual PTY/native receipts.
+The P2 follow-up revalidates original consent, ancestry, and execution policy at
+native-init dispatch after publication/fsync. Scoped cleanup verifies retained
+child handles; unresolved cleanup is nonzero with `owner_status=cleanup_failed`
+and explicit receipt details, never successful closure or PID-file signaling.
+
 ## Deliberate unavailable paths
 
 `amc -confirm CODE` exits 2 before opening any state. Machine pairing primitives
 alone cannot prove remote private-key possession, perform a network handshake or
 obtain separate main-instance confirmation. The CLI does not convert metadata-only
 PairingStore approval into a successful remote connection. Manual custom-location
-and remote adapter setup, native profile setup/launch, identity-copy approval UI,
+and remote adapter setup, general cold-profile setup/launch from this metadata menu, identity-copy approval UI,
 provider-auth reuse, execution privilege choice and web parity remain unimplemented.
 Organizer persistence is local provisioning only, not remote/root execution authority.
 

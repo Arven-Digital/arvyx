@@ -117,9 +117,9 @@ class ExactPaneFocusTests(unittest.TestCase):
 
 @unittest.skipUnless(os.name == 'posix', 'the PTY owner fixture (host-environment natives) is POSIX-only')
 class AttachCleanupTests(unittest.TestCase):
-    def run_open(self, attach_status=0, *, attach_error=None, cleanup_errors=False):
+    def run_open(self, attach_status=0, *, attach_error=None, cleanup_errors=False, preserve_on_detach=True):
         events = []
-        server = Mock()
+        server = Mock(pid=706)
         watcher = Mock(pid=707)
         native = Mock(digest='fixture-digest', fd=707)
         if cleanup_errors:
@@ -155,7 +155,8 @@ class AttachCleanupTests(unittest.TestCase):
                 self.fail(f'unexpected native command: {args}')
             native.invoke.side_effect = invoke
             sessions = [{'id': 's', 'name': 'S', 'project': 'P', 'task': 'T'}]
-            with patch('arvyx_control.cockpit_client.request', side_effect=[sessions, {'host': 'local'}, None]), \
+            with patch.object(frontend.os, 'isatty', return_value=True), \
+                    patch('arvyx_control.cockpit_client.request', side_effect=[sessions, {'host': 'local'}, None]), \
                     patch.object(frontend.subprocess, 'Popen', return_value=watcher) as spawn:
                 if attach_error is not None:
                     with self.assertRaises(type(attach_error)) as raised:
@@ -163,7 +164,7 @@ class AttachCleanupTests(unittest.TestCase):
                     self.assertIs(raised.exception, attach_error)
                     result = None
                 else:
-                    result = frontend._open_frontend(home, isolated, native)
+                    result = frontend._open_frontend(home, isolated, native, preserve_on_detach=preserve_on_detach)
                 spawn.assert_called_once()
                 self.assertEqual(spawn.call_args.kwargs['pass_fds'], (707,))
                 self.assertIn('--native-fd', spawn.call_args.args[0])
@@ -205,6 +206,10 @@ class AttachCleanupTests(unittest.TestCase):
         watcher.kill.assert_called_once_with()
         self.assertEqual(watcher.wait.call_count, 2)
         self.assertEqual(events[-1], ('--session', 'amc', 'server', 'stop'))
+
+    def test_successful_detach_cannot_hide_unresolved_owned_cleanup(self):
+        with self.assertRaisesRegex(ValueError, 'owned frontend cleanup unresolved'):
+            self.run_open(0, cleanup_errors=True, preserve_on_detach=False)
 
     def test_07_02_cleanup_errors_do_not_replace_attach_exception(self):
         self.run_open(attach_error=OSError('original attach error'), cleanup_errors=True)

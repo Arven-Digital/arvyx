@@ -201,7 +201,32 @@ def open_frontend(home: Path, frontend_home: Path, binary: Path):
         return _open_frontend(home, frontend_home, native)
 
 
-def _open_frontend(home: Path, frontend_home: Path, native):
+def cleanup_owned_frontend(process, watcher, native, environment) -> dict:
+    """Reap only retained Popen children; persisted PID files are never authority."""
+    unresolved = []
+    for name, child in (('watcher', watcher), ('server', process)):
+        if child is None:
+            continue
+        try:
+            if name == 'server':
+                try:
+                    native.invoke(subprocess.run, ['--session', 'amc', 'server', 'stop'],
+                                  env=environment, timeout=10, capture_output=True, check=True)
+                except (OSError, subprocess.SubprocessError):
+                    child.terminate()
+            else:
+                child.terminate()
+            child.wait(timeout=10)
+        except (OSError, subprocess.SubprocessError):
+            try:
+                child.kill()
+                child.wait(timeout=10)
+            except (OSError, subprocess.SubprocessError):
+                unresolved.append(name)
+    return dict(verified=not unresolved, unresolved=unresolved)
+
+
+def _open_frontend(home: Path, frontend_home: Path, native, *, preserve_on_detach=True, on_bound=None, native_attachment=None, cleanup_report=None):
     """Explicitly attach existing AMC sessions through the actual released UI.
 
     No provider/process start, task creation, native-session inference or lease
@@ -209,6 +234,8 @@ def _open_frontend(home: Path, frontend_home: Path, native):
     persistence, plugins, SSH endpoints, automatic restart or configuration.
     """
     from .cockpit_client import request
+    if not os.isatty(0) or not os.isatty(1):
+        raise ValueError('interactive terminal required; use ssh -t')
     digest = native.digest
     sessions = request(home, 'list')
     snapshot = request(home, 'snapshot', actor='operator')
@@ -251,6 +278,12 @@ def _open_frontend(home: Path, frontend_home: Path, native):
                 result = command('tab', 'create', '--workspace', workspaces[project], '--cwd', str(home), '--label', item['name'], '--no-focus')['result']
             pane = result['root_pane']['pane_id']
             argv = [sys.executable, '-m', 'arvyx_control.cockpit_arvyx', '--home', str(home), '--sid', item['sid']]
+            if native_attachment is not None:
+                if native_attachment['proof']['owner_session'] != item['sid']:
+                    raise ValueError('exact first-session bridge required')
+                argv += ['--native-proof', json.dumps(native_attachment['proof']),
+                         '--native-target', json.dumps(native_attachment['target']),
+                         '--native-consent-expires', str(native_attachment['expires'])]
             command('pane', 'run', pane, shlex.join(argv))
             identity = request(home, 'native', sid=item['sid'], actor='operator')
             if identity is not None:
@@ -267,32 +300,31 @@ def _open_frontend(home: Path, frontend_home: Path, native):
             bindings.append(item | {'pane': pane})
         binding_file = frontend_home / 'bindings.json'
         binding_file.write_text(json.dumps({'authority_home': str(home), 'binary_sha256': digest, 'bindings': bindings}, indent=2) + '\n')
+        if on_bound is not None:
+            on_bound(binding_file, native, environment)
         watcher = subprocess.Popen([sys.executable, '-m', 'arvyx_control.cockpit_arvyx', '--home', str(home), '--watch-bindings', str(binding_file), '--native-fd', str(native.fd)], pass_fds=(native.fd,), env=environment, stdout=log, stderr=log, start_new_session=True)
         (frontend_home / 'focus-watcher.pid').write_text(str(watcher.pid) + '\n', newline="\n")
+        if not preserve_on_detach:
+            (frontend_home / 'processes.json').write_text(json.dumps(dict(server=process.pid, watcher=watcher.pid))+'\n')
         attach_status = native.invoke(subprocess.call, ['session', 'attach', 'amc'], env=environment)
         return attach_status
     finally:
         # A failed attach/setup must not leave a focus writer running. Preserve
         # both exceptions and nonzero exit statuses if best-effort shutdown fails.
         # Only a successful detach deliberately preserves the server and watcher.
-        if attach_status != 0:
-            if watcher is not None:
-                try:
-                    watcher.terminate()
-                    watcher.wait(timeout=10)
-                except (OSError, subprocess.SubprocessError):
-                    try:
-                        watcher.kill()
-                        watcher.wait(timeout=10)
-                    except (OSError, subprocess.SubprocessError):
-                        pass
-            if process is not None:
-                try:
-                    native.invoke(subprocess.run, ['--session', 'amc', 'server', 'stop'], env=environment, timeout=10, capture_output=True)
-                    process.wait(timeout=10)
-                except (OSError, subprocess.SubprocessError):
-                    pass
-        log.close()
+        active_error = sys.exc_info()[0] is not None
+        report = None
+        try:
+            if attach_status != 0 or not preserve_on_detach:
+                report = cleanup_owned_frontend(process, watcher, native, environment)
+                if cleanup_report is not None:
+                    cleanup_report.update(report)
+        finally:
+            log.close()
+        if report is not None and not report['verified']:
+            print('Owned frontend cleanup unresolved: '+', '.join(report['unresolved']), file=sys.stderr)
+            if not active_error and attach_status in (None, 0):
+                raise ValueError('owned frontend cleanup unresolved; retained state at '+str(frontend_home))
 
 
 def main():

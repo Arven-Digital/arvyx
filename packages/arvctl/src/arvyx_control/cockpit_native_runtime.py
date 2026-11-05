@@ -24,7 +24,7 @@ class NativeRuntime:
         if tool not in {'claude', 'codex', 'hermes', 'gemini'}:
             raise ValueError('explicit supported native tool required')
         self.tool = tool
-        if new_protocol is not None and (tool!='hermes' or new_protocol!='hermes-titled-create-v1'):
+        if new_protocol is not None and (tool!='hermes' or new_protocol not in ('hermes-titled-create-v1', 'hermes-isolated-setup-v1')):
             raise ValueError('unsupported explicitly attested native New protocol')
         self.new_protocol=new_protocol
         from .hermes_profile import HermesProfile
@@ -33,7 +33,7 @@ class NativeRuntime:
         self.home = Path(home).resolve(strict=True)
         self.store = Path(store).resolve(strict=True)
         if (not self.home.is_dir() or not self.executable.is_file() or not os.access(self.executable, os.X_OK)
-                or self.executable.stat().st_mode & 0o022):
+                or not private_paths.not_writable_by_others(self.executable.stat(), path=self.executable)):
             raise ValueError('native executable/home references invalid or writable by others')
         if not self.store.is_relative_to(self.home):
             raise ValueError('native metadata store must belong to explicitly approved home')

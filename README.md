@@ -247,6 +247,15 @@ To rebuild it yourself, follow `frontends/arvyx/receipts/onboarding-v1-linux-x86
 and `scripts/build_arvyx_native.py`. Other platforms report the native frontend
 as unavailable rather than falling back.
 
+For a fresh isolated Hermes native session, use the explicit
+[`amc first-session` setup flow](docs/native-first-session.md). It requires a
+reviewed native Python executable, trusted Hermes API dependencies, an admitted
+frontend, an unprivileged host execution policy, and controlling-terminal
+confirmation. The native setup surface is honestly labeled `setup_required`;
+it does not copy another profile's identity/auth/history or send a provider
+message. The foreground bootstrap retains all state on detach or failure.
+`amc terminal` remains attach-only for an already verified live owner/frontend.
+
 ## Security posture
 
 - Local-first: the API and the control room bind to 127.0.0.1; remote access is
