@@ -574,7 +574,7 @@ class LocalCockpit:
     @staticmethod
     def _native_new_identity(runtime,workspace):
         argv,_=runtime.plan_new('arvyx-new-'+'0'*32,workspace)
-        return dict(argv=argv,executable_sha256=hashlib.sha256(runtime.executable.read_bytes()).hexdigest(),
+        return dict(argv=argv,executable_sha256=(runtime.executable_digest if getattr(runtime, 'setup_only', False) else hashlib.sha256(runtime.executable.read_bytes()).hexdigest()),
                     protocol=runtime.new_protocol,profile=str(runtime.home),
                     profile_identity=list(runtime.profile.identity),home_identity=list(runtime.profile.home_identity))
 
@@ -598,7 +598,7 @@ class LocalCockpit:
                 ('sandbox',policy.sandbox_launcher is not None and policy.sandbox_fd_protocol=='arvyx-directory-fd-v1' and not private_paths.is_root()),
                 ('host',policy.allow_host and private_paths.effective_user()==policy.host_uid and not private_paths.is_root()),
                 ('root',policy.allow_root and private_paths.is_root())) if available])
-        current['native_protocols']=[name for name,runtime in self.native_runtimes.items() if getattr(runtime,'new_protocol',None)=='hermes-titled-create-v1']
+        current['native_protocols']=[name for name,runtime in self.native_runtimes.items() if getattr(runtime,'new_protocol',None) in ('hermes-titled-create-v1', 'hermes-isolated-setup-v1')]
         return current
 
     @owner_entry
@@ -699,7 +699,7 @@ class LocalCockpit:
                 plan=dict(owner=current,**asdict(self.execution_policy.plan(environment,workspace,root_acknowledged=root_acknowledged)))
                 if harness=='hermes':
                     runtime=self.native_runtimes.get('hermes')
-                    if runtime is None or type(target) is not dict or str(runtime.home)!=target.get('workspace_id') or provider_start_acknowledged is not True or environment!='host':
+                    if runtime is None or type(target) is not dict or str(runtime.home)!=target.get('workspace_id') or (provider_start_acknowledged is not True and not getattr(runtime, 'setup_only', False)) or environment!='host':
                         raise PermissionError('configured exact Hermes host producer and provider-start acknowledgement required')
                     plan['native']=self._native_new_identity(runtime,workspace)
                 elif harness!='shell':raise PermissionError('unsupported native producer')
@@ -736,7 +736,7 @@ class LocalCockpit:
             runtime=None;conversation=None
             if harness=='hermes':
                 runtime=self.native_runtimes.get('hermes')
-                if runtime is None or str(runtime.home)!=target['workspace_id'] or provider_start_acknowledged is not True or environment!='host':
+                if runtime is None or str(runtime.home)!=target['workspace_id'] or (provider_start_acknowledged is not True and not getattr(runtime, 'setup_only', False)) or environment!='host':
                     raise PermissionError('explicit configured Hermes producer and provider launch acknowledgement required')
                 conversation='arvyx-new-'+attempt
                 argv,native_environment=runtime.plan_new(conversation,workspace)
@@ -778,7 +778,7 @@ class LocalCockpit:
             if runtime is not None:argv,native_environment=runtime.plan_new(conversation,workspace)
             self._start(sid,actor=actor,argv=argv,environment=native_environment if runtime is not None else plan.environment,
                         expected_native=native_binding,workspace_fd=workspace_fd,admission=admission,
-                        **({} if plan.mode!='sandbox' else dict(inherited_fds=(workspace_fd,))),
+                        inherited_fds=((workspace_fd,) if plan.mode=='sandbox' else ()) + (runtime.execution_fds if runtime is not None and getattr(runtime, 'setup_only', False) else ()),
                         consent_expires_at=consent_expires_at,
                         **({} if effect_guard is None else dict(effect_guard=effect_guard)))
         with self.lock:
@@ -789,7 +789,8 @@ class LocalCockpit:
                 self.db.execute('UPDATE native_bindings SET conversation=? WHERE session=?',(conversation,sid));self.db.commit()
             return dict(owner_session=sid,conversation=conversation or sid,tool=harness,owner_incarnation=self.incarnation,
                         process_generation=self.live[sid]['process_generation'],
-                        epoch=epoch,native_session_created=True,environment=environment,status='running')
+                        epoch=epoch,native_session_created=True,environment=environment,status='running',
+                        **(dict(setup_required=True) if runtime is not None and getattr(runtime, 'setup_only', False) else {}))
 
     @owner_entry
     def open_organizer(self, agent=None, *, actor):

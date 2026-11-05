@@ -125,7 +125,8 @@ class HermesProfile:
                     continue
                 values = (entry/'environ').read_bytes().split(b'\0')
                 scoped = next((v.split(b'=',1)[1] for v in values if v.startswith(b'HERMES_HOME=')), None)
-                if scoped == marker:
+                native_scoped = next((v.split(b'=',1)[1] for v in values if v.startswith(b'ARVYX_NATIVE_PROFILE=')), None)
+                if scoped == marker or native_scoped == marker:
                     raise RoutingError('profile already has a live process; use existing attachment instead')
                 if self.home == default:
                     command = (entry/'cmdline').read_bytes().lower()

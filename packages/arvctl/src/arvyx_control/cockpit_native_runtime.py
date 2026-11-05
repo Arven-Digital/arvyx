@@ -24,7 +24,7 @@ class NativeRuntime:
         if tool not in {'claude', 'codex', 'hermes', 'gemini'}:
             raise ValueError('explicit supported native tool required')
         self.tool = tool
-        if new_protocol is not None and (tool!='hermes' or new_protocol!='hermes-titled-create-v1'):
+        if new_protocol is not None and (tool!='hermes' or new_protocol not in ('hermes-titled-create-v1', 'hermes-isolated-setup-v1')):
             raise ValueError('unsupported explicitly attested native New protocol')
         self.new_protocol=new_protocol
         from .hermes_profile import HermesProfile

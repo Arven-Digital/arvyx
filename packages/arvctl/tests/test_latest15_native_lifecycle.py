@@ -55,7 +55,8 @@ def test_profile_wide_reservation_shared_between_history_and_configured(profile,
 
 
 @pytest.mark.parametrize('unreadable', [False, True])
-def test_external_profile_writer_or_unknown_liveness_refuses(tmp_path, monkeypatch, unreadable):
+@pytest.mark.parametrize('scope_variable', ['HERMES_HOME', 'ARVYX_NATIVE_PROFILE'])
+def test_external_profile_writer_or_unknown_liveness_refuses(tmp_path, monkeypatch, unreadable, scope_variable):
     import arvyx_control.hermes_profile as module
     home = tmp_path/'profile'
     home.mkdir(mode=0o700)
@@ -64,7 +65,7 @@ def test_external_profile_writer_or_unknown_liveness_refuses(tmp_path, monkeypat
     proc.mkdir()
     entry = proc/str(os.getpid()+100000)
     entry.mkdir()
-    (entry/'environ').write_bytes(b'HERMES_HOME='+os.fsencode(home)+b'\0')
+    (entry/'environ').write_bytes(scope_variable.encode()+b'='+os.fsencode(home)+b'\0')
     original_read = Path.read_bytes
     if unreadable:
         def read(path):

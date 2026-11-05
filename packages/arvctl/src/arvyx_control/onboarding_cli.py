@@ -1,6 +1,6 @@
 """Owner-operated onboarding and explicit local terminal routing.
 
-Onboarding alone never launches a runtime. Terminal history is read-only; native
+Metadata onboarding alone never launches a runtime. Terminal history is read-only; native
 startup requires explicit launch approval, workspace and profile safeguards.
 The private state directory is the local trust boundary; never expose this API to
 untrusted request payloads. Organizer assignment is a local provisioning action.
@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+import subprocess
 import sys
 import unicodedata
 import uuid
@@ -221,7 +222,11 @@ def main(argv=None):
     parser.add_argument('--execution-mode',choices=('sandbox','host','root'),help='Explicit effective launch mode; sandbox native profile currently refuses')
     parser.add_argument('--root-risk-acknowledged',action='store_true',help='Explicit administrator risk acknowledgement for root history launch')
     parser.add_argument('--authorize-default-resume', action='store_true', help='separately authorize default-profile cold resume; still requires native launch authorization, idle profile and exact RESUME confirmation')
-    parser.add_argument('command', nargs='?', choices=('explore','onboard', 'status', 'terminal', 'setup', 'history', 'migrate-organizer'), default='onboard')
+    parser.add_argument('--first-session-root', type=Path, help='Absent private isolated first-session root; never an existing profile')
+    parser.add_argument('--hermes-python', type=Path, help='Explicit native ELF Python for the installed Hermes API')
+    parser.add_argument('--hermes-source', type=Path, help='Explicit trusted installed Hermes source/dependency directory')
+    parser.add_argument('--python-sha256', help='Explicit reviewed Python executable digest (dependency closure remains trusted)')
+    parser.add_argument('command', nargs='?', choices=('explore','onboard', 'status', 'terminal', 'setup', 'history', 'first-session', 'migrate-organizer'), default='onboard')
     args = parser.parse_args(argv)
     if args.confirm is not None:
         if not args.url or not args.name:
@@ -231,6 +236,31 @@ def main(argv=None):
                              '--url', args.url, '--name', args.name])
     store = None
     try:
+        if args.command == 'first-session':
+            if not os.isatty(0) or not os.isatty(1):
+                raise ValueError('interactive terminal required; use ssh -t')
+            if not all((args.first_session_root, args.hermes_python, args.hermes_source,
+                        args.python_sha256, args.arvyx_binary, args.execution_policy)):
+                raise ValueError('first-session requires --first-session-root --hermes-python --hermes-source --python-sha256 --arvyx-binary --execution-policy and --execution-mode host')
+            if (args.execution_mode != 'host' or any((args.native_owner, args.frontend_home, args.hermes_home,
+                    args.workspace, args.new_hermes_profile, args.authorize_native_launch,
+                    args.authorize_default_resume, args.root_risk_acknowledged))):
+                raise ValueError('first-session requires host mode and forbids existing owner/frontend/profile, cold-resume and legacy launch inputs')
+            from .remote_effect_fence import private_config
+            from .local_executor import ExecutionPolicy
+            from .first_session import first_session, terminal_preflight
+            terminal_preflight()
+            policy = ExecutionPolicy(**private_config(args.execution_policy))
+            root = args.first_session_root.absolute()
+            print('Create isolated native setup state at: ' + str(root))
+            print('Trust the selected installed Hermes source/dependencies and sealed Python digest: ' + args.python_sha256)
+            print('No copied identity, provider resolution or initial message. SETUP REQUIRED is not authenticated chat.')
+            print('This foreground owner ends its own processes on detach; all files remain for explicit human setup.')
+            if input('Type NEW ' + str(root) + ' to confirm: ') != 'NEW ' + str(root):
+                raise ValueError('first-session confirmation cancelled; no state created')
+            return first_session(root, python=args.hermes_python, source=args.hermes_source,
+                python_sha256=args.python_sha256, binary=args.arvyx_binary, policy=policy,
+                environment=args.execution_mode, confirmed=True)
         if args.command=='explore':
             print('Arvyx | Explore before enrollment. Organizer setup can be skipped. No owner or provider is started.')
             print('When ready, explicitly enroll a new machine home with python3 -m arvyx_control.machine_enrollment. Existing pilot state is never adopted automatically.')
@@ -263,7 +293,7 @@ def main(argv=None):
                     'arvyx amc --prefix DIRECTORY history --hermes-home PROFILE '
                     '(source: python -m arvyx_control.onboarding_cli history --hermes-home PROFILE), '
                     'without launch authorization flags. Metadata does not create a native binding. '
-                    'Fresh native session provisioning is not available in this package; '
+                    'For explicit isolated native setup use first-session; '
                     'see docs/native-first-session.md. No provider or owner was started')
             from .terminal_sessions import terminal_menu
             onboarding=None
@@ -285,7 +315,7 @@ def main(argv=None):
         else:
             menu(store, args.home)
         return 0
-    except (ValueError, OSError, sqlite3.Error, EOFError, KeyboardInterrupt) as exc:
+    except (ValueError, OSError, sqlite3.Error, EOFError, KeyboardInterrupt, subprocess.SubprocessError) as exc:
         print(f'Onboarding stopped: {exc}. Prior explicit choices remain saved.', file=sys.stderr)
         return 2
     finally:
