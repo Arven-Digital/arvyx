@@ -1,0 +1,8 @@
+{
+  "scope": "Exact upstream checkout plus unchanged overlay; patch application and module wiring only, not compilation",
+  "result": {
+    "output": "Validated clean source: ee5bfb5041bb3e4a49d591c72308aae3c81ecdde\nCOMMAND: ['git', 'apply', '--check', '/home/clawd/.hermes/cache/scratch/arvyx-herdr-upstream-candidate/frontends/arvyx/amc-native-mouse.patch']\nCOMMAND: ['patch', '--batch', '--forward', '--dry-run', '-p1', '-i', '/home/clawd/.hermes/cache/scratch/arvyx-herdr-upstream-candidate/frontends/arvyx/amc-native-mouse.patch']\nchecking file src/client/shell.rs\nchecking file src/client/shell/composition.rs\nchecking file src/client/shell/input.rs\nchecking file src/client/shell/mouse.rs\nchecking file src/client/shell/state.rs\nCOMMAND: ['patch', '--batch', '--forward', '-p1', '-i', '/home/clawd/.hermes/cache/scratch/arvyx-herdr-upstream-candidate/frontends/arvyx/amc-native-mouse.patch']\npatching file src/client/shell.rs\npatching file src/client/shell/composition.rs\npatching file src/client/shell/input.rs\npatching file src/client/shell/mouse.rs\npatching file src/client/shell/state.rs\nModule wiring assertions: PASS\n{\n  \"overlay_sha256\": {\n    \"amc_session_rpc.rs\": \"8a500e8a8458c88dbe5c63981531ef96f4bbed3489120b032b0cc1c5526e9da5\",\n    \"amc-native-mouse.patch\": \"c0bb34fbd0573fa13bf7ec53bf4bba0ec0de6d6d5c8481721bce647529697d4f\",\n    \"amc_sessions.rs\": \"f576ff315db0c0ca42df314a752be3d41623c36b36e32201973d54d1b26203f6\"\n  },\n  \"prepared_source_sha256\": \"c5dbddf160452e36c22a084f6d167a335dbfbeea32503fbab1e1adf66d326ec5\"\n}\nZig on PATH: None",
+    "exit_code": 0,
+    "error": null
+  }
+}

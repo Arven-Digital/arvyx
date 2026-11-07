@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "status": "source-candidate-not-admitted",
+  "upstream": {
+    "repository": "https://github.com/herdrdev/herdr",
+    "commit": "ee5bfb5041bb3e4a49d591c72308aae3c81ecdde",
+    "license": "Apache-2.0 (licenses/Herdr-Apache-2.0.txt)"
+  },
+  "previous_upstream_commit": "5bd900d88c80d95f5b145397e45bbeea398b8165",
+  "runtime_acceptance": false,
+  "release_approved": false,
+  "admission_policy": "Existing artifact digests and receipts remain authoritative. This source target does not admit any new binary."
+}

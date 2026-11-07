@@ -243,9 +243,13 @@ arvyx setup --prefix ~/.arvyx-venv --native-binary ./arvyx-linux-x86_64 \
   --native-receipt ./onboarding-v1-linux-x86_64.json --native-capability onboarding-v1
 ```
 
-To rebuild it yourself, follow `frontends/arvyx/receipts/onboarding-v1-linux-x86_64.json`
-and `scripts/build_arvyx_native.py`. Other platforms report the native frontend
-as unavailable rather than falling back.
+To reproduce the admitted artifact, use the source revision, overlay and builder
+from its historical receipt `frontends/arvyx/receipts/onboarding-v1-linux-x86_64.json`.
+The current `scripts/build_arvyx_native.py` instead targets the explicitly pinned,
+**not yet admitted** [Herdr source candidate](docs/herdr-upstream-candidate.md).
+A candidate build is not an installable replacement until rebuilt and accepted;
+existing runtime digests remain unchanged. Other platforms report the native
+frontend as unavailable rather than falling back.
 
 For a fresh isolated Hermes native session, use the explicit
 [`amc first-session` setup flow](docs/native-first-session.md). It requires a
