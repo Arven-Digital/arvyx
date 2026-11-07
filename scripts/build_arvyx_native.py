@@ -18,6 +18,25 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def validate_source_candidate(source, candidate):
+    """Require the declared source revision without changing runtime admission."""
+    expected = candidate['upstream']['commit']
+    if not re.fullmatch(r'[0-9a-f]{40}', expected):
+        raise ValueError('invalid candidate source revision')
+    def git(*args):
+        return subprocess.check_output(['git', '-C', str(source), *args], text=True).strip()
+    # Require the supplied directory itself to be the checkout root, not a
+    # subdirectory inheriting an unrelated parent's revision.
+    if Path(git('rev-parse', '--show-toplevel')).resolve() != source.resolve():
+        raise ValueError('source must be the candidate checkout root')
+    actual = git('rev-parse', 'HEAD')
+    if actual != expected:
+        raise ValueError(f'source revision {actual} does not match candidate {expected}')
+    if git('status', '--porcelain', '--untracked-files=all', '--ignored'):
+        raise ValueError('candidate source must be clean, including ignored files')
+    return actual
+
+
 def source_digest(root):
     """Bind relative names, modes and bytes of the copied pre-build source tree."""
     result=hashlib.sha256()
@@ -97,6 +116,10 @@ def main():
         raise ValueError('Rust/Zig tools must belong to attested toolchain roots')
     root=Path(__file__).resolve().parents[1]
     source_input=args.source.resolve(strict=True)
+    candidate_path=root/'frontends/arvyx/candidates/herdr-upstream.json'
+    candidate_bytes=candidate_path.read_bytes()
+    candidate=json.loads(candidate_bytes)
+    validate_source_candidate(source_input,candidate)
     output=args.output.resolve()
     if output.is_relative_to(source_input):
         raise ValueError('output must not equal or descend from source')
@@ -178,7 +201,9 @@ def main():
         raise ValueError('offline registry input changed; artifact is not qualified')
     if build_inputs(args.build_inputs)!=inputs:
         raise ValueError('toolchain/linker/SDK inventory changed during build')
-    manifest=dict(binary=str(binary),binary_sha256=digest(binary),patch_sha256=digest(patch),
+    manifest=dict(upstream=candidate['upstream'],source_candidate_sha256=hashlib.sha256(candidate_bytes).hexdigest(),
+        source_candidate_status=candidate['status'],
+        binary=str(binary),binary_sha256=digest(binary),patch_sha256=digest(patch),
         followup_sha256=digest(followup) if followup.exists() else None,
         cargo_lock_sha256=digest(source/'Cargo.lock'),cargo_version=subprocess.check_output([str(args.cargo),'--version'],env=env,text=True).strip(),
         rustc_version=subprocess.check_output([str(args.rustc),'--version'],env=env,text=True).strip(),
