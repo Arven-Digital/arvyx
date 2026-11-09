@@ -1,2 +1,2 @@
 # Coverage alone, for the aggregate job that combines the shards and enforces the floor.
-coverage==7.17.0
+coverage==7.17.2
