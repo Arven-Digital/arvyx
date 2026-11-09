@@ -16,4 +16,4 @@ colorama==0.4.6
 typing-extensions==4.16.0
 # Parallel test execution and xdist-aware coverage for the hosted suite (dev tooling only).
 pytest-xdist==3.8.0
-pytest-cov==7.0.0
+pytest-cov==7.1.0
